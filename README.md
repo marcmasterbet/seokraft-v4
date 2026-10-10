@@ -50,3 +50,12 @@ Titre contenu dans la colonne texte, photographie rectangulaire séparée, grill
 ## V3.2 — Réalisations authentiques
 
 Les trois images dans public/images/projet-*.webp sont des captures transmises par le propriétaire des projets. LOCA DIRECT a été recadré à partir de la capture originale pour supprimer la rangée annotée et la barre de navigation basse. Aucune image de site générée par IA.
+
+
+## V3.5 — Ajustements visuels
+- Portrait du studio ancré en haut pour éviter de couper le crâne.
+- Texte du studio : « site internet » (déjà présent dans la base V3.4).
+- Captures des réalisations légèrement réduites sur ordinateur.
+- Section sombre des besoins resserrée sur ordinateur.
+- Respiration des paragraphes du premier écran ajustée.
+- Formulaire : route API Resend existante, nécessite les variables RESEND_API_KEY, CONTACT_TO_EMAIL et CONTACT_FROM_EMAIL sur Vercel ; envoi réel non testé.

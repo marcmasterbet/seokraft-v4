@@ -81,3 +81,15 @@
 .portfolio-editorial .project-visit{background:rgba(17,17,15,.82);z-index:2}
 @media(max-width:800px){.portfolio-editorial .project-genesys .portfolio-image-link,.portfolio-editorial .project-loca .portfolio-image-link,.portfolio-editorial .project-genesys .project-meta,.portfolio-editorial .project-loca .project-meta{width:100%;margin-left:0}.portfolio-editorial .project-visit{bottom:10px;right:10px;padding:10px;font-size:9px}.portfolio-editorial{gap:64px}}
 @media(prefers-reduced-motion:reduce){.portfolio-editorial .portfolio-screenshot{transition:none}.portfolio-editorial .portfolio-image-link:hover .portfolio-screenshot{transform:none}}
+
+/* V3.5 — réglages éditoriaux et cadrage, sans changer la direction artistique */
+@media(min-width:801px){
+  .portfolio-editorial{gap:clamp(48px,6vw,95px)}
+  .portfolio-editorial .project-remus .portfolio-image-link{width:90%;margin-inline:auto}
+  .portfolio-editorial .project-genesys .portfolio-image-link{width:75%}
+  .portfolio-editorial .project-loca .portfolio-image-link{width:82%}
+  .intro-scene{padding-top:clamp(80px,8vw,135px);padding-bottom:clamp(80px,8vw,135px)}
+  .hero-copy .hero-question+p{margin-top:18px}
+}
+.human-image img{object-position:center top!important}
+@media(max-width:800px){.human-image img{object-position:center top!important}}
