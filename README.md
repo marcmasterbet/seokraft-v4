@@ -45,3 +45,8 @@ Conception responsive desktop/tablette/mobile, contraste, navigation clavier, `p
 
 ## V3.1 — correction hero
 Titre contenu dans la colonne texte, photographie rectangulaire séparée, grille responsive, suppression du libellé redondant sous le CTA. Textes validés inchangés.
+
+
+## V3.2 — Réalisations authentiques
+
+Les trois images dans public/images/projet-*.webp sont des captures transmises par le propriétaire des projets. LOCA DIRECT a été recadré à partir de la capture originale pour supprimer la rangée annotée et la barre de navigation basse. Aucune image de site générée par IA.
