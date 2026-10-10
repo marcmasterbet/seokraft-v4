@@ -127,3 +127,7 @@
 
 /* Keep the brand punctuation on the same baseline as SEOKRAFT. */
 .brand-name{white-space:nowrap;display:inline-block}.brand-mark{display:inline;white-space:nowrap}
+
+/* Logo : point généré sur la même ligne, sans élément flex séparé. */
+.brand-name::after{content:".";color:var(--olive);display:inline;white-space:nowrap}
+.footer .brand-name::after{color:#b4bda1}
