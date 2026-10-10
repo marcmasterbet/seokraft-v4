@@ -5,29 +5,31 @@
 @media(max-width:480px){.brand-name{font-size:23px}.hero-copy h1{font-size:clamp(45px,11.7vw,60px);letter-spacing:-.06em}.hero-copy>p{max-width:340px}.hero-visual{height:385px}.hero-photo{inset:0 0 25px 8%}.hero-project{width:73%;min-height:132px}.hero-project strong{font-size:21px}.hero-project span{font-size:8px}.hero-bottom span{display:block;margin:8px 0 0}.intro-scene{padding:85px 24px}.intro-scene h2{font-size:38px}.project-art{height:350px}.art-remus{padding:11%}.art-remus-top{font-size:36px}.art-remus-bottom{font-size:20px}.remus-orbit{width:72%;right:-18%;top:16%}.genesys-title{font-size:50px}.genesys-ring{right:-50%;height:95%;top:0;border-width:30px}.loca-window{width:68%;right:-12%}.art-loca>strong{font-size:28px;max-width:60%}.expertise-lines>div{grid-template-columns:1fr 22px;gap:8px}.expertise-lines p{grid-column:1;grid-row:2}.expertise-lines svg{grid-column:2;grid-row:1}.mail-form{padding:21px;box-shadow:8px 9px 0 #e5e1d7}.mail-to{display:none}.mail-fields{grid-template-columns:1fr}.contact-intro h2{font-size:43px}.footer>div{order:3;width:100%}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/* V2.1 — correction ciblée de la composition haute, sans changer la direction artistique */
-@media (min-width: 801px) {
-  .hero { padding-top: 112px; }
-  .hero-top { margin-bottom: 12px; }
-  .hero-layout { align-items: start; }
-  .hero-copy { padding-top: 48px; }
-  .hero-visual { height: min(600px, 62vw); min-height: 470px; }
-  .hero-photo { inset: 0 0 35px 7%; }
-}
-@media (max-width: 800px) {
-  .hero { padding-top: 94px; }
-  .hero-top { margin-bottom: 10px; }
-  .hero-layout { gap: 18px; }
-  .hero-copy { padding-top: 8px; }
-}
 
-/* V2.3 — Hero éditorial : portrait rectangulaire, aucun bloc noir superposé. */
-.hero-visual{margin-left:clamp(0px,2vw,24px);height:clamp(460px,44vw,610px);display:flex;flex-direction:column;gap:17px}
+/* Refonte éditoriale 2026 — accueil, version rédactionnelle issue du mini-audit. */
+.hero{padding-top:112px}
+.hero-top{margin-bottom:20px}
+.hero-layout{align-items:center;gap:clamp(28px,4vw,80px)}
+.hero-copy{padding-top:10px}
+.hero-copy h1{font-size:clamp(48px,4.65vw,76px);line-height:1.08;letter-spacing:-.052em;max-width:720px}
+.hero-copy>p{max-width:520px;line-height:1.7}
+.hero-copy .hero-question{font-weight:600;color:var(--ink);margin-top:24px}
+.hero-copy .hero-question+p{margin-top:12px}
+.hero-bottom{margin-top:32px}
+.hero-visual{margin:0;height:clamp(430px,43vw,590px);display:flex;flex-direction:column;gap:16px;min-width:0}
 .hero-photo{position:relative;inset:auto;width:100%;height:auto;flex:1;min-height:0;overflow:hidden;filter:grayscale(1);border-radius:0}
 .hero-photo:after{display:none}
 .hero-photo-caption,.hero-project{display:none}
-.hero-project-link{display:inline-flex;align-items:center;justify-content:flex-end;gap:12px;align-self:flex-end;color:var(--olive);font-size:12px;font-weight:750;letter-spacing:.015em;text-decoration:none;border-bottom:1px solid currentColor;padding:0 0 8px;transition:gap .2s}
+.hero-project-link{display:inline-flex;align-items:center;justify-content:flex-end;gap:12px;align-self:flex-end;color:var(--olive);font-size:12px;font-weight:700;text-decoration:none;border-bottom:1px solid currentColor;padding:0 0 8px}
 .hero-project-link:hover{gap:18px}
-.hero-copy h1{font-size:clamp(56px,5.7vw,91px)}
-@media(max-width:800px){.hero-visual{height:clamp(400px,72vw,570px);margin:0;gap:14px}.hero-photo{inset:auto}.hero-project-link{font-size:12px}.hero-copy h1{font-size:clamp(50px,9vw,76px)}}
-@media(max-width:480px){.hero-visual{height:400px}.hero-photo{inset:auto}.hero-copy h1{font-size:clamp(44px,11vw,58px)}}
+.intro-scene p{max-width:760px;font-size:clamp(14px,1.25vw,17px);line-height:1.85}
+.intro-scene p+p{margin-top:20px}
+.intro-scene strong{color:var(--ivory)}
+.seo-scene{background:var(--ink);color:var(--ivory);padding:clamp(95px,12vw,160px) 8%;position:relative;overflow:hidden}
+.seo-scene-inner{max-width:1120px;margin:0 auto}
+.seo-scene h2{font-family:Georgia,serif;font-size:clamp(42px,6vw,86px);line-height:1.12;letter-spacing:-.045em;margin:32px 0}
+.seo-scene h2 em{font-weight:400;color:#bec7ac}
+.seo-scene p{max-width:700px;color:#d0d0c9;line-height:1.85;font-size:clamp(15px,1.2vw,18px)}
+.seo-link{color:var(--ivory);display:inline-flex;align-items:center;gap:12px;border-bottom:1px solid #a5ae93;margin-top:28px;padding-bottom:10px;text-decoration:none}
+@media(max-width:800px){.hero{padding-top:94px}.hero-top{margin-bottom:14px}.hero-layout{gap:26px}.hero-copy{padding-top:4px}.hero-copy h1{font-size:clamp(43px,8vw,65px)}.hero-visual{height:clamp(380px,74vw,550px);margin:0}.hero-photo{inset:auto}.hero-copy .hero-question{margin-top:18px}.intro-scene p{font-size:15px}.seo-scene{padding:90px 24px}}
+@media(max-width:480px){.hero-copy h1{font-size:clamp(40px,10.5vw,54px)}.hero-visual{height:380px}.hero-photo{inset:auto}.hero-bottom{margin-top:24px}.seo-scene h2{font-size:clamp(39px,10vw,54px)}}

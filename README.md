@@ -1,6 +1,6 @@
-# SEOKRAFT — Refonte 2026 V2 (reconstruction neuve)
+# SEOKRAFT — Refonte 2026 — accueil V3 (textes alignés sur mini-audit)
 
-Projet Next.js App Router / TypeScript / CSS natif. **Aucun fichier de code repris de la V1**. Seule la photographie originale fournie a été réutilisée.
+Projet Next.js App Router / TypeScript / CSS natif. Base de la V2.3 conservée, avec réécriture des contenus de l’accueil selon le mini-audit du 4 octobre 2026. La photographie originale fournie a été conservée.
 
 ## Déploiement GitHub → Vercel
 
@@ -33,3 +33,11 @@ Le formulaire appelle `/api/contact`. Pour activer les envois, renseigner dans V
 ## Accessibilité et responsive
 
 Conception responsive desktop/tablette/mobile, contraste, navigation clavier, `prefers-reduced-motion`, boutons et formulaire étiquetés.
+
+## Points à vérifier avant publication
+
+- Le build Next.js n’a pas pu être exécuté dans l’environnement de préparation (installation npm indisponible). Le déploiement Vercel doit confirmer la compilation.
+- Contrôler le rendu desktop/tablette/mobile, les vrais liens des réalisations et les offres avant publication.
+- Les illustrations des projets sont des compositions éditoriales, **pas des captures réelles** : remplacer par des captures authentiques dès qu’elles sont disponibles.
+- Aucune section témoignages n’a été ajoutée.
+- Les recommandations de rédaction sont basées sur le mini-audit Jeff Bond du 04/10/2026 (ancienne version du site).
