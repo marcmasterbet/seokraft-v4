@@ -1,0 +1,1 @@
+SEOKRAFT V2.3 : photographie rectangulaire originale, suppression de la superposition noire, lien discret vers les réalisations. Positionnement création de sites internet clarifié dans le hero. Base V2.1 conservée. Déploiement : importer le contenu de ce dossier à la racine GitHub, Framework Next.js sur Vercel. Vérifier le build et le responsive avant publication.

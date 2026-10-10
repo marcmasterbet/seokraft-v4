@@ -20,3 +20,14 @@
   .hero-layout { gap: 18px; }
   .hero-copy { padding-top: 8px; }
 }
+
+/* V2.3 — Hero éditorial : portrait rectangulaire, aucun bloc noir superposé. */
+.hero-visual{margin-left:clamp(0px,2vw,24px);height:clamp(460px,44vw,610px);display:flex;flex-direction:column;gap:17px}
+.hero-photo{position:relative;inset:auto;width:100%;height:auto;flex:1;min-height:0;overflow:hidden;filter:grayscale(1);border-radius:0}
+.hero-photo:after{display:none}
+.hero-photo-caption,.hero-project{display:none}
+.hero-project-link{display:inline-flex;align-items:center;justify-content:flex-end;gap:12px;align-self:flex-end;color:var(--olive);font-size:12px;font-weight:750;letter-spacing:.015em;text-decoration:none;border-bottom:1px solid currentColor;padding:0 0 8px;transition:gap .2s}
+.hero-project-link:hover{gap:18px}
+.hero-copy h1{font-size:clamp(56px,5.7vw,91px)}
+@media(max-width:800px){.hero-visual{height:clamp(400px,72vw,570px);margin:0;gap:14px}.hero-photo{inset:auto}.hero-project-link{font-size:12px}.hero-copy h1{font-size:clamp(50px,9vw,76px)}}
+@media(max-width:480px){.hero-visual{height:400px}.hero-photo{inset:auto}.hero-copy h1{font-size:clamp(44px,11vw,58px)}}
