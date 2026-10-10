@@ -27,8 +27,8 @@
 .intro-scene strong{color:var(--ivory)}
 .seo-scene{background:var(--ink);color:var(--ivory);padding:clamp(95px,12vw,160px) 8%;position:relative;overflow:hidden}
 .seo-scene-inner{max-width:1120px;margin:0 auto}
-.seo-scene h2{font-family:Georgia,serif;font-size:clamp(42px,6vw,86px);line-height:1.12;letter-spacing:-.045em;margin:32px 0}
-.seo-scene h2 em{font-weight:400;color:#bec7ac}
+.seo-scene h2{font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:clamp(42px,6vw,86px);line-height:1.12;letter-spacing:-.055em;margin:32px 0}
+.seo-scene h2 em{font-family:Georgia,serif;font-weight:400;font-style:italic;letter-spacing:-.045em;color:var(--ivory)}
 .seo-scene p{max-width:700px;color:#d0d0c9;line-height:1.85;font-size:clamp(15px,1.2vw,18px)}
 .seo-link{color:var(--ivory);display:inline-flex;align-items:center;gap:12px;border-bottom:1px solid #a5ae93;margin-top:28px;padding-bottom:10px;text-decoration:none}
 @media(max-width:800px){.hero{padding-top:94px}.hero-top{margin-bottom:14px}.hero-layout{gap:26px}.hero-copy{padding-top:4px}.hero-copy h1{font-size:clamp(43px,8vw,65px)}.hero-visual{height:clamp(380px,74vw,550px);margin:0}.hero-photo{inset:auto}.hero-copy .hero-question{margin-top:18px}.intro-scene p{font-size:15px}.seo-scene{padding:90px 24px}}
