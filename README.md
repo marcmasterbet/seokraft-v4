@@ -41,3 +41,7 @@ Conception responsive desktop/tablette/mobile, contraste, navigation clavier, `p
 - Les illustrations des projets sont des compositions éditoriales, **pas des captures réelles** : remplacer par des captures authentiques dès qu’elles sont disponibles.
 - Aucune section témoignages n’a été ajoutée.
 - Les recommandations de rédaction sont basées sur le mini-audit Jeff Bond du 04/10/2026 (ancienne version du site).
+
+
+## V3.1 — correction hero
+Titre contenu dans la colonne texte, photographie rectangulaire séparée, grille responsive, suppression du libellé redondant sous le CTA. Textes validés inchangés.

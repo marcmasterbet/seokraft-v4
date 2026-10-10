@@ -33,3 +33,35 @@
 .seo-link{color:var(--ivory);display:inline-flex;align-items:center;gap:12px;border-bottom:1px solid #a5ae93;margin-top:28px;padding-bottom:10px;text-decoration:none}
 @media(max-width:800px){.hero{padding-top:94px}.hero-top{margin-bottom:14px}.hero-layout{gap:26px}.hero-copy{padding-top:4px}.hero-copy h1{font-size:clamp(43px,8vw,65px)}.hero-visual{height:clamp(380px,74vw,550px);margin:0}.hero-photo{inset:auto}.hero-copy .hero-question{margin-top:18px}.intro-scene p{font-size:15px}.seo-scene{padding:90px 24px}}
 @media(max-width:480px){.hero-copy h1{font-size:clamp(40px,10.5vw,54px)}.hero-visual{height:380px}.hero-photo{inset:auto}.hero-bottom{margin-top:24px}.seo-scene h2{font-size:clamp(39px,10vw,54px)}}
+
+
+/* V3.1 — Hero desktop/tablette/mobile : composition en colonnes sans débordement.
+   Le titre ne chevauche jamais le portrait. */
+.hero{overflow:clip;padding-top:116px}
+.hero-layout{display:grid;grid-template-columns:minmax(0,1.07fr) minmax(0,.93fr);gap:clamp(38px,4.5vw,84px);align-items:center;min-height:0}
+.hero-copy{min-width:0;max-width:none;padding:20px 0}
+.hero-copy h1{font-size:clamp(45px,3.75vw,68px);line-height:1.1;letter-spacing:-.055em;white-space:normal;overflow-wrap:normal;max-width:100%;margin:0 0 30px}
+.hero-copy h1 em{color:var(--olive);font-style:italic}
+.hero-copy>p{max-width:540px}
+.hero-copy .hero-question{margin-top:0}
+.hero-visual{min-width:0;width:100%;height:clamp(440px,38vw,610px);margin:0;gap:14px}
+.hero-photo{position:relative;inset:auto;width:100%;height:auto;flex:1;min-height:0}
+.hero-project-link{align-self:flex-start}
+@media (min-width:801px) and (max-width:1200px){
+ .hero-layout{grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:32px}
+ .hero-copy h1{font-size:clamp(40px,4.2vw,54px)}
+ .hero-visual{height:clamp(410px,43vw,550px)}
+}
+@media (max-width:800px){
+ .hero{padding-top:100px}
+ .hero-layout{grid-template-columns:minmax(0,1fr);gap:30px}
+ .hero-copy{padding:0;max-width:660px}
+ .hero-copy h1{font-size:clamp(42px,7.8vw,64px);max-width:100%;margin-bottom:22px}
+ .hero-visual{height:clamp(350px,70vw,510px);width:100%}
+ .hero-copy>p{max-width:610px}
+}
+@media (max-width:480px){
+ .hero{padding-top:95px}
+ .hero-copy h1{font-size:clamp(38px,10vw,49px);line-height:1.11}
+ .hero-visual{height:clamp(310px,92vw,420px)}
+}
