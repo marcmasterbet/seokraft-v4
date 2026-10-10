@@ -124,3 +124,6 @@
 .audit-showcase:has(.audit-report-preview) .audit-showcase-top{padding:7px 5px 16px}
 @media(max-width:650px){.audit-showcase:has(.audit-report-preview){padding:9px 9px 12px}.audit-report-preview img{aspect-ratio:0.707}}
 @media(min-width:651px){.audit-quick-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-quick-fields label:nth-child(2){border-top:0;border-left:1px solid #d6d7cd}.audit-quick-fields label:nth-child(4){border-left:1px solid #d6d7cd}}
+
+/* Keep the brand punctuation on the same baseline as SEOKRAFT. */
+.brand-name{white-space:nowrap;display:inline-block}.brand-mark{display:inline;white-space:nowrap}
