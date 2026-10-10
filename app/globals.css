@@ -4,3 +4,19 @@
 @media(max-width:800px){.header{height:76px;padding:0 24px}.desktop-nav,.header-cta{display:none}.menu-toggle{display:block}.mobile-nav{position:absolute;display:flex;flex-direction:column;top:76px;left:0;right:0;background:var(--ivory);padding:15px 24px 25px;box-shadow:0 15px 30px #15171320}.mobile-nav a{display:flex;justify-content:space-between;padding:17px 0;border-bottom:1px solid #d2d0c6;font-weight:700}.hero{padding:120px 24px 45px}.hero-top{margin-bottom:24px}.hero-aside{display:none}.hero-layout{grid-template-columns:1fr;gap:32px}.hero-copy h1{font-size:clamp(50px,9.5vw,80px);white-space:normal;max-width:620px}.hero-copy>p{font-size:14px}.hero-bottom{margin-top:27px}.hero-visual{margin:0;height:500px}.hero-photo{inset:0 0 30px 13%}.hero-project{width:58%;left:0;min-height:150px;padding:20px}.hero-project strong{font-size:25px}.scroll-cue{margin-top:30px}.section-head{display:block}.section-head>p{margin-top:24px}.work-section,.prices-section,.expertise-section,.faq-section,.contact-section{padding:85px 24px}.project-stack{gap:58px}.project-meta{grid-template-columns:1fr auto;gap:15px}.project-meta p{grid-column:1/-1;grid-row:2}.project-meta>a{grid-column:2;grid-row:1}.expertise-section,.faq-section,.contact-wrap{grid-template-columns:1fr;gap:42px}.human-section{grid-template-columns:1fr}.human-quote{padding:75px 24px}.human-image{min-height:520px}.price-grid{grid-template-columns:1fr}.price-main,.price-main+.price-main{padding:30px 0;min-height:0;border-left:0;border-bottom:1px solid #c7c8bc}.price-main strong{margin:17px 0}.price-main a{margin-top:15px}.price-addons{grid-template-columns:1fr;gap:22px}.footer{flex-wrap:wrap;padding:40px 24px}.art-remus-top{font-size:clamp(36px,8vw,65px)}.genesys-title{font-size:clamp(45px,10vw,100px)}}
 @media(max-width:480px){.brand-name{font-size:23px}.hero-copy h1{font-size:clamp(45px,11.7vw,60px);letter-spacing:-.06em}.hero-copy>p{max-width:340px}.hero-visual{height:385px}.hero-photo{inset:0 0 25px 8%}.hero-project{width:73%;min-height:132px}.hero-project strong{font-size:21px}.hero-project span{font-size:8px}.hero-bottom span{display:block;margin:8px 0 0}.intro-scene{padding:85px 24px}.intro-scene h2{font-size:38px}.project-art{height:350px}.art-remus{padding:11%}.art-remus-top{font-size:36px}.art-remus-bottom{font-size:20px}.remus-orbit{width:72%;right:-18%;top:16%}.genesys-title{font-size:50px}.genesys-ring{right:-50%;height:95%;top:0;border-width:30px}.loca-window{width:68%;right:-12%}.art-loca>strong{font-size:28px;max-width:60%}.expertise-lines>div{grid-template-columns:1fr 22px;gap:8px}.expertise-lines p{grid-column:1;grid-row:2}.expertise-lines svg{grid-column:2;grid-row:1}.mail-form{padding:21px;box-shadow:8px 9px 0 #e5e1d7}.mail-to{display:none}.mail-fields{grid-template-columns:1fr}.contact-intro h2{font-size:43px}.footer>div{order:3;width:100%}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* V2.1 — correction ciblée de la composition haute, sans changer la direction artistique */
+@media (min-width: 801px) {
+  .hero { padding-top: 112px; }
+  .hero-top { margin-bottom: 12px; }
+  .hero-layout { align-items: start; }
+  .hero-copy { padding-top: 48px; }
+  .hero-visual { height: min(600px, 62vw); min-height: 470px; }
+  .hero-photo { inset: 0 0 35px 7%; }
+}
+@media (max-width: 800px) {
+  .hero { padding-top: 94px; }
+  .hero-top { margin-bottom: 10px; }
+  .hero-layout { gap: 18px; }
+  .hero-copy { padding-top: 8px; }
+}
