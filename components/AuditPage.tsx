@@ -2,6 +2,7 @@
 import {useState,type FormEvent} from 'react';
 import Link from 'next/link';
 import Brand from './Brand';
+import {trackSeokraftConversion} from './AnalyticsConsent';
 import {ArrowUpRight,ArrowLeft,Check,Plus,Minus} from 'lucide-react';
 const questions=[
  ['L’audit est-il vraiment gratuit ?','Oui. Ce premier diagnostic est offert, personnalisé et sans engagement. Vous êtes libre de donner suite ou non à nos recommandations.'],
@@ -11,7 +12,7 @@ const questions=[
  ['Le référencement sur Google est-il garanti ?','Non. Un audit permet d’identifier des améliorations possibles, mais aucun prestataire sérieux ne peut garantir une position sur Google.'],
 ];
 export default function AuditPage(){const [firstName,setFirstName]=useState(''),[lastName,setLastName]=useState(''),[quickUrl,setQuickUrl]=useState(''),[quickEmail,setQuickEmail]=useState(''),[open,setOpen]=useState<number|null>(0),[status,setStatus]=useState<'idle'|'busy'|'done'>('idle'),[error,setError]=useState('');
- async function quickStart(e:FormEvent<HTMLFormElement>){e.preventDefault();setStatus('busy');setError('');try{const raw=quickUrl.trim();const parsed=new URL(/^https?:\/\//i.test(raw)?raw:`https://${raw}`);if(!['http:','https:'].includes(parsed.protocol)||!parsed.hostname.includes('.'))throw new Error('Veuillez saisir une adresse de site valide.');const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:`${firstName.trim()} ${lastName.trim()}`,email:quickEmail.trim(),subject:'Demande de diagnostic Google gratuit',message:`Nouvelle demande de diagnostic Google gratuit\nPrénom : ${firstName.trim()}\nNom : ${lastName.trim()}\nSite : ${parsed.href}\nE-mail : ${quickEmail.trim()}\nMerci de préparer et envoyer le diagnostic par e-mail.`,website:''})});if(!r.ok)throw new Error('L’envoi est momentanément indisponible. Réessayez dans quelques instants.');setStatus('done')}catch(err){setStatus('idle');setError(err instanceof Error?err.message:'Une erreur est survenue.')}}
+ async function quickStart(e:FormEvent<HTMLFormElement>){e.preventDefault();setStatus('busy');setError('');try{const raw=quickUrl.trim();const parsed=new URL(/^https?:\/\//i.test(raw)?raw:`https://${raw}`);if(!['http:','https:'].includes(parsed.protocol)||!parsed.hostname.includes('.'))throw new Error('Veuillez saisir une adresse de site valide.');const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:`${firstName.trim()} ${lastName.trim()}`,email:quickEmail.trim(),subject:'Demande de diagnostic Google gratuit',message:`Nouvelle demande de diagnostic Google gratuit\nPrénom : ${firstName.trim()}\nNom : ${lastName.trim()}\nSite : ${parsed.href}\nE-mail : ${quickEmail.trim()}\nMerci de préparer et envoyer le diagnostic par e-mail.`,website:''})});if(!r.ok)throw new Error('L’envoi est momentanément indisponible. Réessayez dans quelques instants.');trackSeokraftConversion('audit_request');setStatus('done')}catch(err){setStatus('idle');setError(err instanceof Error?err.message:'Une erreur est survenue.')}}
  return <main className="audit-page audit-premium">
  <div className="audit-nav"><Brand /><Link href="/" className="audit-back"><ArrowLeft size={16}/> Retour à l’accueil</Link></div>
  <section className="audit-hero audit-new-hero" id="audit-depart">

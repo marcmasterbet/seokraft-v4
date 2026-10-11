@@ -1,6 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Brand from './Brand';
+import {trackSeokraftConversion} from './AnalyticsConsent';
 import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowUpRight, ArrowRight, Menu, X, Plus, Minus } from 'lucide-react';
 const projects=[
@@ -29,6 +30,7 @@ function Contact(){
   try{
    const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    if(!r.ok){const response=await r.json().catch(()=>({}));throw new Error(response.error==='Service de contact non configuré'?'Le formulaire est temporairement indisponible. Merci de réessayer ultérieurement.':'Votre message n’a pas pu être envoyé. Merci de réessayer.');}
+   trackSeokraftConversion('contact_submit');
    setSent(true);
   }catch(err){setError(err instanceof Error?err.message:'Une erreur est survenue. Merci de réessayer.');}
   finally{setBusy(false);}
