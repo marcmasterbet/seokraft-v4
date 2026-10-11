@@ -232,3 +232,17 @@
 .booking-footer a{color:inherit}
 .contact-call-link{display:inline-flex;align-items:center;gap:10px;margin-top:24px;color:inherit;text-decoration:underline;text-underline-offset:5px;line-height:1.5}
 @media(max-width:650px){.booking-header{padding:20px}.booking-header .brand{transform:scale(.85);transform-origin:left center}.booking-page{padding:54px 16px 60px}.booking-intro{margin-bottom:30px}.cal-booking-frame{height:780px}.cal-booking-shell,.cal-booking-permission{min-height:530px}.booking-details span{font-size:10px;padding:8px 10px}}
+
+/* SEOKRAFT V4 — accès discret aux rendez-vous */
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:18px 25px}
+.hero-call-button{display:inline-flex;align-items:center;gap:9px;color:#11110f;text-decoration:none;border-bottom:1px solid #596247;padding:12px 0;font-size:14px;line-height:1.4;transition:color .2s}
+.hero-call-button:hover{color:#596247}
+.pricing-callout{display:flex;justify-content:space-between;align-items:center;gap:40px;margin-top:52px;padding:clamp(28px,4vw,58px);background:#e9e7dc;border:1px solid rgba(89,98,71,.2);color:#11110f}
+.pricing-callout>div:first-child{max-width:650px}
+.pricing-callout h3{font-family:Georgia,serif;font-size:clamp(30px,3.3vw,50px);font-weight:400;line-height:1.13;letter-spacing:-.035em;margin:17px 0}
+.pricing-callout h3 em{font-weight:400;color:#596247}
+.pricing-callout p{font-size:16px;line-height:1.7;max-width:610px;margin:0}
+.pricing-callout-action{display:flex;flex-direction:column;align-items:flex-start;gap:12px;flex-shrink:0}
+.pricing-callout-action>span{font-size:12px;color:#596247}
+@media(max-width:850px){.pricing-callout{flex-direction:column;align-items:flex-start;gap:26px}.pricing-callout-action{flex-shrink:1}}
+@media(max-width:550px){.hero-actions{align-items:flex-start;flex-direction:column;gap:10px}.pricing-callout{margin-top:34px}.pricing-callout-action .button{font-size:13px}}
