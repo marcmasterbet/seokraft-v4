@@ -131,3 +131,18 @@
 /* Identité partagée : même logo sur Accueil et Audit, sans variante locale. */
 .brand-name { display: inline-block; white-space: nowrap; }
 .audit-nav > .brand { flex-shrink: 0; }
+
+/* Portfolio V4 — mini études de cas, sans toucher aux sections validées */
+.portfolio-editorial .project-case-study{display:grid;grid-template-columns:1fr 1fr 1fr;gap:clamp(18px,3vw,48px);border-top:1px solid #c7c8bc;margin-top:24px;padding-top:25px;align-items:start}
+.portfolio-editorial .project-genesys .project-case-study{width:75%;margin-left:auto}
+.portfolio-editorial .project-loca .project-case-study{width:82%}
+.project-case-label{display:block;font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--olive);margin-bottom:12px}
+.project-case-copy p{font-size:13px;line-height:1.8;color:#55574f;margin:0}
+.project-case-details ul{padding:0;margin:0 0 20px;list-style:none}
+.project-case-details li{font-size:12px;line-height:1.65;color:#55574f;padding:5px 0 5px 15px;position:relative}
+.project-case-details li::before{content:'';position:absolute;left:0;top:13px;width:5px;height:5px;background:var(--olive);border-radius:50%}
+.project-case-link{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:var(--ink);padding-bottom:7px;border-bottom:1px solid var(--olive);transition:gap .2s}
+.project-case-link:hover{gap:15px}
+@media(max-width:800px){.portfolio-editorial .project-case-study,.portfolio-editorial .project-genesys .project-case-study,.portfolio-editorial .project-loca .project-case-study{width:100%;margin-left:0;grid-template-columns:1fr 1fr;gap:22px}.project-case-details{grid-column:1/-1}}
+@media(max-width:520px){.portfolio-editorial .project-case-study{grid-template-columns:1fr;gap:19px}.project-case-details{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.project-case-link{transition:none}}
