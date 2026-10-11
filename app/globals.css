@@ -131,3 +131,7 @@
 .brand-name .brand-mark{display:inline-block;flex:none;color:var(--olive);white-space:nowrap}
 .footer .brand-name .brand-mark{color:#b4bda1}
 .brand-name::after{content:none}
+
+/* Wordmark SVG: the olive dot is part of the same SVG text line, never a separate block. */
+.brand-logo{display:block;width:176px;height:34px;max-width:none;flex-shrink:0;overflow:visible}
+@media(max-width:480px){.brand-logo{width:160px;height:31px}}
