@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import BackToTop from '../components/BackToTop';
 export const metadata: Metadata = {
  metadataBase: new URL('https://www.seokraft.fr'),
  title: 'Création de sites internet en Alsace | SEOKRAFT',
@@ -9,4 +10,4 @@ export const metadata: Metadata = {
  robots: { index: true, follow: true },
 };
 export const viewport: Viewport = { width:'device-width', initialScale:1, themeColor:'#f4f0e8' };
-export default function RootLayout({children}:{children:React.ReactNode}) {return <html lang="fr"><body>{children}</body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}) {return <html lang="fr"><body>{children}<BackToTop/></body></html>}
