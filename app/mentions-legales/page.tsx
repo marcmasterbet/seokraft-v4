@@ -1,0 +1,12 @@
+import LegalLayout from '../../components/LegalLayout';
+export const metadata={title:'Mentions légales | SEOKRAFT',alternates:{canonical:'/mentions-legales'}};
+export default function Page(){return <LegalLayout title="Mentions légales">
+<h2>Éditeur du site</h2>
+<p>Le site <a href="https://www.seokraft.fr">www.seokraft.fr</a> est édité par <strong>Marc Bretzner</strong>, entrepreneur individuel (EI), exerçant une activité de développement web, de référencement naturel (SEO) et d’optimisation de visibilité dans les moteurs et systèmes d’intelligence artificielle (GEO).</p>
+<p><strong>Identité juridique :</strong> Marc Bretzner – Entrepreneur individuel (EI)<br/><strong>SIRET :</strong> 840 384 804 00026<br/><strong>Immatriculation :</strong> Registre national des entreprises (RNE)<br/><strong>Adresse postale :</strong> 11 rue de la Vieille Ill, 67640 Fegersheim, France<br/><strong>E-mail :</strong> <a href="mailto:contact@seokraft.fr">contact@seokraft.fr</a><br/><strong>Site :</strong> <a href="https://www.seokraft.fr">www.seokraft.fr</a><br/><strong>TVA :</strong> TVA non applicable, article 293 B du Code général des impôts.</p>
+<h2>Identité utilisée sur le site</h2><p>« SEOKRAFT » est l’identité utilisée sur le site pour présenter l’activité. Cette dénomination n’est pas présentée comme une société, une marque déposée ou un nom commercial officiellement enregistré.</p>
+<h2>Directeur de la publication</h2><p>Marc Bretzner.</p>
+<h2>Hébergement</h2><p>Le site est hébergé par Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis. Site : <a href="https://vercel.com">vercel.com</a>.</p>
+<h2>Propriété intellectuelle</h2><p>Les textes, visuels et éléments de conception de ce site sont protégés par les droits applicables, sous réserve des droits des tiers et des éléments utilisés sous licence. Toute réutilisation nécessite l’autorisation du titulaire des droits concernés.</p>
+<h2>Données personnelles</h2><p>Pour connaître les traitements de données et exercer vos droits, consultez la <a href="/politique-de-confidentialite">politique de confidentialité</a> ou écrivez à <a href="mailto:contact@seokraft.fr">contact@seokraft.fr</a>.</p>
+</LegalLayout>}
