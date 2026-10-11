@@ -157,3 +157,21 @@
 .price-clarity strong{color:var(--ink)}
 .price-addons small{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.09em;color:var(--olive);margin-left:8px;vertical-align:middle}
 @media(max-width:800px){.price-clarity{grid-template-columns:1fr;gap:10px}.price-benefits{margin-bottom:18px}.price-addons small{display:block;margin:6px 0 0}}
+
+/* Expertises : lignes cliquables, sans modifier la composition validée */
+.expertise-lines .expertise-item{display:grid;grid-template-columns:1fr 1fr 25px;gap:18px;align-items:center;padding:28px 0;border-bottom:1px solid #b9b9ad;text-decoration:none;color:inherit;transition:padding-left .2s ease,background-color .2s ease}
+.expertise-lines .expertise-item:first-child{border-top:1px solid #b9b9ad}
+.expertise-lines .expertise-item:hover,.expertise-lines .expertise-item:focus-visible{padding-left:10px;background:rgba(89,98,71,.045)}
+.expertise-lines .expertise-item:focus-visible{outline:2px solid var(--olive);outline-offset:3px}
+.expertise-lines .expertise-item span{font:clamp(19px,2vw,27px) 'Playfair Display',serif}
+.expertise-lines .expertise-item p{font-size:12px;line-height:1.7;margin:0;color:#66685f}
+.expertise-lines .expertise-item svg{width:19px}
+.expertise-heading-link{display:inline-flex;align-items:center;gap:12px;margin-top:23px;border-bottom:1px solid var(--olive);padding-bottom:9px;font-size:12px;font-weight:700}
+@media(max-width:480px){.expertise-lines .expertise-item{grid-template-columns:1fr 22px;gap:8px}.expertise-lines .expertise-item p{grid-column:1;grid-row:2}.expertise-lines .expertise-item svg{grid-column:2;grid-row:1}}
+
+/* Studio : parcours clair et humain, sans altérer la composition validée. */
+.studio-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:30px 0 6px;max-width:540px}
+.studio-steps>div{border-top:1px solid rgba(255,255,255,.4);padding-top:14px;display:flex;flex-direction:column;gap:7px}
+.studio-steps strong{font-size:12px;letter-spacing:.015em;color:#fff}
+.studio-steps span{font-size:11px;line-height:1.65;color:#e0e2d8}
+@media(max-width:480px){.studio-steps{grid-template-columns:1fr;gap:14px;margin-top:25px}.studio-steps>div{padding-top:10px;gap:3px}}
