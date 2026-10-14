@@ -246,3 +246,21 @@
 .pricing-callout-action>span{font-size:12px;color:#596247}
 @media(max-width:850px){.pricing-callout{flex-direction:column;align-items:flex-start;gap:26px}.pricing-callout-action{flex-shrink:1}}
 @media(max-width:550px){.hero-actions{align-items:flex-start;flex-direction:column;gap:10px}.pricing-callout{margin-top:34px}.pricing-callout-action .button{font-size:13px}}
+
+/* Tarifs sur devis — présentation éditoriale sans cartes de prix */
+.pricing-bespoke{display:grid;grid-template-columns:1fr 1fr;gap:clamp(35px,6vw,100px);border-top:1px solid #c7c8bc;border-bottom:1px solid #c7c8bc;padding:clamp(34px,5vw,70px) 0}
+.pricing-bespoke-heading h3{font-family:'Playfair Display',Georgia,serif;font-size:clamp(36px,4.4vw,64px);line-height:1.16;letter-spacing:-.045em;margin:22px 0}
+.pricing-bespoke-heading>p{font-size:15px;line-height:1.85;max-width:480px;color:#666960}
+.pricing-bespoke-heading>strong{display:block;font-family:'Playfair Display',Georgia,serif;font-size:clamp(38px,4vw,56px);font-weight:400;margin:28px 0}
+.pricing-bespoke-heading>.button{width:max-content}
+.pricing-bespoke-details>.eyebrow{color:var(--olive)}
+.pricing-bespoke-details ul{list-style:none;margin:18px 0 0;padding:0}
+.pricing-bespoke-details li{padding:21px 0;border-bottom:1px solid #c7c8bc}
+.pricing-bespoke-details li strong{display:block;font-size:16px;margin-bottom:8px}
+.pricing-bespoke-details li span{display:block;font-size:13px;line-height:1.8;color:#666960}
+.pricing-services{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,90px);padding:45px 0 15px;border-bottom:1px solid #c7c8bc}
+.pricing-services>div{padding-bottom:25px}
+.pricing-services h3{font-family:'Playfair Display',Georgia,serif;font-size:clamp(25px,2.8vw,37px);margin:15px 0}
+.pricing-services p{font-size:13px;line-height:1.85;color:#666960;max-width:470px}
+.pricing-services strong{font-size:18px;font-weight:700}
+@media(max-width:800px){.pricing-bespoke,.pricing-services{grid-template-columns:1fr;gap:28px}.pricing-bespoke-heading>.button{width:100%;justify-content:center}.pricing-services{gap:0}.pricing-services>div+div{border-top:1px solid #c7c8bc;padding-top:25px}}
