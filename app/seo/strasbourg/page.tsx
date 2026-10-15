@@ -3,14 +3,14 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Référencement SEO à Strasbourg | SEOKRAFT',
-  description: 'Accompagnement SEO à Strasbourg : audit technique, optimisation des pages, référencement local et suivi de la visibilité Google. Échangeons sur votre site.',
+  description: 'Accompagnement SEO à Strasbourg : optimisation technique des pages, référencement local et suivi de la visibilité Google. Échangeons sur votre site.',
   alternates: { canonical: '/seo/strasbourg/' },
   robots: { index: true, follow: true },
   openGraph: { title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg/' },
 };
 
 const services = [
-  { title: 'Audit SEO', text: 'Analyser l’indexation, la structure, les performances et les principaux obstacles à votre visibilité.' },
+  { title: 'Fondations SEO', text: 'Structurer les pages, les balises et les contenus pour faciliter leur compréhension par les moteurs de recherche.' },
   { title: 'Optimisation des pages', text: 'Travailler les titres, les contenus, le maillage interne et les intentions de recherche utiles à vos clients.' },
   { title: 'Référencement local', text: 'Renforcer la cohérence de votre présence en ligne pour les recherches liées à Strasbourg et à votre zone d’intervention.' },
   { title: 'Suivi et améliorations', text: 'Mesurer les évolutions et prioriser les actions en fonction des données plutôt que des promesses de positionnement.' },
@@ -27,7 +27,7 @@ export default function SeoStrasbourgPage() {
         <p style={{ fontSize: 12, letterSpacing: '.2em', textTransform: 'uppercase', fontWeight: 700, color: '#596247' }}>SEO · Strasbourg · Alsace</p>
         <h1 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(46px, 7vw, 90px)', lineHeight: 1.06, letterSpacing: '-.045em', maxWidth: 1000, margin: '24px 0' }}>Référencement SEO à Strasbourg<span style={{ color: '#596247' }}>.</span></h1>
         <p style={{ fontSize: 'clamp(18px, 2vw, 23px)', lineHeight: 1.65, maxWidth: 750 }}>Votre site doit être compréhensible pour Google, utile pour vos visiteurs et capable de présenter clairement votre activité. SEOKRAFT accompagne les entreprises de Strasbourg et d’Alsace dans l’amélioration de leur référencement naturel.</p>
-        <Link href='/audit' style={{ display: 'inline-block', marginTop: 26, padding: '17px 25px', background: '#596247', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>Demander un premier diagnostic ↗</Link>
+        <Link href='/rendez-vous' style={{ display: 'inline-block', marginTop: 26, padding: '17px 25px', background: '#596247', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>Discuter de votre projet ↗</Link>
       </section>
       <section style={{ borderTop: '1px solid #c9c7be', padding: '55px 0' }}>
         <h2 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)', lineHeight: 1.15 }}>Une stratégie SEO adaptée à votre activité</h2>
@@ -40,8 +40,8 @@ export default function SeoStrasbourgPage() {
         <h2 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)' }}>Pourquoi travailler votre visibilité locale ?</h2>
         <p style={{ lineHeight: 1.8, maxWidth: 800, fontSize: 17 }}>Une entreprise implantée à Strasbourg peut être recherchée par son métier, son service ou sa localisation. Des pages bien structurées, des informations cohérentes et un contenu pertinent facilitent la compréhension de votre activité par les moteurs de recherche. Le SEO demande du temps : aucun classement ni volume de contacts ne peut être garanti.</p>
         <h2 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)', marginTop: 65 }}>Parlons de votre site.</h2>
-        <p style={{ lineHeight: 1.8, maxWidth: 740, fontSize: 17 }}>Vous souhaitez savoir ce qui freine votre visibilité sur Google ? Commencez par un diagnostic ou échangeons sur votre projet.</p>
-        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', marginTop: 30 }}><Link href='/audit' style={{ background: '#596247', color: 'white', padding: '16px 23px', textDecoration: 'none' }}>Demander un diagnostic ↗</Link><Link href='/rendez-vous' style={{ color: '#11110f', padding: '16px 0' }}>Réserver un appel ↗</Link></div>
+        <p style={{ lineHeight: 1.8, maxWidth: 740, fontSize: 17 }}>Vous souhaitez améliorer la présentation de votre activité et les fondations SEO de votre site ? Échangeons sur votre projet et les possibilités adaptées à votre besoin.</p>
+        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', marginTop: 30 }}><Link href='/rendez-vous' style={{ background: '#596247', color: 'white', padding: '16px 23px', textDecoration: 'none' }}>Parler de votre projet ↗</Link><Link href='/rendez-vous' style={{ color: '#11110f', padding: '16px 0' }}>Réserver un appel ↗</Link></div>
       </section>
       <footer style={{ padding: '28px 0', borderTop: '1px solid #c9c7be', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, fontSize: 13 }}><span>© SEOKRAFT — Marc Bretzner</span><Link href='/' style={{ color: '#596247' }}>Retour à l’accueil ↗</Link></footer>
     </div>
