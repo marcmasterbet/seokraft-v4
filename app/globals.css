@@ -277,3 +277,36 @@
 
 /* Votre projet — parcours de persuasion */
 .project-intro strong{color:#252a20;font-weight:600}.project-side-note{max-width:430px;color:#666b60;line-height:1.85;font-size:15px;margin-top:24px}.project-pillars strong{color:#30392a;font-weight:600}.project-proof{display:flex;justify-content:space-between;align-items:flex-end;gap:48px;padding:clamp(65px,8vw,120px) 0;border-top:1px solid #c7c8bc}.project-proof>div{max-width:730px}.project-proof h3{font-family:Georgia,serif;font-size:clamp(34px,4.1vw,59px);font-weight:400;letter-spacing:-.04em;line-height:1.18;margin:22px 0}.project-proof h3 em{color:#596247;font-weight:400}.project-proof p{color:#5e6259;line-height:1.85;max-width:590px}.project-proof .text-link{white-space:nowrap}@media(max-width:850px){.project-proof{flex-direction:column;align-items:flex-start;gap:15px}.project-proof .text-link{white-space:normal}}
+
+/* SEOKRAFT — Tarifs, présentation premium unique */
+.sk-pricing{padding:clamp(78px,9vw,150px) clamp(22px,7vw,110px);background:#f4f0e8;color:#11110f}
+.sk-pricing .eyebrow{color:#596247}
+.sk-pricing-head{max-width:900px;margin-bottom:clamp(38px,5vw,75px)}
+.sk-pricing-head h2{font-size:clamp(42px,5.3vw,86px);line-height:1.07;letter-spacing:-.045em;margin:22px 0 26px}
+.sk-pricing-head h2 em{font-weight:400}
+.sk-pricing-head p{max-width:650px;font-size:clamp(16px,1.5vw,20px);line-height:1.75;color:#48483e}
+.sk-pricing-offer{display:grid;grid-template-columns:1fr 1fr;border:1px solid #d7d3c8;background:#f9f7f1}
+.sk-pricing-main,.sk-pricing-included{padding:clamp(28px,4.5vw,72px)}
+.sk-pricing-main{border-right:1px solid #d7d3c8;display:flex;align-items:flex-start;flex-direction:column}
+.sk-price{margin:clamp(35px,4vw,70px) 0 18px;display:flex;flex-direction:column;gap:8px}
+.sk-price>span{font-size:16px;color:#55584a}
+.sk-price strong{font-size:clamp(45px,5.3vw,83px);font-weight:500;letter-spacing:-.06em;line-height:1.05;white-space:nowrap}
+.sk-price small{font-size:clamp(17px,1.7vw,25px);font-weight:400;letter-spacing:0}
+.sk-price-lead{font-size:18px;line-height:1.7;max-width:390px;margin:0 0 38px}
+.sk-pricing-note{font-size:13px!important;line-height:1.7!important;color:#66685d!important;max-width:570px}
+.sk-pricing-main .sk-pricing-note{margin-top:19px}
+.sk-pricing-included h3{font-size:clamp(24px,2.3vw,34px);font-weight:500;line-height:1.2;margin:0 0 28px}
+.sk-pricing-included ul{list-style:none;margin:0;padding:0}
+.sk-pricing-included li{position:relative;padding:13px 0 13px 30px;border-bottom:1px solid #e0ddd3;line-height:1.45;font-size:16px}
+.sk-pricing-included li:before{content:'✓';position:absolute;left:0;color:#596247}
+.sk-pricing-included>p{font-size:13px;color:#66685d;line-height:1.7;margin-top:24px}
+.sk-pricing-service{display:grid;grid-template-columns:1.6fr 1fr;align-items:center;gap:30px;padding:clamp(32px,5vw,75px) 0;border-bottom:1px solid #d7d3c8}
+.sk-pricing-service h3,.sk-pricing-bottom h3{font-size:clamp(26px,3vw,43px);font-weight:500;letter-spacing:-.025em;margin:15px 0}
+.sk-pricing-service p,.sk-pricing-bottom p{max-width:620px;color:#48483e;line-height:1.7}
+.sk-service-price{text-align:right;display:flex;flex-direction:column;gap:10px}
+.sk-service-price strong{font-size:clamp(36px,4vw,62px);font-weight:500;letter-spacing:-.04em;white-space:nowrap}
+.sk-service-price small{font-size:clamp(15px,1.5vw,22px);font-weight:400;letter-spacing:0}
+.sk-service-price span{color:#66685d;font-size:13px}
+.sk-pricing-bottom{display:flex;align-items:end;justify-content:space-between;gap:35px;padding-top:clamp(36px,5vw,75px)}
+.sk-pricing-bottom .text-link{flex-shrink:0}
+@media(max-width:800px){.sk-pricing-offer,.sk-pricing-service{grid-template-columns:1fr}.sk-pricing-main{border-right:0;border-bottom:1px solid #d7d3c8}.sk-service-price{text-align:left}.sk-pricing-bottom{align-items:flex-start;flex-direction:column}.sk-price strong{white-space:normal}.sk-pricing{padding-left:22px;padding-right:22px}}
