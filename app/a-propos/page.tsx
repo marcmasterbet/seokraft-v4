@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import Brand from '../../components/Brand';
+import SiteHeader from '../../components/SiteHeader';
 
 export const metadata: Metadata = {
   title: 'À propos | Marc Bretzner & Jeff Bond — SEOKRAFT',
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function APropos() {
  return <div className="about-page">
-  <header className="about-header"><Brand/><nav aria-label="Navigation"><Link href="/">Accueil</Link><Link href="/#realisations">Réalisations</Link><Link href="/#tarifs">Prestations</Link><Link href="/rendez-vous" className="about-header-cta">Parlons de votre projet <ArrowUpRight size={16}/></Link></nav></header>
+  <SiteHeader/>
   <main>
    <section className="about-intro"><span className="about-kicker">À PROPOS · SEOKRAFT</span><h1>Des sites qui ont du sens.<br/><em>Des mots qui font la différence.</em></h1><p>Un site internet ne se résume pas à son apparence. Il doit raconter votre activité avec justesse, donner confiance et faciliter le passage à l’action. C’est cette conviction qui réunit nos expertises.</p></section>
    <section className="about-people" aria-label="Nos expertises">
