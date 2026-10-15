@@ -310,3 +310,15 @@
 .sk-pricing-bottom{display:flex;align-items:end;justify-content:space-between;gap:35px;padding-top:clamp(36px,5vw,75px)}
 .sk-pricing-bottom .text-link{flex-shrink:0}
 @media(max-width:800px){.sk-pricing-offer,.sk-pricing-service{grid-template-columns:1fr}.sk-pricing-main{border-right:0;border-bottom:1px solid #d7d3c8}.sk-service-price{text-align:left}.sk-pricing-bottom{align-items:flex-start;flex-direction:column}.sk-price strong{white-space:normal}.sk-pricing{padding-left:22px;padding-right:22px}}
+
+/* Confirmation de contact — présentation sobre et personnelle */
+.sent-state{max-width:900px;margin:0 auto;min-height:62vh;padding:65px 0;gap:0}
+.sent-check{display:grid;place-items:center;width:50px;height:50px;border:1px solid var(--olive);border-radius:50%;color:var(--olive);font-size:24px;line-height:1}
+.sent-state h2{font-size:clamp(38px,5.6vw,76px);line-height:1.16;letter-spacing:-.045em;margin:30px 0 24px;font-weight:400}
+.sent-state .sent-lead{font:400 clamp(19px,2.2vw,27px)/1.4 'Playfair Display',serif;margin:0 0 18px}
+.sent-state .sent-detail{font:400 15px/1.9 Manrope,sans-serif;max-width:600px;color:#55594e;margin:0}
+.sent-signature{display:flex;flex-direction:column;align-items:center;gap:7px;margin-top:38px;font-size:13px}
+.sent-signature span{color:var(--olive)}
+.sent-signature strong{font-weight:700;font-size:15px}
+.sent-state a{border-top:1px solid #d6d1c6;padding-top:24px;margin-top:40px;color:var(--olive)}
+@media(max-width:600px){.sent-state{min-height:60vh;padding:45px 0}.sent-state h2{font-size:clamp(35px,10vw,48px)}.sent-state .sent-detail{font-size:14px}}
