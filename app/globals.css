@@ -322,3 +322,42 @@
 .sent-signature strong{font-weight:700;font-size:15px}
 .sent-state a{border-top:1px solid #d6d1c6;padding-top:24px;margin-top:40px;color:var(--olive)}
 @media(max-width:600px){.sent-state{min-height:60vh;padding:45px 0}.sent-state h2{font-size:clamp(35px,10vw,48px)}.sent-state .sent-detail{font-size:14px}}
+
+/* ===== Refonte du copywriting (octobre 2026) : nouveaux éléments de la page d'accueil ===== */
+/* Hero : barre de réassurance */
+.hero-proof{list-style:none;padding:0;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:10px 22px;font-size:12px;font-weight:700;letter-spacing:.02em;color:#4b4e45}
+.hero-proof li{display:inline-flex;align-items:center;gap:8px}
+.hero-proof li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--olive);flex-shrink:0}
+/* Constat : liste des problèmes */
+.intro-list{list-style:none;padding:0;margin:26px auto;max-width:760px;text-align:left;display:grid;gap:12px}
+.intro-list li{position:relative;padding:0 0 0 22px;font-size:15px;line-height:1.75;color:#c7c8c0}
+.intro-list li::before{content:'';position:absolute;left:0;top:11px;width:7px;height:7px;border-radius:50%;background:#c0c8a9}
+/* Pourquoi moi : 4 arguments en 2 colonnes */
+@media(min-width:481px){.studio-steps.studio-reasons{grid-template-columns:repeat(2,minmax(0,1fr));max-width:640px;gap:22px 26px}}
+.studio-reasons span{font-size:15px!important}
+/* Méthode : 4 étapes sur fond sombre */
+.method-steps{list-style:none;padding:0;max-width:none;margin:40px 0 10px;grid-template-columns:1fr}
+.method-steps>li{border-top:1px solid rgba(255,255,255,.35);padding-top:16px;display:flex;flex-direction:column;gap:8px}
+.method-steps strong{font-size:17px;color:#fff}
+.method-steps span{font-size:15px;line-height:1.7;color:#d0d0c9}
+@media(min-width:601px){.studio-steps.method-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}}
+@media(min-width:1001px){.studio-steps.method-steps{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.method-scene .method-provide{margin-top:30px;max-width:760px}
+.method-scene .method-provide strong{color:var(--ivory)}
+.method-scene .method-note{font-size:13px!important;color:#9fa198!important;margin-top:10px}
+/* Réalisations : résultat et citation client (affichés seulement s'ils sont renseignés) */
+.project-case-label-result{margin-top:20px}
+.project-quote{margin:28px 0 0;padding:22px 0 0 24px;border-left:2px solid var(--olive)}
+.project-quote p{font-family:Georgia,serif;font-style:italic;font-size:clamp(18px,1.6vw,23px);line-height:1.55;margin:0 0 10px;color:var(--ink)}
+.project-quote cite{font-style:normal;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--olive)}
+/* Témoignages (section masquée tant qu'aucun avis n'est renseigné) */
+.testimonials-section{padding:110px clamp(24px,7vw,130px);background:var(--ivory)}
+.testimonials-section h2{font-size:clamp(40px,4.6vw,66px);line-height:1.15;letter-spacing:-.05em;margin:24px 0 45px}
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.testimonials-grid blockquote{margin:0;padding:28px;background:#f9f6ef;border:1px solid #c8c8bc}
+.testimonials-grid p{font-size:16px;line-height:1.75;margin:0 0 18px}
+.testimonials-grid cite{font-style:normal;font-size:12px;font-weight:700;color:var(--olive)}
+@media(max-width:800px){.testimonials-section{padding:85px 24px}}
+/* Contact : bouton d'appel en priorité */
+.contact-intro .contact-call-button{margin-top:26px;text-decoration:none}
+.contact-intro .contact-alt{font-size:13px;margin-top:18px;color:var(--muted)}
