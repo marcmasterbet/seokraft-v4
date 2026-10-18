@@ -352,3 +352,9 @@
 .sk-included-panel li{border-bottom:1px solid #d7d3c8;padding:17px 0 17px 27px;position:relative;line-height:1.5}
 .sk-included-panel li:before{content:'✓';position:absolute;left:0;color:#596247}
 @media(max-width:800px){.sk-estimator-layout{grid-template-columns:1fr}.sk-included-panel ul{grid-template-columns:1fr}.sk-estimator{padding:28px 22px}.sk-estimator-total{padding:20px}.sk-estimator .button{width:100%}}
+
+/* Portrait rond — section studio SEOKRAFT : cadrage buste sans ventre */
+.human-section .human-image{display:flex;align-items:center;justify-content:center;padding:clamp(28px,4vw,72px);min-width:0;filter:none;background:var(--olive)}
+.human-section .human-portrait-circle{position:relative;width:min(100%,540px);aspect-ratio:1;border-radius:50%;overflow:hidden;flex:none}
+.human-section .human-portrait-circle img{object-fit:cover!important;object-position:center center!important}
+@media(max-width:800px){.human-section .human-image{min-height:0;padding:0 24px 64px}.human-section .human-portrait-circle{width:min(100%,440px)}}
