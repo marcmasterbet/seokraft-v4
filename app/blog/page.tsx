@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 /* Ajouter chaque nouvel article en tête de liste. */
 const articles = [
+ { slug: 'prix-site-internet', tag: 'Prix · Création de site', title: 'Combien coûte un site internet en 2026 ?', text: 'Site fait soi-même, freelance ou agence : les fourchettes de prix, les coûts annuels, ce qui fait varier le tarif et les pièges à éviter.' },
  { slug: 'seo-vs-geo', tag: 'SEO · GEO · Stratégie', title: 'SEO vs GEO : quelles différences pour votre entreprise ?', text: 'Deux approches complémentaires pour la visibilité sur Google et dans les réponses générées par les IA : différences, exemples et priorités.' },
  { slug: 'etre-visible-chatgpt', tag: 'ChatGPT · Visibilité', title: 'Comment améliorer la visibilité de son entreprise sur ChatGPT ?', text: 'Les bonnes pratiques pour rendre votre entreprise identifiable, crédible et accessible aux systèmes d’IA.' },
  { slug: 'geo', tag: 'GEO · Visibilité IA', title: 'GEO : comprendre la visibilité dans les réponses des IA', text: 'Comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.' },

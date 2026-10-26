@@ -82,7 +82,7 @@ export default function CreationSiteStrasbourg() {
   <Testimonials/>
 
   <section className="lp-block lp-split">
-   <div><span className="eyebrow">TARIFS</span><h2>Un budget clair,<br/><em>dès le départ.</em></h2><p>Le prix dépend du nombre de pages et des fonctionnalités. Le devis confirme le périmètre et le tarif définitif avant tout engagement.</p><Link className="text-link" href="/#tarifs">Estimer mon site avec le simulateur <ArrowUpRight size={17}/></Link></div>
+   <div><span className="eyebrow">TARIFS</span><h2>Un budget clair,<br/><em>dès le départ.</em></h2><p>Le prix dépend du nombre de pages et des fonctionnalités. Le devis confirme le périmètre et le tarif définitif avant tout engagement.</p><Link className="text-link" href="/#tarifs">Estimer mon site avec le simulateur <ArrowUpRight size={17}/></Link><p className="lp-guide">À lire : <Link href="/blog/prix-site-internet">combien coûte un site internet en 2026 ?</Link></p></div>
    <div className="lp-prices">
     <div><span>Site une page</span><strong>1 990 € <small>TTC</small></strong></div>
     <div><span>Site vitrine 4 pages</span><strong>2 990 € <small>TTC</small></strong></div>

@@ -482,3 +482,4 @@
 .blog-more{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--olive);transition:gap .2s}
 .blog-item:hover .blog-more{gap:13px}
 @media(max-width:800px){.blog-list{grid-template-columns:1fr}.blog-item,.blog-item:nth-child(even){padding:32px 0;border-left:0}}
+.lp-guide{margin-top:26px;font-size:14px;color:var(--muted)}.lp-guide a{color:var(--olive);text-decoration:underline;text-underline-offset:4px}
