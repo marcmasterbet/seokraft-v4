@@ -104,6 +104,17 @@ export default function CreationSiteStrasbourg() {
    <div>{faqs.map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}</summary><p>{a}</p></details>)}</div>
   </section>
 
+  <section className="lp-block lp-guides">
+   <span className="eyebrow">GUIDES UTILES</span>
+   <h2>Préparer votre projet<br/><em>en toute sérénité.</em></h2>
+   <ul>
+    <li><Link href="/blog/prix-site-internet">Combien coûte un site internet en 2026 ? <ArrowUpRight size={16}/></Link></li>
+    <li><Link href="/blog/preparer-creation-site-internet">Que préparer avant de créer son site internet ? <ArrowUpRight size={16}/></Link></li>
+    <li><Link href="/blog/site-vitrine-ou-e-commerce">Site vitrine ou site e-commerce : que choisir ? <ArrowUpRight size={16}/></Link></li>
+    <li><Link href="/blog/choisir-createur-site-internet-strasbourg">Comment choisir son créateur de site internet à Strasbourg ? <ArrowUpRight size={16}/></Link></li>
+   </ul>
+  </section>
+
   <section className="lp-block lp-cta">
    <span className="eyebrow light">PARLONS DE VOTRE PROJET</span>
    <h2>Votre futur site commence<br/><em>par une conversation.</em></h2>

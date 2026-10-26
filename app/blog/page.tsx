@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from '../../components/SiteHeader';
 import SiteFooter from '../../components/SiteFooter';
+import { articles } from '../../components/articles';
 
 export const metadata: Metadata = {
  title: 'Blog : sites internet, SEO et visibilité en ligne | SEOKRAFT',
@@ -11,14 +12,7 @@ export const metadata: Metadata = {
  openGraph: { type: 'website', url: 'https://www.seokraft.fr/blog', title: 'Le blog SEOKRAFT', description: 'Sites internet, SEO et visibilité en ligne : des conseils clairs pour les entreprises.' }
 };
 
-/* Ajouter chaque nouvel article en tête de liste. */
-const articles = [
- { slug: 'prix-site-internet', tag: 'Prix · Création de site', title: 'Combien coûte un site internet en 2026 ?', text: 'Site fait soi-même, freelance ou agence : les fourchettes de prix, les coûts annuels, ce qui fait varier le tarif et les pièges à éviter.' },
- { slug: 'seo-vs-geo', tag: 'SEO · GEO · Stratégie', title: 'SEO vs GEO : quelles différences pour votre entreprise ?', text: 'Deux approches complémentaires pour la visibilité sur Google et dans les réponses générées par les IA : différences, exemples et priorités.' },
- { slug: 'etre-visible-chatgpt', tag: 'ChatGPT · Visibilité', title: 'Comment améliorer la visibilité de son entreprise sur ChatGPT ?', text: 'Les bonnes pratiques pour rendre votre entreprise identifiable, crédible et accessible aux systèmes d’IA.' },
- { slug: 'geo', tag: 'GEO · Visibilité IA', title: 'GEO : comprendre la visibilité dans les réponses des IA', text: 'Comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.' },
- { slug: 'futur-recherche-ia', tag: 'Recherche · IA · Tendances', title: 'Le futur de la recherche en ligne à l’ère de l’IA', text: 'Comment l’intelligence artificielle transforme la recherche en ligne, et ce que cela change pour les sites web et les entreprises locales.' }
-];
+
 
 export default function BlogIndex() {
  return <><SiteHeader/><main className="lp">

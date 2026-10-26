@@ -1,42 +1,52 @@
 import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
-export const metadata: Metadata = { title: "GEO : comprendre la visibilité dans les réponses des IA", description: "Qu’est-ce que le GEO ? Découvrez comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.", alternates: { canonical: '/blog/geo' }, robots: { index: true, follow: true }, openGraph: { title: "GEO : comprendre la visibilité dans les réponses des IA", description: "Qu’est-ce que le GEO ? Découvrez comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.", url: 'https://www.seokraft.fr/blog/geo', type: 'article' } };
+
+const title = 'GEO : définition et actions concrètes pour être cité par les IA';
+const description = 'Qu’est-ce que le GEO (Generative Engine Optimization) ? Définition simple, fonctionnement des moteurs IA et actions concrètes pour rendre votre entreprise citable.';
+
+export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/geo' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/geo', type: 'article' } };
+
 const article = {
-  "title": "GEO : comprendre la visibilité dans les réponses des IA",
-  "eyebrow": "GEO · Visibilité IA",
-  "intro": "Les internautes ne consultent plus uniquement une liste de liens. Ils posent aussi des questions à des assistants qui produisent une réponse. Pour une entreprise, l’enjeu est de fournir une information fiable, compréhensible et accessible — sans imaginer qu’une citation peut être garantie.",
-  "sections": [
-    {
-      "heading": "Le GEO, de quoi parle-t-on ?",
-      "paragraphs": [
-        "Le Generative Engine Optimization, ou GEO, désigne les pratiques visant à améliorer la façon dont une marque, un site ou une expertise peuvent être compris et éventuellement mentionnés dans les réponses générées par l’intelligence artificielle.",
-        "Il ne s’agit pas d’un bouton permettant de « placer » son entreprise dans ChatGPT. Les systèmes diffèrent, leurs sources évoluent et leurs réponses varient selon les questions."
-      ]
-    },
-    {
-      "heading": "Les fondations à travailler",
-      "paragraphs": [
-        "Commencez par des pages publiques, techniquement accessibles et rédigées pour de vrais lecteurs. Présentez clairement vos services, votre zone d’intervention, vos méthodes et vos coordonnées.",
-        "Développez des contenus qui répondent à des questions précises. Des exemples concrets, des informations à jour et des sources identifiables sont plus utiles qu’une répétition artificielle de mots-clés.",
-        "Assurez la cohérence des informations sur votre site et sur les profils professionnels où votre entreprise est réellement présente."
-      ]
-    },
-    {
-      "heading": "SEO et GEO : une base commune",
-      "paragraphs": [
-        "Un site rapide, correctement structuré, indexable et organisé autour de sujets cohérents facilite la découverte des informations. Le référencement naturel reste donc un socle important.",
-        "Le GEO ajoute une attention particulière à la clarté des réponses, à l’attribution des informations et à la crédibilité de l’entreprise."
-      ]
-    },
-    {
-      "heading": "Comment mesurer les progrès ?",
-      "paragraphs": [
-        "Suivez d’abord des indicateurs vérifiables : trafic organique, demandes reçues, recherches de marque et qualité des pages indexées.",
-        "Vous pouvez observer ponctuellement les réponses d’outils IA sur des questions pertinentes, mais ces observations ne constituent pas une mesure exhaustive ni une promesse de présence."
-      ]
-    }
-  ],
-  "conclusion": "Le GEO se construit sur la qualité de l’information et la confiance. Pour une entreprise locale, mieux vaut dix pages utiles et exactes qu’une centaine de textes génériques.",
-  "slug": "geo"
+ title,
+ slug: 'geo',
+ eyebrow: 'GEO · Définition · Bonnes pratiques',
+ date: '2026-10-26',
+ intro: 'ChatGPT, Perplexity, Gemini, les AI Overviews et le Mode IA de Google : une partie des recherches se termine désormais par une réponse rédigée plutôt que par une liste de liens. Le GEO désigne l’ensemble des pratiques qui aident une entreprise à être comprise, et parfois citée, dans ces réponses. Voici une définition claire et les actions qui ont réellement du sens pour une petite entreprise.',
+ sections: [
+  { heading: 'Le GEO, en une phrase', paragraphs: [
+   'GEO signifie Generative Engine Optimization, que l’on peut traduire par « optimisation pour les moteurs génératifs ». Le terme a été popularisé en 2023 par des travaux de chercheurs qui étudiaient comment certains contenus sont davantage repris que d’autres dans les réponses produites par l’IA.',
+   'Là où le SEO vise à faire apparaître une page dans une liste de résultats, le GEO cherche à ce que les informations de votre entreprise soient correctement comprises, reprises et attribuées lorsqu’une IA rédige une réponse.',
+   'Il ne s’agit pas d’une technique secrète ni d’un réglage à activer. Aucun prestataire ne peut « placer » une entreprise dans ChatGPT ou garantir une citation : les réponses varient selon la question, l’outil utilisé et le moment.'
+  ]},
+  { heading: 'Comment une IA choisit ses sources', paragraphs: [
+   'Lorsqu’un assistant effectue une recherche en ligne, il procède en général en deux temps. Il interroge d’abord un index de pages web, puis il sélectionne quelques passages jugés pertinents et fiables pour rédiger sa synthèse, souvent accompagnée de liens vers les sources utilisées.',
+   'Conséquence directe : une page qui n’est pas accessible aux robots, pas indexée ou difficile à comprendre a très peu de chances d’être reprise. À l’inverse, un passage qui répond clairement à une question précise, avec des faits vérifiables, est plus facile à exploiter pour une IA.',
+   'Les modèles s’appuient aussi sur ce qui est dit de vous ailleurs : profils professionnels, annuaires, articles, avis clients. Une entreprise décrite de façon cohérente sur plusieurs sources est plus facile à identifier qu’une entreprise présente uniquement sur son propre site.'
+  ]},
+  { heading: 'Les actions concrètes qui comptent', paragraphs: [
+   'Première action : rendre vos pages accessibles. Vérifiez que votre fichier robots.txt n’empêche pas l’accès des robots des moteurs de recherche et des assistants IA, et que vos pages importantes sont bien indexées dans Google Search Console.',
+   'Deuxième action : une page claire par service important. Indiquez ce que vous faites, pour qui, où, à quel prix lorsque c’est possible, et comment se déroule la prestation. Notre page [création de site internet à Strasbourg](/creation-site-internet/strasbourg) suit exactement cette logique.',
+   'Troisième action : répondre aux vraies questions de vos clients. Un article qui répond précisément à « combien coûte un site internet ? » est plus utile, pour les internautes comme pour les IA, qu’un texte vague sur « l’importance du digital ». C’est l’objectif de notre guide sur le [prix d’un site internet](/blog/prix-site-internet).',
+   'Quatrième action : apporter des preuves. Des exemples de réalisations, des chiffres datés, des avis clients et un auteur identifié rendent votre contenu plus crédible et plus facile à citer.',
+   'Cinquième action : soigner votre présence en dehors de votre site. Un profil LinkedIn à jour, une fiche d’établissement, des avis et des mentions dans des sources locales renforcent la cohérence de votre entreprise sur le web.'
+  ]},
+  { heading: 'Structurer ses pages pour être bien compris', paragraphs: [
+   'Utilisez des titres explicites qui reprennent les questions que se posent vos clients, puis répondez dès le premier paragraphe avant d’entrer dans le détail. Cette structure aide le lecteur pressé et facilite l’extraction d’un passage pertinent.',
+   'Gardez l’essentiel de l’information sous forme de texte. Une information importante enfermée dans une image, un PDF ou une vidéo sans transcription est plus difficile à exploiter.',
+   'Les données structurées (schema.org) peuvent préciser qui vous êtes et ce que vous proposez, à condition qu’elles correspondent au contenu visible. Elles complètent un bon contenu, elles ne le remplacent pas.'
+  ]},
+  { heading: 'Ce qui ne sert à rien, ou presque', paragraphs: [
+   'Publier en masse des textes générés automatiquement et sans valeur ajoutée. Les IA reprennent rarement des contenus qui disent la même chose que des centaines d’autres pages.',
+   'Répéter des mots-clés ou ajouter « IA » dans tous les titres. Cela n’améliore ni la clarté ni la crédibilité.',
+   'Compter sur un fichier spécial comme llms.txt pour Google. Google indique qu’aucun fichier ni balisage spécifique n’est nécessaire pour apparaître dans ses fonctionnalités d’IA : les bonnes pratiques classiques du référencement suffisent.'
+  ]},
+  { heading: 'Comment mesurer les résultats', paragraphs: [
+   'Suivez d’abord des indicateurs fiables : les demandes de contact, le trafic issu des moteurs de recherche et la progression des recherches sur le nom de votre entreprise. Dans Google Search Console, les apparitions dans les AI Overviews et le Mode IA sont comptabilisées avec le reste du trafic de recherche web.',
+   'Dans votre outil de statistiques, surveillez les visites provenant d’assistants comme ChatGPT ou Perplexity, qui apparaissent généralement comme des sites référents.',
+   'Vous pouvez aussi tester régulièrement quelques questions réalistes dans plusieurs assistants, par exemple « quel prestataire pour créer un site internet à Strasbourg ? ». Notez les résultats, mais gardez en tête qu’une réponse ponctuelle n’est pas une mesure fiable.'
+  ]}
+ ],
+ conclusion: 'Le GEO n’est pas une discipline magique : c’est la suite logique d’un bon référencement. Des pages claires, des réponses précises, des preuves concrètes et une présence cohérente sur le web restent la meilleure façon d’être compris par les moteurs comme par les IA.'
 };
+
 export default function Page() { return <BlogArticle article={article} />; }
