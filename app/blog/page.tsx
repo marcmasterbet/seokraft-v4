@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from '../../components/SiteHeader';
 import SiteFooter from '../../components/SiteFooter';
-import { articles } from '../../components/articles';
+import { StudioSection, Contact } from '../../components/Home';
+import { articles, nbsp } from '../../components/articles';
 
 export const metadata: Metadata = {
  title: 'Blog : sites internet, SEO et visibilité en ligne | SEOKRAFT',
@@ -12,22 +12,31 @@ export const metadata: Metadata = {
  openGraph: { type: 'website', url: 'https://www.seokraft.fr/blog', title: 'Le blog SEOKRAFT', description: 'Sites internet, SEO et visibilité en ligne : des conseils clairs pour les entreprises.' }
 };
 
+const siteArticles = articles.filter(a => a.cat === 'site');
+const seoArticles = articles.filter(a => a.cat === 'seo');
 
+function ArticleLines({ list }: { list: typeof articles }) {
+ return <div className="expertise-lines">{list.map(a => <a href={`/blog/${a.slug}`} className="expertise-item" key={a.slug}><span>{nbsp(a.title)}</span><p>{nbsp(a.text)}</p><ArrowUpRight aria-hidden="true"/></a>)}</div>;
+}
 
 export default function BlogIndex() {
- return <><SiteHeader/><main className="lp">
-  <section className="lp-hero">
-   <span className="eyebrow"><span className="eyebrow-dot"/>LE BLOG SEOKRAFT</span>
-   <h1>Sites internet, SEO <em>et visibilité</em><span className="olive-dot">.</span></h1>
-   <p className="lp-lead">Des conseils clairs et concrets pour créer un site internet utile à votre activité, être trouvé sur Google et comprendre comment évolue la recherche en ligne.</p>
+ return <><SiteHeader/><main>
+  <section className="work-section page-intro">
+   <div className="section-head"><div><span className="eyebrow"><span className="eyebrow-dot"/> LE BLOG SEOKRAFT</span><h1>Des conseils clairs.<br/><em>Pour un site qui travaille.</em></h1></div><p>Créer ou refaire votre site, comprendre les prix, être trouvé sur Google et dans les réponses des IA : des réponses concrètes aux questions que se posent les entreprises.</p></div>
   </section>
-  <section className="lp-block blog-list">
-   {articles.map(a => <Link key={a.slug} href={`/blog/${a.slug}`} className="blog-item"><span className="eyebrow">{a.tag}</span><h2>{a.title}</h2><p>{a.text}</p><span className="blog-more">Lire l’article <ArrowUpRight size={16}/></span></Link>)}
+
+  <section className="expertise-section" id="creer-son-site">
+   <div className="expertise-heading"><span className="eyebrow">CRÉER SON SITE INTERNET</span><h2>Bien préparer.<br/><em>Bien choisir.</em></h2><p>Prix, préparation, type de site, refonte, choix du prestataire : tout ce qu’il faut savoir avant de lancer votre projet.</p><a className="expertise-heading-link" href="/creation-site-internet/strasbourg">Création de site à Strasbourg <ArrowUpRight size={17}/></a></div>
+   <ArticleLines list={siteArticles}/>
   </section>
-  <section className="lp-block lp-cta">
-   <span className="eyebrow light">UN PROJET DE SITE ?</span>
-   <h2>Parlons de votre<br/><em>prochain site internet.</em></h2>
-   <div className="hero-actions"><Link className="button lp-button-light" href="/creation-site-internet/strasbourg">Découvrir la création de site <ArrowUpRight size={17}/></Link><Link className="lp-cta-call" href="/rendez-vous">Réserver un appel gratuit <ArrowUpRight size={17}/></Link></div>
+
+  <StudioSection/>
+
+  <section className="expertise-section" id="seo-ia">
+   <div className="expertise-heading"><span className="eyebrow">SEO, GEO &amp; IA</span><h2>Être trouvé.<br/><em>Sur Google et ailleurs.</em></h2><p>Référencement naturel, réponses de l’IA de Google, ChatGPT : comprendre comment vos futurs clients vous cherchent aujourd’hui.</p><a className="expertise-heading-link" href="/seo/strasbourg">Référencement SEO à Strasbourg <ArrowUpRight size={17}/></a></div>
+   <ArticleLines list={seoArticles}/>
   </section>
+
+  <Contact/>
  </main><SiteFooter/></>;
 }

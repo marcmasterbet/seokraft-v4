@@ -1,49 +1,39 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowUpRight } from 'lucide-react';
+import SiteHeader from '../../../components/SiteHeader';
+import SiteFooter from '../../../components/SiteFooter';
+import { StudioSection, Contact } from '../../../components/Home';
 
 export const metadata: Metadata = {
-  title: 'Référencement SEO à Strasbourg | SEOKRAFT',
-  description: 'Accompagnement SEO à Strasbourg : optimisation technique des pages, référencement local et suivi de la visibilité Google. Échangeons sur votre site.',
-  alternates: { canonical: '/seo/strasbourg' },
-  robots: { index: true, follow: true },
-  openGraph: { title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg' },
+ title: 'Référencement SEO à Strasbourg | SEOKRAFT',
+ description: 'Accompagnement SEO à Strasbourg : optimisation technique des pages, référencement local et suivi de la visibilité Google. Échangeons sur votre site.',
+ alternates: { canonical: '/seo/strasbourg' },
+ robots: { index: true, follow: true },
+ openGraph: { title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg' }
 };
 
 const services = [
-  { title: 'Fondations SEO', text: 'Structurer les pages, les balises et les contenus pour faciliter leur compréhension par les moteurs de recherche.' },
-  { title: 'Optimisation des pages', text: 'Travailler les titres, les contenus, le maillage interne et les intentions de recherche utiles à vos clients.' },
-  { title: 'Référencement local', text: 'Renforcer la cohérence de votre présence en ligne pour les recherches liées à Strasbourg et à votre zone d’intervention.' },
-  { title: 'Suivi et améliorations', text: 'Mesurer les évolutions et prioriser les actions en fonction des données plutôt que des promesses de positionnement.' },
+ ['Fondations SEO', 'Structurer les pages, les balises et les contenus pour faciliter leur compréhension par les moteurs de recherche.'],
+ ['Optimisation des pages', 'Travailler les titres, les contenus, le maillage interne et les intentions de recherche utiles à vos clients.'],
+ ['Référencement local', 'Renforcer la cohérence de votre présence en ligne pour les recherches liées à Strasbourg et à votre zone d’intervention.'],
+ ['Suivi et améliorations', 'Mesurer les évolutions et prioriser les actions en fonction des données plutôt que des promesses de positionnement.']
 ];
 
+const studioText = 'Chez SEOKRAFT, vous échangez directement avec la personne qui travaille sur votre site. Je prends le temps de comprendre votre offre, votre zone géographique et vos clients, puis je vous explique clairement les actions menées et les résultats observés, sans jargon ni promesse de positionnement.';
+
 export default function SeoStrasbourgPage() {
-  return <main style={{ background: '#f4f0e8', color: '#11110f', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '30px 24px' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, paddingBottom: 32, borderBottom: '1px solid #c9c7be' }}>
-        <Link href='/' style={{ color: '#11110f', textDecoration: 'none', fontSize: 26, fontWeight: 700, letterSpacing: '-.05em' }}>SEOKRAFT<span style={{ color: '#596247' }}>.</span></Link>
-        <Link href='/#contact' style={{ color: '#596247', textDecoration: 'none', fontSize: 14 }}>Parlons de votre projet ↗</Link>
-      </header>
-      <section style={{ padding: '100px 0 76px' }}>
-        <p style={{ fontSize: 12, letterSpacing: '.2em', textTransform: 'uppercase', fontWeight: 700, color: '#596247' }}>SEO · Strasbourg · Alsace</p>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(46px, 7vw, 90px)', lineHeight: 1.06, letterSpacing: '-.045em', maxWidth: 1000, margin: '24px 0' }}>Référencement SEO à Strasbourg<span style={{ color: '#596247' }}>.</span></h1>
-        <p style={{ fontSize: 'clamp(18px, 2vw, 23px)', lineHeight: 1.65, maxWidth: 750 }}>Votre site doit être compréhensible pour Google, utile pour vos visiteurs et capable de présenter clairement votre activité. SEOKRAFT accompagne les entreprises de Strasbourg et d’Alsace dans l’amélioration de leur référencement naturel.</p>
-        <Link href='/rendez-vous' style={{ display: 'inline-block', marginTop: 26, padding: '17px 25px', background: '#596247', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>Discuter de votre projet ↗</Link>
-      </section>
-      <section style={{ borderTop: '1px solid #c9c7be', padding: '55px 0' }}>
-        <h2 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)', lineHeight: 1.15 }}>Une stratégie SEO adaptée à votre activité</h2>
-        <p style={{ lineHeight: 1.8, maxWidth: 800, fontSize: 17 }}>Artisan, prestataire de services, commerce ou entreprise B2B : les recherches de vos futurs clients ne sont pas toutes les mêmes. Le travail commence par comprendre votre offre, votre zone géographique et les pages dont vous avez réellement besoin.</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 18, marginTop: 35 }}>
-          {services.map(s => <article key={s.title} style={{ border: '1px solid #c9c7be', padding: 25 }}><h3 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 27 }}>{s.title}</h3><p style={{ lineHeight: 1.7 }}>{s.text}</p></article>)}
-        </div>
-      </section>
-      <section style={{ borderTop: '1px solid #c9c7be', padding: '55px 0 70px' }}>
-        <h2 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)' }}>Pourquoi travailler votre visibilité locale ?</h2>
-        <p style={{ lineHeight: 1.8, maxWidth: 800, fontSize: 17 }}>Une entreprise implantée à Strasbourg peut être recherchée par son métier, son service ou sa localisation. Des pages bien structurées, des informations cohérentes et un contenu pertinent facilitent la compréhension de votre activité par les moteurs de recherche. Le SEO demande du temps : aucun classement ni volume de contacts ne peut être garanti.</p>
-        <h2 style={{ fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)', marginTop: 65 }}>Parlons de votre site.</h2>
-        <p style={{ lineHeight: 1.8, maxWidth: 740, fontSize: 17 }}>Vous souhaitez améliorer la présentation de votre activité et les fondations SEO de votre site ? Échangeons sur votre projet et les possibilités adaptées à votre besoin.</p>
-        <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', marginTop: 30 }}><Link href='/rendez-vous' style={{ background: '#596247', color: 'white', padding: '16px 23px', textDecoration: 'none' }}>Parler de votre projet ↗</Link><Link href='/rendez-vous' style={{ color: '#11110f', padding: '16px 0' }}>Réserver un appel ↗</Link></div>
-      </section>
-      <footer style={{ padding: '28px 0', borderTop: '1px solid #c9c7be', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, fontSize: 13 }}><span>© SEOKRAFT — Marc Bretzner</span><Link href='/' style={{ color: '#596247' }}>Retour à l’accueil ↗</Link></footer>
-    </div>
-  </main>;
+ return <><SiteHeader/><main>
+  <section className="hero" id="accueil"><div className="hero-top"><span className="eyebrow"><span className="eyebrow-dot"/> SEO · STRASBOURG · ALSACE</span><span className="hero-aside">RÉFÉRENCEMENT NATUREL<br/>SEO &amp; GEO</span></div><div className="hero-layout"><div className="hero-copy"><h1>Référencement SEO <em>à Strasbourg</em><span className="olive-dot">.</span></h1><p className="hero-question">Votre site existe, mais vos futurs clients ne le trouvent pas sur Google ?</p><p>Votre site doit être compréhensible pour Google, utile pour vos visiteurs et capable de présenter clairement votre activité. SEOKRAFT accompagne les entreprises de Strasbourg et d’Alsace dans l’amélioration de leur référencement naturel.</p><div className="hero-actions"><a className="button button-olive" href="#contact">Parlons de votre site <ArrowUpRight size={17}/></a><a className="hero-call-button" href="/rendez-vous">Réserver un appel <ArrowUpRight size={17}/></a></div></div><div className="hero-visual"><div className="hero-photo"><Image src="/images/marc-noir-blanc.jpg" alt="Marc Bretzner, référencement SEO à Strasbourg" fill priority sizes="(max-width: 800px) 90vw, 45vw" style={{objectFit:'cover',objectPosition:'center 39%'}}/></div><a className="hero-project-link" href="/creation-site-internet/strasbourg">Création de site à Strasbourg <ArrowUpRight size={18}/></a></div></div><a href="#besoins" className="scroll-cue">DÉCOUVRIR NOTRE APPROCHE <span>↓</span></a></section>
+
+  <section className="intro-scene" id="besoins" aria-label="Une stratégie SEO adaptée à votre activité"><span className="eyebrow light">UNE STRATÉGIE ADAPTÉE À VOTRE ACTIVITÉ</span><h2>Être trouvé par<br/><em>les bons clients.</em></h2><p>Artisan, prestataire de services, commerce ou entreprise B2B : les recherches de vos futurs clients ne sont pas toutes les mêmes. Le travail commence par comprendre votre offre, votre zone géographique et les pages dont vous avez réellement besoin.</p></section>
+
+  <section className="expertise-section" id="expertises"><div className="expertise-heading"><span className="eyebrow">L’ACCOMPAGNEMENT SEO</span><h2>Des actions concrètes.<br/><em>Des résultats suivis.</em></h2><p>Un référencement construit étape par étape, sur des bases solides, et mesuré avec des données réelles.</p><a className="expertise-heading-link" href="#contact">Discutons de votre site <ArrowUpRight size={17}/></a></div><div className="expertise-lines">{services.map(([t, d]) => <a href="#contact" className="expertise-item" key={t}><span>{t}</span><p>{d}</p><ArrowUpRight aria-hidden="true"/></a>)}</div></section>
+
+  <StudioSection text={studioText}/>
+
+  <section className="seo-scene" id="local"><div className="seo-scene-inner"><span className="eyebrow light">VISIBILITÉ LOCALE · SEO &amp; GEO</span><h2>Être visible à Strasbourg.<br/><em>Sur Google et ailleurs.</em></h2><p>Une entreprise implantée à Strasbourg peut être recherchée par son métier, son service ou sa localisation, sur Google comme dans les réponses des assistants IA. Des pages bien structurées, des informations cohérentes et un contenu pertinent facilitent la compréhension de votre activité. Le SEO demande du temps : aucun classement ni volume de contacts ne peut être garanti.</p><a href="/blog/seo-vs-geo" className="seo-link">Comprendre la différence entre SEO et GEO <ArrowUpRight size={18}/></a></div></section>
+
+  <Contact/>
+ </main><SiteFooter/></>;
 }

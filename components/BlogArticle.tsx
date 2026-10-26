@@ -1,23 +1,43 @@
 import Link from 'next/link';
-import { relatedArticles } from './articles';
+import { ArrowUpRight } from 'lucide-react';
+import SiteHeader from './SiteHeader';
+import SiteFooter from './SiteFooter';
+import { Contact } from './Home';
+import { relatedArticles, nbsp } from './articles';
 
 type Article = { title: string; eyebrow: string; intro: string; sections: {heading:string; paragraphs:string[]}[]; conclusion:string; slug:string; date?:string; published?:string };
 
 /** Transforme [texte](/url) en lien dans les paragraphes. */
 function withLinks(text:string){
  const parts=text.split(/(\[[^\]]+\]\([^)]+\))/g);
- return parts.map((part,i)=>{const m=part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);if(!m)return part;const external=/^https?:/.test(m[2]);return external?<a key={i} href={m[2]} target='_blank' rel='noopener noreferrer' style={{color:'#596247',textDecoration:'underline',textUnderlineOffset:4}}>{m[1]}</a>:<Link key={i} href={m[2]} style={{color:'#596247',textDecoration:'underline',textUnderlineOffset:4}}>{m[1]}</Link>;});
+ return parts.map((part,i)=>{const m=part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);if(!m)return nbsp(part);const external=/^https?:/.test(m[2]);return external?<a key={i} href={m[2]} target='_blank' rel='noopener noreferrer'>{m[1]}</a>:<Link key={i} href={m[2]}>{m[1]}</Link>;});
 }
-const serif = {fontFamily: 'Georgia, serif'};
+
 export default function BlogArticle({article}:{article:Article}) {
- return <main style={{background:'#f4f0e8',color:'#11110f',minHeight:'100vh',fontFamily:'Arial, sans-serif'}}>
- <div style={{maxWidth:1050,margin:'0 auto',padding:'30px 24px'}}>
- <header style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:18,paddingBottom:30,borderBottom:'1px solid #c9c7be',flexWrap:'wrap'}}><Link href='/' style={{color:'#11110f',textDecoration:'none',fontSize:26,fontWeight:700,letterSpacing:'-.05em'}}>SEOKRAFT<span style={{color:'#596247'}}>.</span></Link><Link href='/rendez-vous' style={{color:'#596247',textDecoration:'none',fontSize:14}}>Échanger sur votre projet ↗</Link></header>
- <article>{article.date&&<script type='application/ld+json' dangerouslySetInnerHTML={{__html:JSON.stringify({'@context':'https://schema.org','@type':'BlogPosting',headline:article.title,description:article.intro,datePublished:article.published??article.date,dateModified:article.date,inLanguage:'fr-FR',mainEntityOfPage:'https://www.seokraft.fr/blog/'+article.slug,author:{'@type':'Person',name:'Marc Bretzner',url:'https://www.seokraft.fr/a-propos'},publisher:{'@type':'Organization',name:'SEOKRAFT',url:'https://www.seokraft.fr'}})}}/>}<section style={{padding:'84px 0 58px'}}><p style={{fontSize:12,letterSpacing:'.2em',textTransform:'uppercase',fontWeight:700,color:'#596247'}}>{article.eyebrow}</p><h1 style={{...serif,fontWeight:400,fontSize:'clamp(43px, 6.4vw, 82px)',lineHeight:1.08,letterSpacing:'-.045em',maxWidth:1000,margin:'24px 0'}}>{article.title}{/[?!.]$/.test(article.title)?null:<span style={{color:'#596247'}}>.</span>}</h1><p style={{fontSize:'clamp(18px, 2vw, 22px)',lineHeight:1.75,maxWidth:820}}>{article.intro}</p>{article.date&&<p style={{fontSize:13,color:'#77786f',marginTop:18}}>Par Marc Bretzner · {article.published&&article.published!==article.date?'Mis à jour le ':''}<time dateTime={article.date}>{new Date(article.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</time></p>}</section>
- <div style={{maxWidth:830}}>{article.sections.map((section)=><section key={section.heading} style={{padding:'34px 0 38px',borderTop:'1px solid #c9c7be'}}><h2 style={{...serif,fontSize:'clamp(29px, 4vw, 43px)',fontWeight:400,lineHeight:1.18,margin:'12px 0 24px'}}>{section.heading}</h2>{section.paragraphs.map((p,j)=><p key={j} style={{fontSize:17,lineHeight:1.85,margin:'0 0 20px'}}>{withLinks(p)}</p>)}</section>)}</div>
- <section style={{background:'#596247',color:'#fff',padding:'clamp(28px, 5vw, 60px)',margin:'30px 0 60px'}}><p style={{fontSize:12,letterSpacing:'.17em',textTransform:'uppercase'}}>À retenir</p><h2 style={{...serif,fontWeight:400,fontSize:'clamp(26px, 3.5vw, 40px)',lineHeight:1.3}}>{article.conclusion}</h2><Link href='/rendez-vous' style={{display:'inline-block',marginTop:15,padding:'16px 22px',background:'#f4f0e8',color:'#11110f',textDecoration:'none',fontWeight:600}}>Parler de votre projet ↗</Link></section>
- </article>
- <section style={{borderTop:'1px solid #c9c7be',padding:'32px 0'}}><h2 style={{...serif,fontSize:32,fontWeight:400}}>Pour aller plus loin</h2><nav aria-label='Autres articles'>{relatedArticles(article.slug).map(x=><Link key={x.slug} href={'/blog/'+x.slug} style={{display:'block',margin:'12px 0',color:'#596247',textDecoration:'underline',textUnderlineOffset:4,lineHeight:1.5}}>{x.title} ↗</Link>)}</nav><p style={{marginTop:20,display:'flex',gap:22,flexWrap:'wrap'}}><Link href='/creation-site-internet/strasbourg' style={{color:'#596247'}}>Création de site internet à Strasbourg ↗</Link><Link href='/seo/strasbourg' style={{color:'#596247'}}>Référencement SEO à Strasbourg ↗</Link><Link href='/blog' style={{color:'#596247'}}>Tous les articles ↗</Link></p></section>
- <footer style={{padding:'28px 0',borderTop:'1px solid #c9c7be',display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12,fontSize:13}}><span>© SEOKRAFT — Marc Bretzner</span><Link href='/' style={{color:'#596247'}}>Retour à l’accueil ↗</Link></footer>
- </div></main>;
+ const schema={'@context':'https://schema.org','@type':'BlogPosting',headline:article.title,description:article.intro,datePublished:article.published??article.date,dateModified:article.date,inLanguage:'fr-FR',mainEntityOfPage:'https://www.seokraft.fr/blog/'+article.slug,author:{'@type':'Person',name:'Marc Bretzner',url:'https://www.seokraft.fr/a-propos'},publisher:{'@type':'Organization',name:'SEOKRAFT',url:'https://www.seokraft.fr'}};
+ return <><SiteHeader/><main>
+  <article>
+   {article.date&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema)}}/>}
+   <header className="work-section page-intro article-head">
+    <Link href="/blog" className="article-back">← Le blog</Link>
+    <span className="eyebrow"><span className="eyebrow-dot"/> {article.eyebrow.toUpperCase()}</span>
+    <h1>{nbsp(article.title)}{/[?!.]$/.test(article.title)?null:<span className="olive-dot">.</span>}</h1>
+    <p className="article-lead">{nbsp(article.intro)}</p>
+    {article.date&&<p className="article-meta">Par Marc Bretzner · <time dateTime={article.date}>{new Date(article.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</time></p>}
+   </header>
+   <div className="article-body">{article.sections.map(section=><section key={section.heading}><h2>{nbsp(section.heading)}</h2>{section.paragraphs.map((p,j)=><p key={j}>{withLinks(p)}</p>)}</section>)}</div>
+   <section className="article-takeaway">
+    <span className="eyebrow">À RETENIR</span>
+    <h2>{nbsp(article.conclusion)}</h2>
+    <a href="#contact" className="text-link">Parlons de votre projet <ArrowUpRight size={17}/></a>
+   </section>
+  </article>
+
+  <section className="expertise-section">
+   <div className="expertise-heading"><span className="eyebrow">POUR ALLER PLUS LOIN</span><h2>D’autres réponses.<br/><em>Pour votre projet.</em></h2><p>Prix, préparation, référencement : poursuivez votre lecture ou découvrez notre accompagnement.</p><a className="expertise-heading-link" href="/creation-site-internet/strasbourg">Création de site à Strasbourg <ArrowUpRight size={17}/></a></div>
+   <div className="expertise-lines">{relatedArticles(article.slug).map(a=><a href={`/blog/${a.slug}`} className="expertise-item" key={a.slug}><span>{nbsp(a.title)}</span><p>{nbsp(a.text)}</p><ArrowUpRight aria-hidden="true"/></a>)}</div>
+  </section>
+
+  <Contact/>
+ </main><SiteFooter/></>;
 }
