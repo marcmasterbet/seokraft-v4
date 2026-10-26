@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
-export const metadata: Metadata = { title: "GEO : comprendre la visibilité dans les réponses des IA", description: "Qu’est-ce que le GEO ? Découvrez comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.", alternates: { canonical: '/blog/geo/' }, robots: { index: true, follow: true }, openGraph: { title: "GEO : comprendre la visibilité dans les réponses des IA", description: "Qu’est-ce que le GEO ? Découvrez comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.", url: 'https://www.seokraft.fr/blog/geo/', type: 'article' } };
+export const metadata: Metadata = { title: "GEO : comprendre la visibilité dans les réponses des IA", description: "Qu’est-ce que le GEO ? Découvrez comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.", alternates: { canonical: '/blog/geo' }, robots: { index: true, follow: true }, openGraph: { title: "GEO : comprendre la visibilité dans les réponses des IA", description: "Qu’est-ce que le GEO ? Découvrez comment rendre vos contenus plus clairs, crédibles et faciles à citer par les moteurs de recherche génératifs.", url: 'https://www.seokraft.fr/blog/geo', type: 'article' } };
 const article = {
   "title": "GEO : comprendre la visibilité dans les réponses des IA",
   "eyebrow": "GEO · Visibilité IA",

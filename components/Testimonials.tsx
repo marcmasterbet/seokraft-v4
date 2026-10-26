@@ -70,6 +70,8 @@ function MessageIcon({ className }: { className?: string }) {
  return <svg className={className} viewBox="0 0 24 24" role="img" aria-label="Message client"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/></svg>;
 }
 
+const excerpt = (s: string) => s.length > 300 ? s.slice(0, s.lastIndexOf(' ', 300)) + '…' : s;
+
 function Author({ t }: { t: Testimonial }) {
  return <div className="tm-author">
   <span className="tm-avatar" aria-hidden="true">{t.initials}</span>
@@ -107,7 +109,7 @@ export default function Testimonials() {
      const clone = k >= testimonials.length;
      return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined} aria-label={clone ? undefined : `Lire la recommandation complète de ${t.name}`}>
       <span className="tm-quote-mark" aria-hidden="true">“</span>
-      <span className="tm-text">{t.text.join(' ')}</span>
+      <span className="tm-text">{excerpt(t.text.join(' '))}</span>
       <Author t={t}/>
      </button>;
     })}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
-export const metadata: Metadata = { title: "SEO vs GEO : quelles différences pour votre entreprise ?", description: "SEO et GEO : deux approches complémentaires pour la visibilité sur Google et dans les réponses générées par les IA. Différences, exemples et priorités.", alternates: { canonical: '/blog/seo-vs-geo/' }, robots: { index: true, follow: true }, openGraph: { title: "SEO vs GEO : quelles différences pour votre entreprise ?", description: "SEO et GEO : deux approches complémentaires pour la visibilité sur Google et dans les réponses générées par les IA. Différences, exemples et priorités.", url: 'https://www.seokraft.fr/blog/seo-vs-geo/', type: 'article' } };
+export const metadata: Metadata = { title: "SEO vs GEO : quelles différences pour votre entreprise ?", description: "SEO et GEO : deux approches complémentaires pour la visibilité sur Google et dans les réponses générées par les IA. Différences, exemples et priorités.", alternates: { canonical: '/blog/seo-vs-geo' }, robots: { index: true, follow: true }, openGraph: { title: "SEO vs GEO : quelles différences pour votre entreprise ?", description: "SEO et GEO : deux approches complémentaires pour la visibilité sur Google et dans les réponses générées par les IA. Différences, exemples et priorités.", url: 'https://www.seokraft.fr/blog/seo-vs-geo', type: 'article' } };
 const article = {
   "title": "SEO vs GEO : quelles différences pour votre entreprise ?",
   "eyebrow": "SEO · GEO · Stratégie",
