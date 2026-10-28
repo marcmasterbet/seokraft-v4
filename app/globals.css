@@ -529,3 +529,102 @@
 /* Contact : le formulaire garde sa hauteur naturelle et reste visible pendant la lecture */
 .contact-wrap{align-items:start}
 @media(min-width:801px){.contact-wrap .mail-form{position:sticky;top:40px}}
+/* ===== Échelle globale réduite (demande de Marc du 28/10 : « tout est trop grand ») =====
+   Ordinateur : zoom arrière proportionnel de tout le site (titres, textes, espacements, images).
+   Téléphone : seuls les grands titres sont réduits ; les textes gardent leur taille (lisibilité, pas de zoom iPhone). */
+:root{--z:1}
+@media(min-width:1024px){:root{--z:.82}}
+@media(min-width:801px) and (max-width:1023px){:root{--z:.9}}
+html{zoom:var(--z)}
+@media(max-width:800px){
+ .hero-copy h1{font-size:clamp(32px,8.6vw,40px)!important;line-height:1.12}
+ .intro-scene h2,.section-head h2,.expertise-heading h2,.faq-section h2,.human-quote h2,.contact-intro h2,.sk-pricing-head h2,.testimonials-section h2,.section-head h1,.article-head h1{font-size:clamp(29px,7.8vw,36px)!important;line-height:1.16}
+ .seo-scene h2{font-size:clamp(30px,8vw,38px)!important}
+ .accent-line{font-size:18px!important}
+ .studio-steps-title{font-size:22px}
+ .seo-dims strong{font-size:20px}
+ .contact-option h3{font-size:21px}
+}
+
+/* ===== Tailles minimales réelles (après zoom) — lisibilité, 28/10 =====
+   calc(Npx / var(--z)) = N px réellement affichés à l'écran, quel que soit le zoom. */
+/* Paragraphes : 15 px */
+.hero-copy>p:not(.accent-line),.intro-scene p:not(.accent-line),.seo-scene p:not(.accent-line),.testimonials-section .tm-head p,.sk-pricing-head p,.sk-included-text,.sk-offer-lead,.sk-pricing-service>div:first-child p,.sk-service-after p:not(.accent-line),.contact-intro>p:not(.accent-line),.contact-option p,.contact-signature p:not(.accent-line),.faq-item p,.expertise-heading>p,.section-head>p,.section-head-copy p,.tm-text,.studio-steps span{font-size:calc(15px / var(--z))!important}
+.human-quote p:not(.accent-line){font-size:calc(16px / var(--z))!important}
+.article-body p{font-size:calc(16.5px / var(--z))!important}
+.article-lead{font-size:calc(17.5px / var(--z))!important}
+/* Descriptions et listes : 14 px */
+.expertise-lines p,.expertise-lines .service-item .service-body p,.project-case-copy p,.project-case-details li,.sk-offer-list li,.sk-included-list li,.sk-conditions li,.sk-estimator-options p,.sk-sim-lead,.sk-estimator-option span,.sk-estimator-total p,.seo-dims p,.tm-who strong,.contact-call-link,.hero-call-button,.seo-link,.human-quote .text-link{font-size:calc(14.5px / var(--z))!important}
+.faq-item button{font-size:calc(15px / var(--z))!important}
+.sk-estimator-label,.sk-service-label,.sk-conditions-title,.sk-included-subtitle{font-size:calc(14.5px / var(--z))!important}
+/* Boutons, liens et petites mentions : 13 px */
+.sk-pricing-note,.contact-privacy,.tm-who span,.tm-hint,.footer>div span,.footer-legal a,.article-meta,.sk-estimator-option small,.sk-range-ends span,.desktop-nav a,.header-cta,.button,.hero-project-link,.expertise-heading-link,.project-case-link,.tm-linkedin-link,.article-back{font-size:calc(13px / var(--z))!important}
+/* Petits titres en majuscules : 11 px */
+.eyebrow,.project-case-label,.project-visit,.mail-heading{font-size:calc(11px / var(--z))!important}
+.project-meta .eyebrow,.hero-aside,.mail-to,.scroll-cue{font-size:calc(10.5px / var(--z))!important}
+.brand-sub{font-size:calc(9.5px / var(--z))!important}
+/* Formulaire sur ordinateur (sur téléphone : 16 px, réglé plus haut) */
+@media(min-width:801px){.mail-form>label{font-size:calc(13px / var(--z))!important}.mail-form input,.mail-form select,.mail-form textarea{font-size:calc(14.5px / var(--z))!important}}
+
+/* ===== Titres restants en Playfair (cohérence typographique) ===== */
+.seo-scene h2{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.045em}
+.seo-scene h2 em{font-family:inherit;color:#c0c8a9}
+.sk-estimator h3,.sk-included-panel h3,.sk-pricing-service h3{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.025em}
+.sk-price strong,.sk-service-price strong,.sk-estimator-total strong{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.03em}
+.sk-price small,.sk-service-price small,.sk-estimator-total small{font-family:'DM Sans',sans-serif}
+.sk-estimator-total>span,.sk-price>span,.sk-service-price>span:not(.sk-service-label){font-size:calc(13px / var(--z))!important}
+.contact-signature strong{font-size:calc(13.5px / var(--z))!important}
+/* Portfolio : Loca Direct au même format que Remus (28/10) */
+.portfolio-editorial .project-loca .portfolio-image-link{width:100%;margin-left:0}
+.portfolio-editorial .project-loca .project-meta,.portfolio-editorial .project-loca .project-case-study{width:100%;margin-left:0}
+@media(min-width:801px) and (max-width:1200px){.portfolio-editorial .project-loca .portfolio-image-link{width:90%;margin-inline:auto}}
+@media(min-width:801px){.portfolio-editorial .project .portfolio-image-link{width:90%!important;margin-left:auto!important;margin-right:auto!important}}
+/* ===== Harmonisation (28/10) ===== */
+/* Titres équilibrés : pas de mot isolé sur une ligne */
+h1,h2,h3{text-wrap:balance}
+/* Prestations et tarifs : la colonne de gauche accompagne la lecture */
+@media(min-width:801px){
+ .expertise-section>.expertise-heading{position:sticky;top:40px;align-self:start}
+ .sk-pricing-offer{align-items:start}
+ .sk-pricing-main{position:sticky;top:40px;align-self:start;border-right:0}
+ .sk-estimator{border-left:1px solid #d7d3c8}
+}
+/* Sous-blocs tarifs à la même échelle que les autres sections */
+.sk-included-panel>h3,.sk-pricing-service h3{font-size:clamp(34px,3.6vw,54px)!important;line-height:1.15;letter-spacing:-.04em;margin:18px 0 22px}
+.sk-included-panel{padding-top:clamp(60px,7vw,100px)}
+/* FAQ : réponses plus contrastées */
+.faq-item p{color:#4f5148!important}
+/* Formulaire : intitulés alignés à gauche */
+.mail-form>label{align-items:flex-start!important;text-align:left}
+/* ===== Contact en deux cartes ===== */
+.contact-layout{max-width:1240px;margin:0 auto}
+.contact-head{margin-bottom:34px}
+.contact-head h2{margin-top:18px}
+.contact-layout .contact-options-lead{margin:0 0 22px;max-width:none}
+.contact-choices{display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:start}
+.contact-card{border:1px solid #d7d3c8;background:#f9f7f1;padding:clamp(26px,3vw,40px)}
+.contact-card h3{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:clamp(24px,2.2vw,32px);letter-spacing:-.02em;line-height:1.2;margin:0 0 12px}
+.contact-card p{font-size:calc(15px / var(--z))!important;line-height:1.75;margin:0 0 8px;color:#3f4139}
+.contact-card-intro{margin-bottom:24px}
+.contact-card-form .mail-form{box-shadow:none;border:1px solid #e2ded3;background:#fff}
+.contact-card-call{background:var(--olive);border-color:var(--olive);color:#fff;position:sticky;top:40px}
+.contact-card-call h3{color:#fff}
+.contact-card-call p{color:#e8ebe0!important}
+.contact-call-button{margin-top:22px;background:var(--ivory);color:var(--ink);width:100%;justify-content:space-between}
+.contact-call-button:hover{background:var(--ink);color:#fff}
+.contact-layout .contact-signature{max-width:720px;margin:64px auto 0;text-align:center;border-top:1px solid #d7d3c8;padding-top:32px}
+.contact-layout .contact-signature p{max-width:none}
+.contact-layout .contact-signature .accent-line{margin:18px auto 0}
+@media(max-width:800px){
+ .contact-choices{grid-template-columns:1fr;gap:18px}
+ .contact-card-call{position:static}
+ .contact-card{padding:24px 20px}
+ .contact-card-form .mail-form{padding:18px}
+ .contact-layout .contact-signature{margin-top:44px;text-align:left}
+}
+/* Pied de page mobile : plus aéré */
+@media(max-width:800px){.footer{gap:26px}}
+.contact-layout{max-width:none}
+.contact-card-call{position:static!important}
+.contact-head{align-items:start!important}
+.contact-head .section-head-copy{max-width:440px}
