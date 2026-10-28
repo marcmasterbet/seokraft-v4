@@ -628,3 +628,5 @@ h1,h2,h3{text-wrap:balance}
 .contact-card-call{position:static!important}
 .contact-head{align-items:start!important}
 .contact-head .section-head-copy{max-width:440px}
+/* Tarifs après allègement : colonne prix plus étroite */
+@media(min-width:801px){.sk-pricing-offer{grid-template-columns:.72fr 1.28fr}}

@@ -118,7 +118,6 @@ export default function Testimonials() {
   </div>
   <div className="tm-foot">
    <p className="tm-hint">Cliquez sur une recommandation pour la lire en entier.</p>
-   <p className="accent-line">{nbsp(recommandations.accent)}</p>
    <a className="tm-linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer"><LinkedInGlyph size={16}/> {recommandations.button} <ArrowUpRight size={16}/></a>
   </div>
 

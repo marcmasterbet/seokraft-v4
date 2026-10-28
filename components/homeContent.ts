@@ -3,6 +3,9 @@
  * Ne pas reformuler : toute modification doit venir de Jeff / Marc.
  * Choix validés par Marc (28/10/2026) : numéros des étapes retirés, 2e partie des titres en italique olive,
  * résumés de Jeff dans les cartes d'avis, logo « Studio web indépendant ».
+ * Allègement validé par Marc (28/10/2026) : textes conservés ici mais NON affichés —
+ *   tarifs.offerLead + offerList, tarifs.hostingLabel/hostingText, inclus.after,
+ *   hebergement.after + accent, recommandations.accent (doublons). Pour les réafficher, voir Home.tsx / Testimonials.tsx.
  */
 
 /** Titre en deux parties : la seconde s'affiche en italique olive. */
