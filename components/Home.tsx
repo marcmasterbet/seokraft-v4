@@ -21,9 +21,10 @@ function Contact(){
   e.preventDefault();setBusy(true);setError('');
   const form=new FormData(e.currentTarget);
   const payload=Object.fromEntries(form.entries());
+  if(String(payload.message||'').trim().length<15){setError('Votre message est un peu court : décrivez votre projet en au moins 15 caractères.');setBusy(false);return;}
   try{
    const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-   if(!r.ok){const response=await r.json().catch(()=>({}));throw new Error(response.error==='Service de contact non configuré'?'Le formulaire est temporairement indisponible. Merci de réessayer ultérieurement.':'Votre message n’a pas pu être envoyé. Merci de réessayer.');}
+   if(!r.ok){const response=await r.json().catch(()=>({}));throw new Error(response.error==='Données invalides'?'Merci de vérifier votre e-mail et de décrire votre projet en au moins 15 caractères.':response.error==='Service de contact non configuré'?'Le formulaire est temporairement indisponible. Merci de réessayer ultérieurement.':'Votre message n’a pas pu être envoyé. Merci de réessayer, ou réservez directement un appel gratuit de 20 minutes.');}
    trackSeokraftConversion('contact_submit');
    setSent(true);
   }catch(err){setError(err instanceof Error?err.message:'Une erreur est survenue. Merci de réessayer.');}
@@ -43,7 +44,7 @@ function Contact(){
    <label>Votre message <textarea name="message" placeholder="Présentez votre activité et ce que vous aimeriez réaliser…" required minLength={15} rows={6}/></label>
    <input type="text" name="website" tabIndex={-1} autoComplete="off" className="honey" aria-hidden="true"/>
    <p className="contact-privacy">Les informations envoyées sont utilisées pour répondre à votre demande. Consultez notre <a href="/politique-de-confidentialite">politique de confidentialité</a>.</p>
-   {error&&<p className="form-error" role="alert">{error}</p>}
+   {error&&<p className="form-error" role="alert">{error} <a href="/rendez-vous">Réserver un appel</a></p>}
    <button className="button button-dark" type="submit" disabled={busy}>{busy?'Envoi en cours…':contact.options[0].button} <ArrowUpRight size={17}/></button>
   </form></div>
    <aside className="contact-card contact-card-call"><h3>{nbsp(contact.options[1].title)}</h3>{contact.options[1].paragraphs.map(p=><p key={p}>{nbsp(p)}</p>)}<a className="button contact-call-button" href="/rendez-vous">{contact.options[1].button} <ArrowUpRight size={17}/></a></aside>

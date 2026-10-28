@@ -45,11 +45,14 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) {
-      console.error('Erreur Resend', res.status);
+      // Raison détaillée visible dans Vercel → Logs (ex. domaine non vérifié, clé invalide, mode test)
+      const detail = await res.text().catch(() => '');
+      console.error('Erreur Resend', res.status, detail.slice(0, 500), '| from =', from, '| to =', to);
       return NextResponse.json({ error: 'Envoi indisponible' }, { status: 502 });
     }
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error('Erreur formulaire de contact', err);
     return NextResponse.json({ error: 'Requête invalide' }, { status: 400 });
   }
 }
