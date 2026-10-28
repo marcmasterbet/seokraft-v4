@@ -436,3 +436,5 @@
 .article-takeaway h2{font-size:clamp(30px,3.4vw,50px);line-height:1.28;letter-spacing:-.035em;max-width:980px;margin:24px 0 10px}
 @media(max-width:800px){.page-intro{padding-top:120px;padding-bottom:50px}.article-body{padding:0 24px 60px}}/* Mobile : 16px minimum dans les champs pour éviter le zoom automatique de Safari sur iPhone */
 @media(max-width:800px){.mail-form input,.mail-form select,.mail-form textarea{font-size:16px}.article-back{padding:10px 0 6px;margin-bottom:24px}}
+/* Photo d'accueil en couleur (photo de studio chaleureuse) */
+.hero-photo,.hero .hero-photo{filter:none}

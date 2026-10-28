@@ -45,10 +45,10 @@ const article = {
    'Faire appel à un professionnel coûte davantage, mais apporte une image plus crédible auprès des partenaires, un site plus durable et un accompagnement. Les fourchettes de prix sont détaillées dans notre guide [combien coûte un site internet en 2026](/blog/prix-site-internet).',
    'Dans tous les cas, intégrez les coûts annuels au budget de l’association : nom de domaine, hébergement, maintenance.'
   ]},
-  { heading: 'Un exemple concret', paragraphs: [
-   'SEOKRAFT a réalisé le site de l’association UZTA, qui regroupe les commerçants, artisans, indépendants et professions libérales d’Ustaritz, au Pays basque. L’objectif : présenter l’association, valoriser ses adhérents, faire découvrir leurs activités et renforcer la visibilité des professionnels de la commune.',
-   'Le site a été pensé dès le départ pour évoluer : intégration de nouveaux adhérents, présentation de leurs entreprises et publication d’actualités. Pour son responsable communication, pouvoir échanger directement avec le développeur a été un vrai avantage.',
-   'Vous avez un projet similaire ? Découvrez notre accompagnement en [création de site internet](/creation-site-internet/strasbourg), et pour bien préparer votre projet, notre check-list [que préparer avant de créer son site](/blog/preparer-creation-site-internet).'
+  { heading: 'Se faire accompagner', paragraphs: [
+   'Pour une association, le plus important est souvent de trouver un interlocuteur qui comprend son fonctionnement : des décisions prises collectivement, des bénévoles qui changent, un budget à justifier et des membres aux attentes variées.',
+   'Un bon accompagnement commence par clarifier les objectifs avec le bureau, puis propose une structure simple, un site facile à mettre à jour et une prise en main pour les personnes qui le feront vivre. Prévoir dès le départ l’ajout de nouveaux membres, de partenaires ou d’actualités évite de devoir tout refaire quelques mois plus tard.',
+   'Vous avez un projet de site pour votre association ? Découvrez notre accompagnement en [création de site internet](/creation-site-internet/strasbourg), et pour bien préparer votre projet, notre check-list [que préparer avant de créer son site](/blog/preparer-creation-site-internet).'
   ]}
  ],
  conclusion: 'Un bon site d’association n’est pas forcément le plus complet : c’est celui qui répond aux besoins de vos visiteurs et que vous pouvez faire vivre dans la durée.'
