@@ -18,9 +18,8 @@ export const metadata: Metadata = {
  }
 };
 
-const studioText = 'Chez SEOKRAFT, vous échangez directement avec la personne qui conçoit votre site. Les échanges se font en visio, par téléphone ou par e-mail, et je peux me déplacer pour vous rencontrer à Strasbourg et dans ses environs. De notre premier échange à la mise en ligne, je prends le temps de comprendre votre activité, vos attentes et vos priorités.';
 
-const faqs = [
+const faqs: [string, string][] = [
  ['Faut-il être à Strasbourg pour travailler avec vous ?', 'Non. La majorité des échanges se fait en visio, par téléphone et par e-mail, ce qui permet d’accompagner des clients partout en France et en Belgique. Pour les entreprises de Strasbourg et des environs, un déplacement est possible pour se rencontrer.'],
  ['Combien coûte la création d’un site internet ?', 'Un site sur mesure démarre à 1 990 € TTC pour une page, et le tarif évolue selon le nombre de pages : vous pouvez l’estimer avec le simulateur ci-dessus. Les fonctionnalités spécifiques (réservation, espace client, blog…) sont chiffrées sur devis. L’hébergement et la maintenance représentent 49 € TTC par mois.'],
  ['Combien de temps faut-il pour créer un site ?', 'Le délai dépend du nombre de pages, des fonctionnalités et de la disponibilité de vos contenus. Il est précisé dans le devis, avant le démarrage du projet.'],
@@ -43,7 +42,7 @@ export default function CreationSiteStrasbourg() {
   <section className="intro-scene" id="besoins" aria-label="Un site internet pour votre entreprise à Strasbourg"><span className="eyebrow light">UN SITE PENSÉ POUR VOTRE MÉTIER</span><h2>Un site internet qui<br/><em>travaille pour vous.</em></h2><p>Artisans, commerçants, indépendants, professions libérales, associations ou TPE de l’Eurométropole : chaque activité a ses propres clients et ses propres questions. Votre site doit y répondre simplement, inspirer confiance et faciliter la prise de contact.</p><p>Design sur mesure, version mobile, textes rédigés pour convaincre et bases du référencement : <strong>tout est pensé pour que votre site apporte de vrais contacts à votre entreprise.</strong></p></section>
 
   <WorkSection/>
-  <StudioSection text={studioText}/>
+  <StudioSection/>
   <Testimonials/>
   <PricingSection/>
 

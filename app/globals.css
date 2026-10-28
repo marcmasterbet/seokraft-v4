@@ -438,3 +438,94 @@
 @media(max-width:800px){.mail-form input,.mail-form select,.mail-form textarea{font-size:16px}.article-back{padding:10px 0 6px;margin-bottom:24px}}
 /* Photo d'accueil en couleur (photo de studio chaleureuse) */
 .hero-photo,.hero .hero-photo{filter:none}
+/* ===== Textes Jeff (accueil) — mêmes codes visuels que le site ===== */
+/* Phrases en italique de Jeff : Playfair italique olive (clair sur fonds sombres) */
+.accent-line{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:clamp(19px,1.6vw,24px)!important;line-height:1.45!important;color:var(--olive)!important;letter-spacing:-.01em;max-width:640px}
+.intro-scene .accent-line,.seo-scene .accent-line,.testimonials-section .accent-line{color:#c0c8a9!important}
+.human-section .accent-line{color:#e5e9da!important}
+/* Hero */
+.hero-copy .hero-accent{max-width:540px;margin:0 0 22px}
+.hero-copy .hero-accent+p{margin-top:0}
+/* Bloc problème : lignes courtes, rythme serré */
+.problem-scene p{margin-top:0;margin-bottom:0}
+.problem-scene p+p{margin-top:14px}
+.problem-scene .accent-line{margin:34px auto!important}
+/* Prestations */
+.expertise-heading>p+p{margin-top:0}
+.expertise-lines .service-item{align-items:start;grid-template-columns:.8fr 1.4fr 25px;padding:32px 0}
+.expertise-lines .service-item>span{padding-top:2px}
+.expertise-lines .service-item .service-body p{font-size:14px;line-height:1.75;color:#4f5148;margin:0 0 10px}
+.expertise-lines .service-item .service-body .service-question{font-weight:600;color:var(--ink)}
+.expertise-lines .service-item .service-body .service-benefit{color:var(--olive);margin:14px 0 0}
+.expertise-lines .service-item .service-body .service-benefit em{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:16px}
+/* Réalisations */
+.section-head-copy{max-width:380px}
+.section-head-copy p{line-height:1.85;color:#666960;font-size:14px;margin:0 0 10px}
+.work-accent{margin:70px auto 0;text-align:center;max-width:760px!important}
+/* SEO & GEO */
+.seo-scene .accent-line{margin:30px 0}
+.seo-dims{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;margin:30px 0 40px;max-width:980px}
+.seo-dims>div{border-top:1px solid #3a3e34;padding:22px 0 8px}
+.seo-dims strong{display:block;font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:24px;color:var(--ivory);margin-bottom:8px}
+.seo-dims p{font-size:15px!important;margin:0}
+/* À propos (bloc olive) */
+.human-quote .accent-line{margin:26px 0}
+.studio-steps-title{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:clamp(24px,2.2vw,32px);color:#fff;margin:40px 0 0}
+.human-quote .studio-after{margin-top:28px}
+/* Recommandations */
+.testimonials-section .tm-head p{max-width:640px;color:#c9cbc0;font-size:15px;line-height:1.8;margin:0 0 10px}
+.testimonials-section .tm-head h2{margin-bottom:24px}
+.tm-text{-webkit-line-clamp:unset!important;min-height:0!important;display:block!important}
+.tm-foot{padding:0 clamp(24px,7vw,130px);margin-top:26px}
+.tm-foot .tm-hint{padding:0;margin:0 0 22px}
+.tm-foot .accent-line{margin:0 0 6px}
+/* Tarifs */
+.sk-pricing-head p{margin:0 0 12px}
+.sk-offer-title{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:clamp(26px,2.4vw,36px);letter-spacing:-.02em;margin:0}
+.sk-pricing-main .sk-price{margin:26px 0 30px}
+.sk-offer-lead{font-size:16px;line-height:1.7;margin:0 0 14px;color:#33352e}
+.sk-offer-list{list-style:none;padding:0;margin:0;width:100%}
+.sk-offer-list li{position:relative;padding:13px 0 13px 28px;border-bottom:1px solid #e0ddd3;font-size:16px;line-height:1.5}
+.sk-offer-list li:before{content:'✓';position:absolute;left:0;color:var(--olive)}
+.sk-sim-lead{font-size:14px;line-height:1.7;color:#55584a;margin:-6px 0 18px}
+.sk-estimator-options p+p{margin-top:6px}
+.sk-accent{margin-top:14px}
+.sk-included-panel h3 em{font-style:italic;color:var(--olive)}
+.sk-included-text{max-width:720px;font-size:16px;line-height:1.75;color:#48483e;margin:0 0 12px}
+.sk-included-subtitle{font-size:15px;font-weight:700;margin:28px 0 6px}
+.sk-included-list li strong{font-weight:700}
+.sk-included-panel .accent-line{margin-top:18px}
+.sk-pricing-service{grid-template-columns:1.4fr 1fr;align-items:start}
+.sk-pricing-service h3 em{font-style:italic;color:var(--olive)}
+.sk-pricing-service>div:first-child p{margin:0 0 10px}
+.sk-service-price{text-align:left}
+.sk-service-label{font-size:15px!important;color:var(--ink)!important;font-weight:600}
+.sk-conditions-title{font-weight:600;margin:18px 0 6px!important;color:var(--ink)!important}
+.sk-conditions{list-style:none;padding:0;margin:0}
+.sk-conditions li{position:relative;padding:10px 0 10px 24px;border-bottom:1px solid #e0ddd3;font-size:15px;line-height:1.5}
+.sk-conditions li:before{content:'✓';position:absolute;left:0;color:var(--olive)}
+.sk-service-after{grid-column:1/-1}
+.sk-service-after p{margin:0 0 10px}
+/* Contact */
+.contact-intro>p{max-width:460px}
+.contact-intro .contact-options-lead{margin:28px 0 8px}
+.contact-option{border-top:1px solid #d2d0c6;padding:20px 0 6px;max-width:460px}
+.contact-option h3{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:24px;margin:0 0 10px}
+.contact-option p{font-size:14px;line-height:1.8;margin:0 0 8px}
+.contact-option .contact-call-link{margin-top:10px}
+.contact-signature{border-top:1px solid #d2d0c6;margin-top:30px;padding-top:24px;max-width:460px}
+.contact-signature strong{font-size:14px;letter-spacing:.04em}
+.contact-signature p{font-size:14px;line-height:1.75;margin:6px 0 0;color:#4f5148}
+.contact-signature .accent-line{margin-top:16px}
+@media(max-width:800px){
+ .expertise-lines .service-item{grid-template-columns:1fr 22px}
+ .expertise-lines .service-item .service-body{grid-column:1;grid-row:2}
+ .expertise-lines .service-item svg{grid-column:2;grid-row:1}
+ .seo-dims{grid-template-columns:1fr}
+ .sk-pricing-service{grid-template-columns:1fr}
+ .work-accent{margin-top:50px;text-align:left}
+ .section-head-copy{margin-top:24px}
+}
+/* Contact : le formulaire garde sa hauteur naturelle et reste visible pendant la lecture */
+.contact-wrap{align-items:start}
+@media(min-width:801px){.contact-wrap .mail-form{position:sticky;top:40px}}

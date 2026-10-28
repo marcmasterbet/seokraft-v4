@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { X, ArrowUpRight } from 'lucide-react';
 import { LINKEDIN_URL, LinkedInGlyph } from './SocialLinks';
+import { recommandations } from './homeContent';
+import { nbsp } from './articles';
 
 type Testimonial = {
  initials: string;
@@ -70,12 +72,11 @@ function MessageIcon({ className }: { className?: string }) {
  return <svg className={className} viewBox="0 0 24 24" role="img" aria-label="Message client"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/></svg>;
 }
 
-const excerpt = (s: string) => s.length > 300 ? s.slice(0, s.lastIndexOf(' ', 300)) + '…' : s;
-
-function Author({ t }: { t: Testimonial }) {
+function Author({ t, i }: { t: Testimonial; i: number }) {
+ const c = recommandations.cards[i];
  return <div className="tm-author">
   <span className="tm-avatar" aria-hidden="true">{t.initials}</span>
-  <span className="tm-who"><strong>{t.name}</strong><span>{t.role}</span></span>
+  <span className="tm-who"><strong>{c.name}</strong><span>{c.role}</span></span>
   {t.source === 'linkedin' ? <LinkedInIcon className="tm-source tm-source-li"/> : <MessageIcon className="tm-source"/>}
  </div>;
 }
@@ -98,31 +99,35 @@ export default function Testimonials() {
 
  return <section className="testimonials-section" id="avis" aria-labelledby="avis-titre">
   <div className="tm-head">
-   <span className="eyebrow light">RECOMMANDATIONS CLIENTS</span>
-   <h2 id="avis-titre">Ils m’ont confié<br/><em>leur projet.</em></h2>
-   <a className="tm-linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer"><LinkedInGlyph size={16}/> Voir toutes mes recommandations sur LinkedIn <ArrowUpRight size={16}/></a>
+   <span className="eyebrow light">{recommandations.eyebrow}</span>
+   <h2 id="avis-titre">{nbsp(recommandations.title[0].trimEnd())}<br/><em>{nbsp(recommandations.title[1])}</em></h2>
+   {recommandations.paragraphs.map(p => <p key={p}>{nbsp(p)}</p>)}
   </div>
   <div className="tm-viewport">
    <div className="tm-track" style={{ '--tm-duration': `${base.length * 9}s` } as React.CSSProperties}>
     {loop.map((t, k) => {
      const i = k % testimonials.length;
      const clone = k >= testimonials.length;
-     return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined} aria-label={clone ? undefined : `Lire la recommandation complète de ${t.name}`}>
+     return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined} aria-label={clone ? undefined : `Lire la recommandation complète de ${recommandations.cards[i].name}`}>
       <span className="tm-quote-mark" aria-hidden="true">“</span>
-      <span className="tm-text">{excerpt(t.text.join(' '))}</span>
-      <Author t={t}/>
+      <span className="tm-text">{nbsp(recommandations.cards[i].summary)}</span>
+      <Author t={t} i={i}/>
      </button>;
     })}
    </div>
   </div>
-  <p className="tm-hint">Cliquez sur une recommandation pour la lire en entier.</p>
+  <div className="tm-foot">
+   <p className="tm-hint">Cliquez sur une recommandation pour la lire en entier.</p>
+   <p className="accent-line">{nbsp(recommandations.accent)}</p>
+   <a className="tm-linkedin-link" href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer"><LinkedInGlyph size={16}/> {recommandations.button} <ArrowUpRight size={16}/></a>
+  </div>
 
-  {open !== null && <div className="tm-modal" role="dialog" aria-modal="true" aria-label={`Recommandation de ${testimonials[open].name}`} onClick={e => { if (e.target === e.currentTarget) setOpen(null); }}>
+  {open !== null && <div className="tm-modal" role="dialog" aria-modal="true" aria-label={`Recommandation de ${recommandations.cards[open].name}`} onClick={e => { if (e.target === e.currentTarget) setOpen(null); }}>
    <div className="tm-modal-box">
     <button type="button" className="tm-close" onClick={() => setOpen(null)} aria-label="Fermer" autoFocus><X size={22}/></button>
     <span className="tm-quote-mark" aria-hidden="true">“</span>
     {testimonials[open].text.map(p => <p key={p}>{p}</p>)}
-    <Author t={testimonials[open]}/>
+    <Author t={testimonials[open]} i={open}/>
    </div>
   </div>}
  </section>;
