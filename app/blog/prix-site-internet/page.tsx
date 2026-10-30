@@ -4,7 +4,7 @@ import BlogArticle from '../../../components/BlogArticle';
 const title = 'Combien coûte un site internet en 2026 ?';
 const description = 'Prix d’un site internet en 2026 : site fait soi-même, freelance ou agence, coûts annuels, ce qui fait varier le tarif et les pièges à éviter. Exemples concrets.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/prix-site-internet' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/prix-site-internet', type: 'article' } };
+export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/prix-site-internet' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/prix-site-internet', type: 'article' } };
 
 const article = {
  title,

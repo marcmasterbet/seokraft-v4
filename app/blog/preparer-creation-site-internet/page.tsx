@@ -4,7 +4,7 @@ import BlogArticle from '../../../components/BlogArticle';
 const title = 'Que préparer avant de créer son site internet ?';
 const description = 'Objectifs, pages, textes, photos, nom de domaine, budget : la check-list pour préparer la création de votre site internet et obtenir des devis comparables.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/preparer-creation-site-internet' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/preparer-creation-site-internet', type: 'article' } };
+export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/preparer-creation-site-internet' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/preparer-creation-site-internet', type: 'article' } };
 
 const article = {
  title,

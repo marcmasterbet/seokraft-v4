@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'Comment savoir si votre site internet doit être refait ?';
-const description = 'Site lent, daté, pas adapté au mobile ou qui n’apporte aucun contact ? Les 8 signes qu’une refonte de site internet s’impose, et comment la réussir sans perdre votre référencement.';
+const seoTitle = 'Faut-il refaire son site internet ? Les 8 signes';
+const description = 'Site lent, daté, inadapté au mobile ou sans contacts ? Les 8 signes qu’une refonte s’impose, et comment la réussir sans perdre votre référencement.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/refonte-site-internet' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/refonte-site-internet', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/refonte-site-internet' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/refonte-site-internet', type: 'article' } };
 
 const article = {
  title,

@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'Comment rendre son entreprise visible sur ChatGPT ?';
-const description = 'Apparaître dans les réponses de ChatGPT : comment l’outil trouve ses sources, les réglages techniques à vérifier (OAI-SearchBot, Bing) et les actions concrètes pour une entreprise.';
+const description = 'Apparaître dans ChatGPT : comment l’outil trouve ses sources, les réglages à vérifier (OAI-SearchBot, Bing) et les actions concrètes pour une entreprise.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/etre-visible-chatgpt' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/etre-visible-chatgpt', type: 'article' } };
+export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/etre-visible-chatgpt' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/etre-visible-chatgpt', type: 'article' } };
 
 const article = {
  title,

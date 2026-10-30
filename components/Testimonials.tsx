@@ -16,6 +16,20 @@ type Testimonial = {
 /* Pour ajouter une recommandation : copier un bloc et le compléter. */
 const testimonials: Testimonial[] = [
  {
+  initials: 'SK',
+  name: 'Séverine Kayser',
+  role: 'Directrice générale · REMUS SYSTEMS',
+  source: 'linkedin',
+  text: [
+   'J’ai eu le plaisir de travailler avec Marc sur la création du site internet de REMUS SYSTEMS, et je suis vraiment ravie du résultat !',
+   'Ce que j’ai particulièrement apprécié chez Marc, c’est sa capacité à comprendre rapidement ce que nous souhaitions, même lorsque nos idées n’étaient pas toujours faciles à exprimer.',
+   'Il a su donner vie à notre projet avec beaucoup de professionnalisme, de créativité et un vrai souci du détail.',
+   'Marc est quelqu’un de passionné, à l’écoute, disponible et surtout très impliqué dans ce qu’il fait. Il prend le temps de trouver les bonnes solutions et ne laisse rien au hasard.',
+   'C’est vraiment agréable de travailler avec une personne aussi investie et soucieuse de la satisfaction de ses clients.',
+   'Je recommande Marc avec grand plaisir à toutes les personnes qui recherchent un développeur web compétent, sérieux et humain !'
+  ]
+ },
+ {
   initials: 'HE',
   name: 'Hugo Elvira',
   role: 'Producteur audiovisuel · Fondateur de VATEA',
@@ -108,9 +122,9 @@ export default function Testimonials() {
     {loop.map((t, k) => {
      const i = k % testimonials.length;
      const clone = k >= testimonials.length;
-     return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined} aria-label={clone ? undefined : `Lire la recommandation complète de ${recommandations.cards[i].name}`}>
+     return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined}>
       <span className="tm-quote-mark" aria-hidden="true">“</span>
-      <span className="tm-text">{nbsp(recommandations.cards[i].summary)}</span>
+      <span className="tm-text">{nbsp(recommandations.cards[i].summary)}</span><span className="sr-only">Lire la recommandation complète</span>
       <Author t={t} i={i}/>
      </button>;
     })}

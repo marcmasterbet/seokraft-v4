@@ -3,14 +3,14 @@ import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from '../../../components/SiteHeader';
 import SiteFooter from '../../../components/SiteFooter';
-import { StudioSection, Contact } from '../../../components/Home';
+import { StudioSection, Contact, FaqSection } from '../../../components/Home';
 
 export const metadata: Metadata = {
  title: 'Référencement SEO à Strasbourg | SEOKRAFT',
  description: 'Accompagnement SEO à Strasbourg : optimisation technique des pages, référencement local et suivi de la visibilité Google. Échangeons sur votre site.',
  alternates: { canonical: '/seo/strasbourg' },
  robots: { index: true, follow: true },
- openGraph: { title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg' }
+ openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg' }
 };
 
 const services = [
@@ -20,6 +20,11 @@ const services = [
  ['Suivi et améliorations', 'Mesurer les évolutions et prioriser les actions en fonction des données plutôt que des promesses de positionnement.']
 ];
 
+
+const seoFaqs: [string, string][] = [
+ ['Proposez-vous un forfait SEO mensuel ?', 'Oui. SEOKRAFT propose un accompagnement SEO et GEO mensuel pour les entreprises qui souhaitent améliorer leur visibilité dans la durée : suivi des positions, optimisation des pages, contenus et visibilité locale. Le tarif dépend de vos objectifs et de votre secteur ; il est établi sur devis après un premier échange gratuit de 20 minutes.'],
+ ['Pouvez-vous garantir une première place sur Google ?', 'Non. Aucun professionnel sérieux ne peut garantir un classement sur Google ou une recommandation par une intelligence artificielle. En revanche, le travail mené porte sur des actions concrètes et mesurables, présentées et suivies avec vous.']
+];
 
 export default function SeoStrasbourgPage() {
  return <><SiteHeader/><main>
@@ -33,6 +38,7 @@ export default function SeoStrasbourgPage() {
 
   <section className="seo-scene" id="local"><div className="seo-scene-inner"><span className="eyebrow light">VISIBILITÉ LOCALE · SEO &amp; GEO</span><h2>Être visible à Strasbourg.<br/><em>Sur Google et ailleurs.</em></h2><p>Une entreprise implantée à Strasbourg peut être recherchée par son métier, son service ou sa localisation, sur Google comme dans les réponses des assistants IA. Des pages bien structurées, des informations cohérentes et un contenu pertinent facilitent la compréhension de votre activité. Le SEO demande du temps : aucun classement ni volume de contacts ne peut être garanti.</p><a href="/blog/seo-vs-geo" className="seo-link">Comprendre la différence entre SEO et GEO <ArrowUpRight size={18}/></a></div></section>
 
+  <FaqSection items={seoFaqs} title={['Référencement SEO : ', 'vos questions.']}/>
   <Contact/>
  </main><SiteFooter/></>;
 }

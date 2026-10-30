@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import Brand from '../../components/Brand';
 import SiteHeader from '../../components/SiteHeader';
+import SiteFooter from '../../components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'À propos | Marc Bretzner & Jeff Bond — SEOKRAFT',
@@ -22,6 +23,6 @@ export default function APropos() {
     <article className="about-person about-person-reverse"><div className="about-person-image"><Image src="/images/jeff-bond-a-propos.webp" alt="Portrait professionnel de Jeff Bond" fill sizes="(max-width: 800px) 90vw, 38vw" /></div><div className="about-person-copy"><span className="about-kicker">COPYWRITING & STRATÉGIE ÉDITORIALE · PARTENAIRE INDÉPENDANT</span><h2>Jeff Bond<span className="about-period">.</span></h2><p className="about-role">Copywriter des missions impossibles &amp; Président de la SAS JEGO</p><p>20 ans d’expérience dans le copywriting, avec une spécialité : rendre les messages impossibles à ignorer.</p><p>Je conçois la stratégie éditoriale des sites internet pour attirer, convaincre et convertir.</p><p>Copywriting, SEO éditorial, structure des pages et parcours client : je pilote toute la partie contenu et conversion.</p><p>Avec mes mots, rien n’est impossible.</p></div></article>
    </section>
    <section className="about-method"><span className="about-kicker">NOTRE APPROCHE</span><h2>Deux expertises.<br/><em>Un même objectif : votre projet.</em></h2><p>Marc pilote la conception et le développement web. Jeff intervient en tant que partenaire indépendant sur la stratégie éditoriale et le copywriting, selon le périmètre convenu pour chaque projet. Vous bénéficiez ainsi d’un site pensé autant pour l’expérience de vos visiteurs que pour la qualité de votre message.</p><Link href="/rendez-vous" className="about-button">Discutons de votre projet <ArrowUpRight size={18}/></Link></section>
-  </main><footer className="about-footer"><Brand/><SocialLinks className="social-links-light"/><span>© SEOKRAFT — Marc Bretzner</span><Link href="/">Retour à l’accueil</Link></footer>
+  </main><SiteFooter/>
  </div>;
 }

@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'SEO vs GEO : quelles différences pour votre entreprise ?';
-const description = 'SEO et GEO : objectifs, signaux, indicateurs et délais comparés. Quelles priorités pour une TPE, un artisan ou un indépendant qui veut être trouvé sur Google et par les IA ?';
+const seoTitle = 'SEO vs GEO : quelles différences ?';
+const description = 'SEO et GEO : objectifs, signaux, indicateurs et délais comparés. Les priorités pour une TPE ou un indépendant qui veut être trouvé sur Google et les IA.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/seo-vs-geo' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/seo-vs-geo', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/seo-vs-geo' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/seo-vs-geo', type: 'article' } };
 
 const article = {
  title,

@@ -164,8 +164,9 @@ export const recommandations = {
   "Écoute, compréhension des besoins, disponibilité et accompagnement : ces aspects comptent autant que les compétences techniques lorsque vous choisissez un développeur web.",
   "Découvrez les retours de professionnels et de structures qui ont sollicité SEOKRAFT."
  ],
- /** Résumés de Jeff, dans l'ordre des avis (Hugo, Jean-François, Urkey, Itclean). */
+ /** Résumés de Jeff, dans l'ordre des avis (Séverine, Hugo, Jean-François, Urkey, Itclean). */
  cards: [
+  { name: "Séverine Kayser — REMUS SYSTEMS", role: "Directrice générale", summary: "Un retour sur la compréhension rapide des idées, la créativité et le souci du détail apportés à la création du site de REMUS SYSTEMS." },
   { name: "Hugo Elvira — VATEA", role: "Production audiovisuelle", summary: "Un retour sur la compréhension de ses besoins, la réalisation d'un site fonctionnel et l'implication tout au long du projet." },
   { name: "Jean-François Framarin — Association UZTA", role: "Association de professionnels à Ustaritz", summary: "Une collaboration consacrée à la création complète du site internet d'une association réunissant commerçants, artisans et professions libérales." },
   { name: "UrkeyConciergerie", role: "Conciergerie", summary: "Une recommandation mettant en avant la qualité des services et la volonté de recommander SEOKRAFT." },

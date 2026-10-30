@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'Comment choisir son créateur de site internet à Strasbourg ?';
-const description = 'Freelance ou agence, réalisations, avis, devis, propriété du site, maintenance : les critères et les questions à poser pour choisir le bon créateur de site internet à Strasbourg.';
+const seoTitle = 'Choisir son créateur de site internet à Strasbourg';
+const description = 'Freelance ou agence, réalisations, avis, devis, propriété du site : les critères et les questions à poser pour choisir son créateur de site à Strasbourg.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/choisir-createur-site-internet-strasbourg' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/choisir-createur-site-internet-strasbourg', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/choisir-createur-site-internet-strasbourg' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/choisir-createur-site-internet-strasbourg', type: 'article' } };
 
 const article = {
  title,

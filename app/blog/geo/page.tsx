@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'GEO : définition et actions concrètes pour être cité par les IA';
-const description = 'Qu’est-ce que le GEO (Generative Engine Optimization) ? Définition simple, fonctionnement des moteurs IA et actions concrètes pour rendre votre entreprise citable.';
+const seoTitle = 'GEO : définition et actions pour être cité par les IA';
+const description = 'Qu’est-ce que le GEO (Generative Engine Optimization) ? Définition simple, fonctionnement des moteurs IA et actions pour rendre votre entreprise citable.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/geo' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/geo', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/geo' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/geo', type: 'article' } };
 
 const article = {
  title,

@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'AI Overviews et Mode IA en France : ce qui change pour votre site';
-const description = 'Les AI Overviews et le Mode IA de Google sont arrivés en France en 2026. Ce qui change pour les clics, les entreprises locales et votre site, et ce qu’il faut faire maintenant.';
+const seoTitle = 'AI Overviews et Mode IA en France : l’impact';
+const description = 'AI Overviews et Mode IA de Google arrivent en France en 2026 : ce qui change pour les clics, les entreprises locales et votre site, et quoi faire.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/futur-recherche-ia' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/futur-recherche-ia', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/futur-recherche-ia' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/futur-recherche-ia', type: 'article' } };
 
 const article = {
  title,

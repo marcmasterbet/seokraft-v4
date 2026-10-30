@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import './fonts.css';
 import './globals.css';
 import BackToTop from '../components/BackToTop';
 import AnalyticsConsent from '../components/AnalyticsConsent';
@@ -43,4 +44,4 @@ const schema = {
  ]
 };
 export const viewport: Viewport = { width:'device-width', initialScale:1, themeColor:'#f4f0e8' };
-export default function RootLayout({children}:{children:React.ReactNode}) {return <html lang="fr"><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema)}}/>{children}<BackToTop/><AnalyticsConsent/></body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}) {return <html lang="fr"><head><link rel="preload" href="/fonts/playfair-display-latin-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/><link rel="preload" href="/fonts/playfair-display-latin-400-italic.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/><link rel="preload" href="/fonts/dm-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/></head><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(schema)}}/>{children}<BackToTop/><AnalyticsConsent/></body></html>}

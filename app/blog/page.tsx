@@ -9,7 +9,7 @@ export const metadata: Metadata = {
  title: 'Blog : sites internet, SEO et visibilité en ligne | SEOKRAFT',
  description: 'Conseils pour créer un site internet efficace, améliorer votre référencement sur Google et comprendre la visibilité dans les réponses des IA.',
  alternates: { canonical: '/blog' },
- openGraph: { type: 'website', url: 'https://www.seokraft.fr/blog', title: 'Le blog SEOKRAFT', description: 'Sites internet, SEO et visibilité en ligne : des conseils clairs pour les entreprises.' }
+ openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], type: 'website', url: 'https://www.seokraft.fr/blog', title: 'Le blog SEOKRAFT', description: 'Sites internet, SEO et visibilité en ligne : des conseils clairs pour les entreprises.' }
 };
 
 const siteArticles = articles.filter(a => a.cat === 'site');

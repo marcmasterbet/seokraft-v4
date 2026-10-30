@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import BlogArticle from '../../../components/BlogArticle';
 
 const title = 'Wix ou site sur mesure : lequel choisir pour votre entreprise ?';
+const seoTitle = 'Wix ou site sur mesure : lequel choisir ?';
 const description = 'Wix, Squarespace ou site sur mesure ? Coûts sur plusieurs années, liberté, référencement, propriété du site : une comparaison honnête pour faire le bon choix.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/wix-ou-site-sur-mesure' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/wix-ou-site-sur-mesure', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/wix-ou-site-sur-mesure' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/wix-ou-site-sur-mesure', type: 'article' } };
 
 const article = {
  title,

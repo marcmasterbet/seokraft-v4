@@ -4,7 +4,7 @@ import BlogArticle from '../../../components/BlogArticle';
 const title = 'Site vitrine ou site e-commerce : que choisir ?';
 const description = 'Site vitrine ou boutique en ligne ? Différences, coûts, obligations légales et cas concrets pour choisir le bon type de site selon votre activité.';
 
-export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/site-vitrine-ou-e-commerce' }, robots: { index: true, follow: true }, openGraph: { title, description, url: 'https://www.seokraft.fr/blog/site-vitrine-ou-e-commerce', type: 'article' } };
+export const metadata: Metadata = { title: `${title} | SEOKRAFT`, description, alternates: { canonical: '/blog/site-vitrine-ou-e-commerce' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/site-vitrine-ou-e-commerce', type: 'article' } };
 
 const article = {
  title,
