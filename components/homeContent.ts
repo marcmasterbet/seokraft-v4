@@ -164,13 +164,13 @@ export const recommandations = {
   "Écoute, compréhension des besoins, disponibilité et accompagnement : ces aspects comptent autant que les compétences techniques lorsque vous choisissez un développeur web.",
   "Découvrez les retours de professionnels et de structures qui ont sollicité SEOKRAFT."
  ],
- /** Résumés de Jeff, dans l'ordre des avis (Séverine, Hugo, Jean-François, Urkey, Itclean). */
+ /** Extraits mot pour mot de chaque recommandation (validés par Marc le 30/10), dans l'ordre des avis (Séverine, Hugo, Jean-François, Urkey, Itclean). */
  cards: [
-  { name: "Séverine Kayser — REMUS SYSTEMS", role: "Directrice générale", summary: "Un retour sur la compréhension rapide des idées, la créativité et le souci du détail apportés à la création du site de REMUS SYSTEMS." },
-  { name: "Hugo Elvira — VATEA", role: "Production audiovisuelle", summary: "Un retour sur la compréhension de ses besoins, la réalisation d'un site fonctionnel et l'implication tout au long du projet." },
-  { name: "Jean-François Framarin — Association UZTA", role: "Association de professionnels à Ustaritz", summary: "Une collaboration consacrée à la création complète du site internet d'une association réunissant commerçants, artisans et professions libérales." },
-  { name: "UrkeyConciergerie", role: "Conciergerie", summary: "Une recommandation mettant en avant la qualité des services et la volonté de recommander SEOKRAFT." },
-  { name: "Itclean Propreté", role: "Entreprise de propreté", summary: "Un témoignage sur la réactivité de Marc, son expertise et sa capacité à identifier un problème sur un site internet." }
+  { name: "Séverine Kayser — REMUS SYSTEMS", role: "Directrice générale", summary: "Il a su donner vie à notre projet avec beaucoup de professionnalisme, de créativité et un vrai souci du détail." },
+  { name: "Hugo Elvira — VATEA", role: "Production audiovisuelle", summary: "J’ai particulièrement apprécié son écoute, sa disponibilité et son implication dans le projet." },
+  { name: "Jean-François Framarin — Association UZTA", role: "Association de professionnels à Ustaritz", summary: "Marc est un interlocuteur accessible, à l’écoute et véritablement impliqué dans les projets qu’il accompagne." },
+  { name: "UrkeyConciergerie", role: "Conciergerie", summary: "Je te remercie pour tes services au top et vais te recommander à mes contacts. Merci beaucoup Marc !" },
+  { name: "Itclean Propreté", role: "Entreprise de propreté", summary: "Il a pris le temps de m’alerter spontanément d’un problème sur mon site internet, ce qui nous a permis de le corriger rapidement." }
  ],
  accent: "Les témoignages originaux restent affichés dans leur intégralité, sans modification de leurs propos.",
  button: "Lire les recommandations sur LinkedIn"
