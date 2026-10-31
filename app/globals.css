@@ -756,3 +756,6 @@ h1,h2,h3{text-wrap:balance}
 .sk-estimator-layout .sk-pricing-head h1,.sk-estimator-layout .sk-pricing-head h2{font-size:clamp(36px,3.4vw,56px)!important}
 .sk-estimator-layout .sk-pricing-main .sk-price strong{font-size:clamp(36px,3.2vw,52px)}
 }
+/* Accueil : photo plus grande, à la hauteur du texte (31/10) */
+@media(min-width:1024px){.hero .hero-visual{height:clamp(620px,44vw,900px)}}
+@media(max-width:800px){.portfolio-editorial .project-case-study,.portfolio-editorial .project-loca .project-case-study{grid-template-columns:1fr!important;gap:16px}}
