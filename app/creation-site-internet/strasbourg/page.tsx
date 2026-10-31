@@ -4,6 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from '../../../components/SiteHeader';
 import SiteFooter from '../../../components/SiteFooter';
 import Testimonials from '../../../components/Testimonials';
+import { faqPratique } from '../../../components/faqPratique';
 import { WorkTeaser, PricingTeaser, ProblemSection, FaqSection, Contact } from '../../../components/Home';
 
 export const metadata: Metadata = {
@@ -19,21 +20,7 @@ export const metadata: Metadata = {
 };
 
 
-const faqs: [string, string][] = [
- ['Faut-il être à Strasbourg pour travailler avec vous ?', 'Non. La majorité des échanges se fait en visio, par téléphone et par e-mail, ce qui permet d’accompagner des clients partout en France et en Belgique. Pour les entreprises de Strasbourg et des environs, un déplacement est possible pour se rencontrer.'],
- ['Combien coûte la création d’un site internet ?', 'Un site sur mesure démarre à 1 990 € TTC pour une page, et le tarif évolue selon le nombre de pages : vous pouvez l’estimer avec le simulateur ci-dessus. Les fonctionnalités spécifiques (réservation, espace client, blog…) sont chiffrées sur devis. L’hébergement et la maintenance représentent 49 € TTC par mois.'],
- ['Combien de temps faut-il pour créer un site ?', 'Votre site est livré en 2 semaines à compter de la réception de vos contenus (textes, photos, logo). Ce délai rapide est possible parce que vous échangez directement avec la personne qui conçoit et développe votre site.'],
- ['Quand pouvez-vous démarrer mon projet ?', 'Immédiatement. Le projet démarre dès la signature du devis et le versement de l’acompte, sans liste d’attente.'],
- ['Faut-il verser un acompte ?', 'Oui. Un acompte de 50 % est demandé à la signature du devis, ce qui permet de démarrer votre projet immédiatement. Le solde est réglé une fois votre site terminé et validé par vous, avant sa mise en ligne.'],
- ['Combien de retouches sont incluses ?', 'Les retouches sont illimitées jusqu’à votre entière satisfaction, dans le cadre du périmètre défini au devis (pages et fonctionnalités prévues). Les ajouts hors devis, comme une nouvelle page ou une nouvelle fonctionnalité, font l’objet d’un complément.'],
- ['Serai-je propriétaire de mon site ?', 'Oui. Votre nom de domaine est enregistré à votre nom dès le départ. Pendant le contrat d’hébergement et de maintenance, SEOKRAFT héberge et gère votre site. À la fin du contrat, vous récupérez gratuitement l’intégralité de votre site, de vos fichiers et de vos accès : tout vous appartient.'],
- ['Pouvez-vous refaire mon site existant ? Combien coûte une refonte ?', 'Oui. Une refonte suit la même grille tarifaire que la création, à partir de 1 990 € TTC selon le nombre de pages. Elle modernise votre image, clarifie la navigation et préserve votre référencement grâce aux redirections des anciennes pages.'],
- ['Créez-vous des sites e-commerce ?', 'Oui. Les boutiques en ligne sont réalisées sur devis, car leur coût dépend du nombre de produits, des moyens de paiement et des fonctionnalités nécessaires.'],
- ['Y a-t-il des frais cachés ?', 'Non. Le devis indique le prix de création, et l’hébergement et la maintenance représentent 49 € TTC par mois, avec un engagement initial de 12 mois. Seul le nom de domaine est acheté directement par vous, à votre nom : comptez en général une dizaine d’euros par an.'],
- ['En combien de temps répondez-vous ?', 'Sous 24 heures. Vous pouvez aussi réserver directement un appel gratuit de 20 minutes.'],
- ['Mon site sera-t-il visible sur Google à Strasbourg ?', 'Chaque site est construit avec des fondations SEO solides : structure, balises, contenus et performances. Le référencement demande toutefois du temps, et aucun positionnement ne peut être garanti. Un accompagnement SEO dédié est possible si vous souhaitez aller plus loin.'],
- ['Qui sera mon interlocuteur ?', 'Moi, Marc Bretzner. Vous échangez directement avec la personne qui conçoit et développe votre site, du premier appel jusqu’au suivi après la mise en ligne.']
-];
+const faqs = faqPratique;
 
 const guides = [
  ['/blog/prix-site-internet', 'Combien coûte un site internet ?', 'Les fourchettes de prix, les coûts annuels et les pièges à éviter.'],
