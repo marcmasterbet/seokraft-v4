@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from '../../../components/SiteHeader';
 import SiteFooter from '../../../components/SiteFooter';
-import { StudioSection, Contact, FaqSection } from '../../../components/Home';
+import { SeoGeoSection, Contact, FaqSection } from '../../../components/Home';
 
 export const metadata: Metadata = {
  title: 'Référencement SEO à Strasbourg | SEOKRAFT',
@@ -34,9 +34,8 @@ export default function SeoStrasbourgPage() {
 
   <section className="expertise-section" id="expertises"><div className="expertise-heading"><span className="eyebrow">L’ACCOMPAGNEMENT SEO</span><h2>Des actions concrètes.<br/><em>Des résultats suivis.</em></h2><p>Un référencement construit étape par étape, sur des bases solides, et mesuré avec des données réelles.</p><a className="expertise-heading-link" href="#contact">Discutons de votre site <ArrowUpRight size={17}/></a></div><div className="expertise-lines">{services.map(([t, d]) => <a href="#contact" className="expertise-item" key={t}><span>{t}</span><p>{d}</p><ArrowUpRight aria-hidden="true"/></a>)}</div></section>
 
-  <StudioSection/>
 
-  <section className="seo-scene" id="local"><div className="seo-scene-inner"><span className="eyebrow light">VISIBILITÉ LOCALE · SEO &amp; GEO</span><h2>Être visible à Strasbourg.<br/><em>Sur Google et ailleurs.</em></h2><p>Une entreprise implantée à Strasbourg peut être recherchée par son métier, son service ou sa localisation, sur Google comme dans les réponses des assistants IA. Des pages bien structurées, des informations cohérentes et un contenu pertinent facilitent la compréhension de votre activité. Le SEO demande du temps : aucun classement ni volume de contacts ne peut être garanti.</p><a href="/blog/seo-vs-geo" className="seo-link">Comprendre la différence entre SEO et GEO <ArrowUpRight size={18}/></a></div></section>
+  <SeoGeoSection/>
 
   <FaqSection items={seoFaqs} title={['Référencement SEO : ', 'vos questions.']}/>
   <Contact/>

@@ -723,3 +723,31 @@ h1,h2,h3{text-wrap:balance}
 .sk-estimator-layout .sk-estimator{order:1;border-top:1px solid #d7d3c8}
 .sk-estimator-layout .sk-summary{order:2;padding:0 22px 28px}
 }
+/* ===== Réalisations : deux projets côte à côte sur ordinateur (31/10) ===== */
+@media(min-width:801px){
+.portfolio-editorial{display:grid!important;grid-template-columns:1fr 1fr;gap:clamp(32px,4vw,64px)!important;align-items:start}
+.portfolio-editorial .project .portfolio-image-link,.portfolio-editorial .project-remus .portfolio-image-link,.portfolio-editorial .project-loca .portfolio-image-link{width:100%!important;margin:0!important;box-shadow:0 14px 34px rgba(24,26,20,.07)}
+.portfolio-editorial .project-meta,.portfolio-editorial .project-loca .project-meta{width:100%!important;margin:0!important;padding-top:18px;margin-top:14px!important}
+.portfolio-editorial .project-meta h3,.portfolio-editorial .project-meta h2{font-size:clamp(24px,2.2vw,34px)}
+.portfolio-editorial .project-case-study,.portfolio-editorial .project-loca .project-case-study{width:100%!important;margin-left:0!important;grid-template-columns:1fr 1fr!important;gap:18px 28px;margin-top:18px;padding-top:18px}
+.portfolio-editorial .project-case-details{grid-column:1/-1}
+.portfolio-editorial .project-case-details ul{display:flex;flex-wrap:wrap;gap:0 22px;margin-bottom:14px}
+.portfolio-editorial .project-visit{bottom:10px;right:10px;padding:9px 11px}
+}
+/* ===== Accueil court : appel au contact + page Contact (31/10) ===== */
+.contact-teaser{background:var(--olive);color:#fff;padding:clamp(64px,7vw,110px) clamp(24px,7vw,130px)}
+.contact-teaser .eyebrow{color:#e4e7d9}
+.contact-teaser h2{font-size:clamp(34px,3.4vw,54px);line-height:1.14;letter-spacing:-.045em;margin:18px 0 20px;max-width:980px}
+.contact-teaser h2 em{color:#e4e7d9;font-style:italic}
+.contact-teaser p{max-width:620px;line-height:1.75;color:#e9ebe2;font-size:calc(16px * var(--t, 1) / var(--z));margin-bottom:28px}
+.contact-teaser .button-olive{background:#fff;color:var(--ink)}
+.contact-teaser .button-olive:hover{background:var(--ink);color:#fff}
+.contact-teaser .hero-call-button{color:#fff;border-color:#e4e7d9}
+.contact-section.page-first{padding-top:180px}
+.contact-section .section-head h1{font-size:clamp(38px,4vw,62px);line-height:1.16;letter-spacing:-.05em;margin:18px 0 0}
+.contact-section .section-head h1 em{font-style:italic;font-weight:400}
+@media(max-width:800px){.contact-teaser{padding:72px 24px}.contact-teaser h2{font-size:clamp(29px,7.8vw,36px)}.contact-section.page-first{padding-top:130px}.contact-section .section-head h1{font-size:clamp(29px,7.8vw,36px)}}
+.about-page .studio-v2 .human-image{display:none}
+@media(min-width:801px){.about-page .studio-grid{grid-template-columns:1.2fr 1fr}}
+.contact-card h2{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:clamp(24px,2.2vw,32px);letter-spacing:-.02em;line-height:1.2;margin:0 0 12px}
+.contact-card-call h2{color:#fff}
