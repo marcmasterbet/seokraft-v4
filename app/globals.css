@@ -532,7 +532,7 @@
    Ordinateur : zoom arrière proportionnel de tout le site (titres, textes, espacements, images).
    Téléphone : seuls les grands titres sont réduits ; les textes gardent leur taille (lisibilité, pas de zoom iPhone). */
 :root{--z:1}
-@media(min-width:1024px){:root{--z:.82}}
+@media(min-width:1024px){:root{--z:.74;--t:.92}}
 @media(min-width:801px) and (max-width:1023px){:root{--z:.9}}
 html{zoom:var(--z)}
 @media(max-width:800px){
@@ -548,22 +548,22 @@ html{zoom:var(--z)}
 /* ===== Tailles minimales réelles (après zoom) — lisibilité, 28/10 =====
    calc(Npx / var(--z)) = N px réellement affichés à l'écran, quel que soit le zoom. */
 /* Paragraphes : 15 px */
-.hero-copy>p:not(.accent-line),.intro-scene p:not(.accent-line),.seo-scene p:not(.accent-line),.testimonials-section .tm-head p,.sk-pricing-head p,.sk-included-text,.sk-offer-lead,.sk-pricing-service>div:first-child p,.sk-service-after p:not(.accent-line),.contact-intro>p:not(.accent-line),.contact-option p,.contact-signature p:not(.accent-line),.faq-item p,.expertise-heading>p,.section-head>p,.section-head-copy p,.tm-text,.studio-steps span{font-size:calc(15px / var(--z))!important}
-.human-quote p:not(.accent-line){font-size:calc(16px / var(--z))!important}
-.article-body p{font-size:calc(16.5px / var(--z))!important}
-.article-lead{font-size:calc(17.5px / var(--z))!important}
+.hero-copy>p:not(.accent-line),.intro-scene p:not(.accent-line),.seo-scene p:not(.accent-line),.testimonials-section .tm-head p,.sk-pricing-head p,.sk-included-text,.sk-offer-lead,.sk-pricing-service>div:first-child p,.sk-service-after p:not(.accent-line),.contact-intro>p:not(.accent-line),.contact-option p,.contact-signature p:not(.accent-line),.faq-item p,.expertise-heading>p,.section-head>p,.section-head-copy p,.tm-text,.studio-steps span{font-size:calc(15px * var(--t, 1) / var(--z))!important}
+.human-quote p:not(.accent-line){font-size:calc(16px * var(--t, 1) / var(--z))!important}
+.article-body p{font-size:calc(16.5px * var(--t, 1) / var(--z))!important}
+.article-lead{font-size:calc(17.5px * var(--t, 1) / var(--z))!important}
 /* Descriptions et listes : 14 px */
-.expertise-lines p,.expertise-lines .service-item .service-body p,.project-case-copy p,.project-case-details li,.sk-offer-list li,.sk-included-list li,.sk-conditions li,.sk-estimator-options p,.sk-sim-lead,.sk-estimator-option span,.sk-estimator-total p,.seo-dims p,.tm-who strong,.contact-call-link,.hero-call-button,.seo-link,.human-quote .text-link{font-size:calc(14.5px / var(--z))!important}
-.faq-item button{font-size:calc(15px / var(--z))!important}
-.sk-estimator-label,.sk-service-label,.sk-conditions-title,.sk-included-subtitle{font-size:calc(14.5px / var(--z))!important}
+.expertise-lines p,.expertise-lines .service-item .service-body p,.project-case-copy p,.project-case-details li,.sk-offer-list li,.sk-included-list li,.sk-conditions li,.sk-estimator-options p,.sk-sim-lead,.sk-estimator-option span,.sk-estimator-total p,.seo-dims p,.tm-who strong,.contact-call-link,.hero-call-button,.seo-link,.human-quote .text-link{font-size:calc(14.5px * var(--t, 1) / var(--z))!important}
+.faq-item button{font-size:calc(15px * var(--t, 1) / var(--z))!important}
+.sk-estimator-label,.sk-service-label,.sk-conditions-title,.sk-included-subtitle{font-size:calc(14.5px * var(--t, 1) / var(--z))!important}
 /* Boutons, liens et petites mentions : 13 px */
-.sk-pricing-note,.contact-privacy,.tm-who span,.tm-hint,.footer>div span,.footer-legal a,.article-meta,.sk-estimator-option small,.sk-range-ends span,.desktop-nav a,.header-cta,.button,.hero-project-link,.expertise-heading-link,.project-case-link,.tm-linkedin-link,.article-back{font-size:calc(13px / var(--z))!important}
+.sk-pricing-note,.contact-privacy,.tm-who span,.tm-hint,.footer>div span,.footer-legal a,.article-meta,.sk-estimator-option small,.sk-range-ends span,.desktop-nav a,.header-cta,.button,.hero-project-link,.expertise-heading-link,.project-case-link,.tm-linkedin-link,.article-back{font-size:calc(13px * var(--t, 1) / var(--z))!important}
 /* Petits titres en majuscules : 11 px */
-.eyebrow,.project-case-label,.project-visit,.mail-heading{font-size:calc(11px / var(--z))!important}
-.project-meta .eyebrow,.hero-aside,.mail-to,.scroll-cue{font-size:calc(10.5px / var(--z))!important}
-.brand-sub{font-size:calc(9.5px / var(--z))!important}
+.eyebrow,.project-case-label,.project-visit,.mail-heading{font-size:calc(11px * var(--t, 1) / var(--z))!important}
+.project-meta .eyebrow,.hero-aside,.mail-to,.scroll-cue{font-size:calc(10.5px * var(--t, 1) / var(--z))!important}
+.brand-sub{font-size:calc(9.5px * var(--t, 1) / var(--z))!important}
 /* Formulaire sur ordinateur (sur téléphone : 16 px, réglé plus haut) */
-@media(min-width:801px){.mail-form>label{font-size:calc(13px / var(--z))!important}.mail-form input,.mail-form select,.mail-form textarea{font-size:calc(14.5px / var(--z))!important}}
+@media(min-width:801px){.mail-form>label{font-size:calc(13px * var(--t, 1) / var(--z))!important}.mail-form input,.mail-form select,.mail-form textarea{font-size:calc(14.5px * var(--t, 1) / var(--z))!important}}
 
 /* ===== Titres restants en Playfair (cohérence typographique) ===== */
 .seo-scene h2{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.045em}
@@ -571,8 +571,8 @@ html{zoom:var(--z)}
 .sk-estimator h3,.sk-included-panel h3,.sk-pricing-service h3{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.025em}
 .sk-price strong,.sk-service-price strong,.sk-estimator-total strong{font-family:'Playfair Display',Georgia,serif;font-weight:400;letter-spacing:-.03em}
 .sk-price small,.sk-service-price small,.sk-estimator-total small{font-family:'DM Sans',sans-serif}
-.sk-estimator-total>span,.sk-price>span,.sk-service-price>span:not(.sk-service-label){font-size:calc(13px / var(--z))!important}
-.contact-signature strong{font-size:calc(13.5px / var(--z))!important}
+.sk-estimator-total>span,.sk-price>span,.sk-service-price>span:not(.sk-service-label){font-size:calc(13px * var(--t, 1) / var(--z))!important}
+.contact-signature strong{font-size:calc(13.5px * var(--t, 1) / var(--z))!important}
 /* Portfolio : Loca Direct au même format que Remus (28/10) */
 .portfolio-editorial .project-loca .portfolio-image-link{width:100%;margin-left:0}
 .portfolio-editorial .project-loca .project-meta,.portfolio-editorial .project-loca .project-case-study{width:100%;margin-left:0}
@@ -603,7 +603,7 @@ h1,h2,h3{text-wrap:balance}
 .contact-choices{display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:start}
 .contact-card{border:1px solid #d7d3c8;background:#f9f7f1;padding:clamp(26px,3vw,40px)}
 .contact-card h3{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:clamp(24px,2.2vw,32px);letter-spacing:-.02em;line-height:1.2;margin:0 0 12px}
-.contact-card p{font-size:calc(15px / var(--z))!important;line-height:1.75;margin:0 0 8px;color:#3f4139}
+.contact-card p{font-size:calc(15px * var(--t, 1) / var(--z))!important;line-height:1.75;margin:0 0 8px;color:#3f4139}
 .contact-card-intro{margin-bottom:24px}
 .contact-card-form .mail-form{box-shadow:none;border:1px solid #e2ded3;background:#fff}
 .contact-card-call{background:var(--olive);border-color:var(--olive);color:#fff;position:sticky;top:40px}
@@ -634,7 +634,7 @@ h1,h2,h3{text-wrap:balance}
 .expertise-lines p,.expertise-lines .expertise-item p{color:#54564d!important}
 .hero-aside,.mail-to{color:#5c5e55!important}
 /* Lien « cookies » du pied de page, au style des autres liens légaux */
-.footer-legal .sk-cookie-settings{background:none;border:0;padding:0;border-radius:0;color:inherit;font:inherit;font-size:calc(13px / var(--z))!important;font-weight:400;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.footer-legal .sk-cookie-settings{background:none;border:0;padding:0;border-radius:0;color:inherit;font:inherit;font-size:calc(13px * var(--t, 1) / var(--z))!important;font-weight:400;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
 .article-meta,.article-meta time{color:#5c5e55!important}
 .about-footer span,.about-footer .brand-name,.about-footer .brand-sub{color:#5c5e55!important}
 /* Pages Tarifs et Réalisations + aperçus de l'accueil (30/10) */
@@ -652,12 +652,36 @@ h1,h2,h3{text-wrap:balance}
 .teaser-project strong{display:flex;align-items:center;gap:12px;font:400 clamp(26px,2.6vw,38px)/1.15 'Playfair Display',Georgia,serif;letter-spacing:-.03em}
 .teaser-button{margin-top:48px}
 .home-teaser .sk-pricing-head{margin-bottom:36px}
-.home-teaser .sk-pricing-head>p,.home-teaser>p{font-size:calc(15px / var(--z));line-height:1.8;max-width:620px;color:#4f5149}
+.home-teaser .sk-pricing-head>p,.home-teaser>p{font-size:calc(15px * var(--t, 1) / var(--z));line-height:1.8;max-width:620px;color:#4f5149}
 .teaser-prices{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #c7c8bc;border-bottom:1px solid #c7c8bc;margin-bottom:30px}
 .teaser-prices>div{display:flex;flex-direction:column;gap:8px;padding:30px 30px 34px 0}
 .teaser-prices>div+div{border-left:1px solid #c7c8bc;padding-left:30px}
-.teaser-from{font-size:calc(13px / var(--z));color:#5f6158}
+.teaser-from{font-size:calc(13px * var(--t, 1) / var(--z));color:#5f6158}
 .teaser-prices strong{font:400 clamp(40px,4.4vw,70px)/1.05 'Playfair Display',Georgia,serif;letter-spacing:-.03em;white-space:nowrap}
 .teaser-prices small{font-family:'DM Sans',sans-serif;font-size:.3em;letter-spacing:0}
 @media(max-width:800px){.work-section.page-first,.prices-section.page-first{padding-top:130px}.sk-pricing-head h1{font-size:clamp(29px,7.8vw,36px)!important;line-height:1.16}.teaser-projects,.teaser-prices{grid-template-columns:1fr}.teaser-prices>div,.teaser-prices>div+div{padding:24px 0;border-left:0}.teaser-prices>div+div{border-top:1px solid #c7c8bc}.teaser-button{margin-top:34px;width:100%}.teaser-spacer{display:none}}
 .project-meta h2{font-size:clamp(28px,3.5vw,48px);margin:9px 0 0;letter-spacing:-.04em;line-height:1.2}
+
+/* Taille d'affichage sur ordinateur réduite + simulateur compact (31/10) */
+@media(min-width:801px){
+.sk-estimator-layout{grid-template-columns:.7fr 1.3fr}
+.sk-pricing-main{padding:clamp(28px,3vw,48px)}
+.sk-pricing-main .sk-price{margin:18px 0 20px}
+.sk-price strong{font-size:clamp(40px,4vw,62px)}
+.sk-offer-title{font-size:clamp(24px,2vw,30px)}
+.sk-estimator{padding:clamp(26px,3vw,44px);gap:12px}
+.sk-estimator h3{font-size:clamp(24px,2vw,30px);margin:2px 0 6px}
+.sk-estimator-row strong{font-size:20px}
+.sk-estimator-options{margin-top:6px;padding-top:16px}
+.sk-estimator-options>p{margin:6px 0 10px}
+.sk-estimator-option{padding:10px 0}
+.sk-estimator-total{padding:20px 22px}
+.sk-estimator-total strong{font-size:clamp(34px,3.2vw,48px)}
+}
+/* Simulateur : une seule carte centrée, prix de départ en bandeau (31/10) */
+@media(min-width:801px){
+.sk-estimator-layout{grid-template-columns:1fr;max-width:980px;margin-inline:auto}
+.sk-estimator-layout .sk-pricing-main{position:static;flex-direction:row;align-items:center;justify-content:space-between;gap:24px;border-right:0;border-bottom:1px solid #d7d3c8;padding:26px clamp(26px,3vw,44px)}
+.sk-estimator-layout .sk-pricing-main .sk-price{margin:0;flex-direction:row;align-items:baseline;gap:14px}
+.sk-estimator-layout .sk-price strong{font-size:clamp(34px,3vw,46px)}
+}
