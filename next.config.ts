@@ -48,6 +48,14 @@ const nextConfig: NextConfig = {
         source: '/fonts/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
+      {
+        // Fiche contact téléchargée depuis la page /carte (QR code de la carte de visite)
+        source: '/marc-bretzner.vcf',
+        headers: [
+          { key: 'Content-Type', value: 'text/vcard; charset=utf-8' },
+          { key: 'Content-Disposition', value: 'attachment; filename="Marc-Bretzner-SEOKRAFT.vcf"' },
+        ],
+      },
     ];
   },
 };

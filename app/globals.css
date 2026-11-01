@@ -759,3 +759,37 @@ h1,h2,h3{text-wrap:balance}
 /* Accueil : photo plus grande, à la hauteur du texte (31/10) */
 @media(min-width:1024px){.hero .hero-visual{height:clamp(620px,44vw,900px)}}
 @media(max-width:800px){.portfolio-editorial .project-case-study,.portfolio-editorial .project-loca .project-case-study{grid-template-columns:1fr!important;gap:16px}}
+/* ===== Page /carte (QR code de la carte de visite) — conçue pour le téléphone ===== */
+.vc-page{max-width:520px;margin:0 auto;padding:44px 20px 40px;font-size:16px;color:var(--ink)}
+html:has(.vc-page){zoom:1}
+.vc-head{text-align:center}
+.vc-photo{position:relative;width:112px;height:112px;border-radius:50%;overflow:hidden;margin:0 auto 18px;border:3px solid #fff;box-shadow:0 8px 24px rgba(21,23,19,.12)}
+.vc-head h1{font-family:'Playfair Display',Georgia,serif;font-size:34px;font-weight:400;letter-spacing:-.03em;line-height:1.1;margin:0}
+.vc-head h1 span,.vc-brand span{color:var(--olive)}
+.vc-role{font-family:'Playfair Display',Georgia,serif;font-style:italic;color:var(--olive);font-size:17px;margin:8px 0 6px}
+.vc-brand{font-size:12.5px;letter-spacing:.04em;color:#5f6158;margin:0 0 14px}
+.vc-brand span{font-weight:800}
+.vc-phone{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:16px;border-bottom:1px solid var(--olive);padding-bottom:4px}
+.vc-actions{display:flex;flex-direction:column;gap:12px;margin:32px 0 40px}
+.vc-action{display:flex;align-items:center;gap:14px;padding:18px 18px;border:1px solid #d2cec3;background:#f9f7f1;transition:border-color .2s,transform .2s}
+.vc-action:hover{border-color:var(--olive);transform:translateY(-1px)}
+.vc-action>svg:first-child{color:var(--olive);flex:none}
+.vc-action span{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.vc-action strong{font-size:16px}
+.vc-action small{font-size:13px;color:#5f6158}
+.vc-primary{background:var(--olive);border-color:var(--olive);color:#fff}
+.vc-primary>svg:first-child{color:#fff}
+.vc-primary small{color:#e4e7d9}
+.vc-form{border-top:1px solid #d2cec3;padding-top:30px}
+.vc-form h2{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:26px;letter-spacing:-.02em;margin:0 0 18px}
+.vc-form form{display:flex;flex-direction:column;gap:14px}
+.vc-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700}
+.vc-form input,.vc-form select,.vc-form textarea{font:inherit;font-size:16px;font-weight:400;padding:12px 14px;border:1px solid #cfcbbf;background:#fff;color:var(--ink);border-radius:0;width:100%}
+.vc-form input:focus,.vc-form select:focus,.vc-form textarea:focus{outline:2px solid var(--olive);outline-offset:1px}
+.vc-form textarea{resize:vertical}
+.vc-privacy{font-size:12.5px;color:#5f6158;margin:0}
+.vc-privacy a{text-decoration:underline}
+.vc-form .button{justify-content:center;width:100%;font-size:14px}
+.vc-sent{background:#eef0e6;padding:18px;border-left:3px solid var(--olive);font-size:15px}
+.vc-foot{text-align:center;margin-top:36px}
+.vc-foot a{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--olive)}
