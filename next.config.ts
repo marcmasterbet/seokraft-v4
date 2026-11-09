@@ -12,7 +12,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com",
   "font-src 'self'",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vercel.live",
+  // script.google.com : réception du questionnaire de projet (Google Apps Script → Google Sheets)
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vercel.live https://script.google.com https://script.googleusercontent.com",
   "frame-src https://cal.com https://app.cal.com https://vercel.live",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -36,6 +37,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  async rewrites() {
+    // Questionnaire de projet : page statique public/questionnaire.html servie sur /questionnaire
+    return [{ source: '/questionnaire', destination: '/questionnaire.html' }];
+  },
   async headers() {
     return [
       {
@@ -43,6 +48,11 @@ const nextConfig: NextConfig = {
         headers: process.env.NODE_ENV === 'production'
           ? [...securityHeaders, { key: 'Content-Security-Policy', value: csp }]
           : securityHeaders,
+      },
+      {
+        // Questionnaire réservé aux prospects : jamais indexé
+        source: '/questionnaire(.*)',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
       {
         source: '/fonts/:path*',
