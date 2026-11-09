@@ -161,7 +161,7 @@ function render(){
     const ent = state.f.entreprise;
     h = `<div class="count">Questionnaire de projet</div>
     <h1>${ent ? esc(ent) + ", parlons" : "Parlons"} de <em>votre futur site.</em></h1>
-    <p class="sub">Merci pour notre échange téléphonique. Ce questionnaire prolonge notre conversation : il m'aide à bien comprendre votre activité, vos clients, vos attentes et ce que votre site doit vous apporter. Comptez 20 à 30 minutes. Vos réponses sont gardées au fur et à mesure. Pour finir plus tard sur un autre appareil, cliquez « Reprendre plus tard » : vous recevrez un lien par e-mail.</p>
+    <p class="sub">Ce questionnaire m'aide à bien comprendre votre activité, vos clients, vos attentes et ce que votre site doit vous apporter. Comptez 20 à 30 minutes. Vos réponses sont gardées au fur et à mesure. Pour finir plus tard sur un autre appareil, cliquez « Reprendre plus tard » : vous recevrez un lien par e-mail.</p>
     <div class="note"><b>Comment répondre :</b> avec vos mots, inutile d'être technique. Décrivez votre besoin plutôt qu'une solution. Si une question ne vous concerne pas, écrivez « Sans objet ». Un doute ? Écrivez-le aussi, c'est utile pour cerner votre projet.</div>
     <div class="two">
       <div class="q"><label for="nom">Votre prénom et nom <span class="req">*</span></label><input type="text" id="nom" data-id="nom" autocomplete="name" value="${esc(state.f.nom)}"></div>
