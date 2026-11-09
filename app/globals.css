@@ -793,3 +793,38 @@ html:has(.vc-page){zoom:1}
 .vc-sent{background:#eef0e6;padding:18px;border-left:3px solid var(--olive);font-size:15px}
 .vc-foot{text-align:center;margin-top:36px}
 .vc-foot a{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--olive)}
+
+/* Page « Création de site internet à Strasbourg » — version SEO (novembre 2026) */
+.cs-breadcrumb{margin:0 0 18px;font-size:12px;color:var(--muted)}
+.cs-breadcrumb ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0}
+.cs-breadcrumb li+li::before{content:'›';margin-right:6px;color:var(--olive)}
+.cs-breadcrumb a{text-decoration:underline;text-underline-offset:3px}
+.cs-facts{list-style:none;padding:0;margin:0 0 28px;display:grid;gap:7px;max-width:520px}
+.cs-facts li{position:relative;padding-left:18px;font-size:14px;line-height:1.55}
+.cs-facts li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--olive)}
+.cs-type{padding:26px 0;border-bottom:1px solid #b9b9ad;display:grid;gap:10px}
+.cs-type:first-child{border-top:1px solid #b9b9ad}
+.cs-type h3{margin:0;font:400 clamp(20px,2vw,27px)/1.25 'Playfair Display',Georgia,serif;letter-spacing:-.02em}
+.cs-type p{margin:0;font-size:14px;line-height:1.75;color:#55574f}
+.cs-type a{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;border-bottom:1px solid var(--olive);padding-bottom:4px;justify-self:start}
+.cs-prices h2{font-size:clamp(38px,4.6vw,64px);line-height:1.15;letter-spacing:-.05em;margin:18px 0 18px}
+.cs-prices>p{max-width:560px;font-size:14px;line-height:1.8;color:#55574f}
+.cs-table-wrap{overflow-x:auto;margin:30px 0 0;border-top:1px solid #c7c8bc}
+.cs-table{width:100%;border-collapse:collapse;min-width:560px;font-size:14px}
+.cs-table th,.cs-table td{text-align:left;padding:16px 18px 16px 0;border-bottom:1px solid #c7c8bc;vertical-align:top;line-height:1.5}
+.cs-table thead th{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--olive)}
+.cs-table tbody th{font-weight:700}
+.cs-table td:nth-child(2){font-family:'Playfair Display',Georgia,serif;font-size:17px;white-space:nowrap}
+.cs-steps-section{background:#e8e5dc;padding:110px clamp(24px,7vw,130px)}
+.cs-steps-section h2{font-size:clamp(38px,4.6vw,64px);line-height:1.15;letter-spacing:-.05em;margin:18px 0 40px}
+.cs-steps{list-style:none;counter-reset:cs;padding:0;margin:0 0 36px;display:grid;grid-template-columns:repeat(5,1fr);gap:28px}
+.cs-steps li{counter-increment:cs;border-top:1px solid #aeb0a4;padding-top:20px}
+.cs-steps li::before{content:counter(cs);display:block;font:italic 400 30px/1 'Playfair Display',Georgia,serif;color:var(--olive);margin-bottom:14px}
+.cs-steps h3{margin:0 0 8px;font-size:15px;font-weight:700;line-height:1.35}
+.cs-steps p{margin:0;font-size:13px;line-height:1.75;color:#55574f}
+.cs-closing{margin:0;padding:70px clamp(24px,7vw,130px) 0;background:var(--ivory);font:clamp(22px,2.4vw,32px)/1.35 'Playfair Display',Georgia,serif;letter-spacing:-.02em;max-width:1100px}
+.cs-closing strong{font-weight:400;font-style:italic;color:var(--olive)}
+@media(max-width:1100px){.cs-steps{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.cs-steps{grid-template-columns:1fr}.cs-steps-section{padding:80px 24px}.cs-table td:nth-child(2){white-space:normal}}
+.expertise-lines>.cs-type{grid-template-columns:1fr!important;align-items:start;gap:10px}
+.expertise-lines>.cs-type>*{grid-column:1!important;grid-row:auto!important}
