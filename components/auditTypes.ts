@@ -19,7 +19,7 @@ export type AuditResult = {
   title: string;
   checks: Check[];
   /* Contenu lisible de la page, transmis à l'analyse des textes (jamais stocké). */
-  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string };
+  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string };
   pages?: { url: string; label: string }[];   // pages lues (accueil en premier)
   pagesDetail?: { label: string; path: string; title: string; description: boolean; h1: string; words: number }[];
 };
@@ -92,7 +92,7 @@ const IMPACT: Record<string, number> = {
   viewport: 10, 'psi-perf': 9, https: 9, indexable: 9, outdated: 9, cert: 9, robots: 8, phone: 8, cta: 8, 'title-local': 8, 'old-cms': 8, 'vuln-lib': 8,
   form: 7, title: 7, words: 7, reviews: 7, 'psi-perf-d': 7, images: 7, 'form-http': 7, 'server-version': 6,
   legal: 6, privacy: 6, 'pages-seo': 6, 'psi-lcp': 6, description: 6, address: 6, broken: 6, mixed: 6, 'psi-lcp-d': 5, proof: 5,
-  h1: 5, schema: 5, cookies: 5, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
+  h1: 5, maillage: 5, hierarchy: 4, schema: 5, cookies: 5, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
   alt: 3, 'psi-a11y': 3, sitemap: 3, structure: 3, 'cookie-flags': 3, weight: 2, og: 2, favicon: 0, lang: 0,
 };
 const rankOf = (c: Check) => (c.status === 'bad' ? 2 : c.status === 'warn' ? 1 : 0) * 100 + (IMPACT[c.id] ?? 1) * 10 + (c.weight ?? 1);
@@ -173,7 +173,7 @@ export const NOTE_LABELS: { id: NoteId; label: string; hint: string }[] = [
   { id: 'vitesse', label: 'Vitesse et téléphone', hint: 'Le site s’affiche-t-il vite, sur téléphone comme sur ordinateur ?' },
   { id: 'securite', label: 'Sécurité et conformité', hint: 'Vos visiteurs et vos données sont-ils protégés ?' },
   { id: 'google', label: 'Visibilité sur Google', hint: 'Ce que Google comprend et affiche de vous' },
-  { id: 'textes', label: 'Message et textes', hint: 'Est-ce que le site donne envie de vous choisir ?' },
+  { id: 'textes', label: 'Référencement et contenu', hint: 'Vos titres et vos pages correspondent-ils à ce que tapent vos clients ?' },
   { id: 'contact', label: 'Contact et confiance', hint: 'Est-il simple et rassurant de vous contacter ?' },
 ];
 const GROUP_OF: Record<Category, NoteId> = { mobile: 'vitesse', securite: 'securite', google: 'google', contenu: 'textes', contact: 'contact' };
@@ -204,7 +204,7 @@ const PROBLEM: Record<string, string | [string, string]> = {
   words: ['Trop peu de texte pour que Google vous trouve', 'Le texte est un peu léger pour Google'], legal: 'Mentions légales absentes (obligation légale)', privacy: 'Politique de confidentialité absente (RGPD)',
   'vuln-lib': 'Des composants anciens avec des failles connues', 'old-cms': 'Un logiciel de site pas à jour, avec des failles connues', headers: 'Le site est peu protégé contre le piratage',
   'form-http': 'Les messages de vos clients circulent sans protection', fresh: 'Une date ancienne donne l’impression d’un site abandonné', broken: 'Des liens mènent à des pages d’erreur',
-  'site-size': 'Trop peu de pages pour être trouvé sur Google', description: 'Google n’a pas de résumé de votre site', h1: 'La page n’a pas de titre principal', mixed: 'Le cadenas de sécurité peut disparaître',
+  'site-size': 'Trop peu de pages pour être trouvé sur Google', maillage: ['Les pages ne sont pas reliées entre elles', 'Les pages sont peu reliées entre elles'], hierarchy: 'Les titres de la page sont mal organisés', description: 'Google n’a pas de résumé de votre site', h1: 'La page n’a pas de titre principal', mixed: 'Le cadenas de sécurité peut disparaître',
   redirect: 'La version non sécurisée du site reste ouverte', 'pages-seo': 'Vos autres pages sont mal présentées dans Google', address: 'On ne sait pas où vous êtes', schema: 'Google ne dispose pas de votre fiche d’identité',
 };
 const problemTitle = (c: Check) => { const t = PROBLEM[c.id]; return !t ? c.label : typeof t === 'string' ? t : c.status === 'bad' ? t[0] : t[1]; };

@@ -163,6 +163,25 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     status: h2n === 0 ? 'bad' : h2n < 3 ? 'warn' : 'ok', detail: `${h2n} intertitre(s) sur la page d’accueil.`,
     advice: h2n >= 3 ? 'Rien à faire.' : 'Découper la page en parties avec des intertitres clairs (vos services, votre zone, vos avis) : plus lisible pour les clients et pour Google.' });
 
+  /* Hiérarchie des titres : H1 puis H2 puis H3, sans sauter de niveau. */
+  const levels = $('h1,h2,h3,h4').map((_, h) => Number(h.tagName.slice(1))).get() as number[];
+  let jumps = 0; levels.forEach((l, i) => { if (i && l > levels[i - 1] + 1) jumps++; });
+  const h3n = $('h3').length;
+  add({ id: 'hierarchy', cat: 'google', label: 'Hiérarchie des titres (H1, H2, H3)',
+    status: !levels.length || levels[0] !== 1 && h1.length === 0 ? 'bad' : jumps > 1 ? 'warn' : 'ok',
+    detail: `${h1.length} H1, ${h2n} H2, ${h3n} H3${jumps ? `, ${jumps} saut(s) de niveau` : ''}.`,
+    advice: jumps > 1 || !levels.length ? 'Organiser les titres comme un sommaire (un H1, puis des H2, puis des H3) : Google comprend mieux de quoi parle chaque partie.' : 'Rien à faire.' });
+
+  /* Maillage interne : liens de l'accueil vers les autres pages, et textes de liens parlants. */
+  const host0 = new URL(page.url).hostname.replace(/^www\./, '');
+  const internal = $('a[href]').filter((_, a) => { try { const u = new URL($(a).attr('href') || '', page.url); return u.hostname.replace(/^www\./, '') === host0 && !/^#/.test($(a).attr('href') || ''); } catch { return false; } });
+  const inBody = internal.filter((_, a) => $(a).closest('header, nav, footer').length === 0).length;
+  const vague = internal.filter((_, a) => /^(ici|cliquez ici|en savoir plus|lire la suite|voir plus|suite|plus|>>|→)$/i.test($(a).text().trim())).length;
+  add({ id: 'maillage', cat: 'google', label: 'Liens entre les pages (maillage interne)',
+    status: inBody === 0 ? 'bad' : inBody < 3 || vague > 2 ? 'warn' : 'ok',
+    detail: `${inBody} lien(s) vers d’autres pages dans le contenu de l’accueil (hors menu)${vague ? `, dont ${vague} au texte vague (« en savoir plus », « ici »…)` : ''}.`,
+    advice: inBody >= 3 && vague <= 2 ? 'Rien à faire.' : 'Relier les pages entre elles dans le texte, avec des liens qui disent où ils mènent (« nos rénovations de salle de bain » plutôt que « en savoir plus ») : Google découvre et valorise mieux vos pages.' });
+
   add({ id: 'site-size', cat: 'google', label: 'Nombre de pages du site', weight: 2,
     status: extra.internalPages >= 5 ? 'ok' : extra.internalPages >= 2 ? 'warn' : 'bad',
     detail: extra.internalPages === 0 ? 'Le site ne contient qu’une seule page.' : `${extra.internalPages} page(s) trouvée(s) en plus de l’accueil.`,
@@ -599,7 +618,12 @@ export async function runAudit(input: string): Promise<AuditResult> {
       h1: $c('h1').first().text().replace(/\s+/g, ' ').trim(),
       h2: $c('h2').map((_, h) => $c(h).text().replace(/\s+/g, ' ').trim()).get().filter(Boolean).slice(0, 20),
       ctas: [...new Set($c('a, button').map((_, a) => $c(a).text().replace(/\s+/g, ' ').trim()).get().filter((t) => t.length > 2 && t.length < 60))].slice(0, 40),
-      text: [text($c).slice(0, 7000), ...subs.map((p) => `\n\n=== Page « ${p.label} » (${new URL(p.url).pathname}) ===\n${text(p.$).slice(0, 2500)}`)].join('').slice(0, 17000),
+      text: text($c).slice(0, 1500),
+      outline: [{ label: 'Accueil', d: $c }, ...subs.map((p) => ({ label: p.label, d: p.$ }))].map(({ label, d }) => {
+        const hs = d('h1,h2,h3').map((_, h) => `${h.tagName.toUpperCase()} ${d(h).text().replace(/\s+/g, ' ').trim().slice(0, 80)}`).get().slice(0, 25);
+        const links = d('main a[href], article a[href], section a[href], p a[href]').map((_, a) => d(a).text().replace(/\s+/g, ' ').trim().slice(0, 40)).get().filter(Boolean).slice(0, 12);
+        return `--- ${label} ---\n${hs.join('\n') || '(aucun titre)'}\nLiens dans le contenu : ${links.join(' | ') || '(aucun)'}`;
+      }).join('\n').slice(0, 6000),
     },
   };
   return result;
@@ -627,47 +651,47 @@ export async function pageSpeedServer(url: string, strategy: 'mobile' | 'desktop
 
 
 /* ===================== Analyse des textes et de l'apparence par l'IA (Claude) ===================== */
-const SYSTEM = `Tu es un consultant exigeant en sites internet pour TPE et PME (référencement, rédaction commerciale, expérience client), qui travaille pour SEOKRAFT, studio web à Strasbourg. Tu évalues le site d'un professionnel comme le ferait un client exigeant qui compare avec trois concurrents avant de choisir.
+const SYSTEM = `Tu es un consultant SEO exigeant qui audite des sites de TPE et PME pour SEOKRAFT, studio web à Strasbourg. Tu juges si le site peut être trouvé sur Google par les clients qu'il vise, et s'il donne envie de contacter l'entreprise une fois trouvé.
 Règles :
-- Tu t'appuies UNIQUEMENT sur le contenu et les captures fournis. Tu n'inventes aucun fait, chiffre, avis ou service. Si une information manque, tu le dis.
-- Tu es franc et précis, jamais complaisant. Un site médiocre reçoit une note médiocre. Tu cites des exemples concrets tirés du site (un titre, une phrase, un bouton).
-- Tu écris en français simple, compréhensible par un artisan ou un commerçant : pas de jargon, pas d'anglicisme, vouvoiement.
-- Tu ne critiques jamais la personne, seulement le site.
+- Tu t'appuies UNIQUEMENT sur les éléments fournis (titres Google, descriptions, titres H1/H2/H3, liens, court extrait, captures). Tu n'inventes rien. Si une information manque, tu le dis.
+- Tu es franc et précis, jamais complaisant. Tu cites des exemples concrets tirés du site (un titre, un intertitre, un lien).
+- Tu écris en français simple, compréhensible par un artisan ou un commerçant : pas de jargon (dis « titre principal » plutôt que « H1 », « liens entre les pages » plutôt que « maillage »), vouvoiement.
 - Tu réponds UNIQUEMENT avec un objet JSON valide, sans texte autour.`;
 
 function reviewPrompt(r: AuditResult, shots: number) {
   const c = r.content!;
-  const pages = (r.pagesDetail ?? []).map((p) => `- ${p.label} (${p.path}) : titre « ${p.title || 'aucun'} », ${p.words} mots, grand titre « ${p.h1 || 'aucun'} »`).join('\n');
+  const pages = (r.pagesDetail ?? []).map((p) => `- ${p.label} (${p.path}) : titre Google « ${p.title || 'aucun'} », description ${p.description ? 'présente' : 'absente'}, ${p.words} mots`).join('\n');
   return `Site analysé : ${r.url}
 ${shots ? `Captures jointes : ${shots === 2 ? 'la page d’accueil sur téléphone, puis sur ordinateur' : 'la page d’accueil'}.` : 'Aucune capture disponible : ne juge pas l’apparence.'}
-Titre affiché par Google : ${r.title || '(aucun)'}
-Description Google : ${c.description || '(aucune)'}
-Grand titre de l'accueil (H1) : ${c.h1 || '(aucun)'}
-Intertitres (H2) : ${c.h2.join(' | ') || '(aucun)'}
-Textes des boutons et liens : ${c.ctas.join(' | ') || '(aucun)'}
+Titre Google de l'accueil : ${r.title || '(aucun)'}
+Description Google de l'accueil : ${c.description || '(aucune)'}
 Pages lues :
 ${pages || '- accueil uniquement'}
-Texte visible des pages analysées (accueil, puis pages principales) :
-"""
-${c.text.slice(0, 17000)}
-"""
+
+Structure de chaque page (titres H1, H2, H3 et liens dans le contenu) :
+${c.outline || '(non disponible)'}
+
+Boutons et liens de l'accueil : ${c.ctas.slice(0, 25).join(' | ') || '(aucun)'}
+Début du texte de l'accueil : """${c.text.slice(0, 1500)}"""
+
+Audite le référencement : le métier, les services et la ville que tapent les clients apparaissent-ils dans les titres Google et les titres de page ? Chaque service a-t-il sa page ? Les pages sont-elles reliées par des liens parlants ? Le visiteur comprend-il vite quoi, où, et comment contacter ?
 
 Barème STRICT de la note (sur 20) :
-- 17 à 20 : exceptionnel, rare. Offre limpide, ville et métier évidents, bénéfices clients, avis et preuves, appel à l'action fort, site moderne.
-- 13 à 16 : bon site avec des manques réels.
-- 9 à 12 : moyen. Le visiteur doit chercher l'information ou n'est pas convaincu.
-- 5 à 8 : faible. On ne comprend pas vite qui, quoi, où ; pas de preuve ; contact peu visible ; ou site d'apparence datée.
-- 0 à 4 : le site ne remplit pas son rôle.
-Si on ne comprend pas en 5 secondes le métier ET la ville, la note ne dépasse pas 9. S'il n'y a ni avis ni preuve de sérieux, elle ne dépasse pas 12. Si le site a l'air daté ou amateur sur les captures, elle ne dépasse pas 10.
+- 17 à 20 : exceptionnel, rare. Titres optimisés métier + ville, une page par service, liens parlants, message limpide.
+- 13 à 16 : bon référencement avec des manques réels.
+- 9 à 12 : moyen. Titres vagues ou incomplets, peu de pages, peu de liens.
+- 5 à 8 : faible. Titres sans métier ni ville, structure absente.
+- 0 à 4 : le site ne peut pas être trouvé sur Google.
+Si ni le métier ni la ville ne sont dans le titre Google de l'accueil, la note ne dépasse pas 9.
 
-Réponds avec ce JSON exactement :
+Réponds avec ce JSON exactement (réponse courte, sans retour à la ligne dans les textes) :
 {
-  "score": nombre de 0 à 20 (demi-points autorisés) selon le barème,
-  "essentiel": "3 ou 4 phrases franches : ce que vaut le site pour un client aujourd'hui, ce qu'il lui fait perdre, puis la priorité n°1",
-  "impression": "${shots ? '2 ou 3 phrases sur la première impression visuelle d’après les captures : moderne ou daté, soigné ou amateur, lisible ou non sur téléphone, ce que voit le visiteur en premier' : ''}",
-  "constats": [ exactement 6 objets { "question": "question courte posée par un client", "reponse": "constat franc en moins de 14 mots, avec un exemple du site si possible" } pour : comprend-on le métier en 5 secondes ; sait-on où se trouve l'entreprise ; parle-t-on des besoins des clients ; voit-on ce que le client y gagne ; qu'est-ce qui prouve que l'entreprise est fiable ; sait-on quoi faire pour la contacter ],
-  "priorities": [ 3 ou 4 objets { "level": "critique" | "important" | "planifier", "title": "titre court du problème, compréhensible par un non-spécialiste", "text": "2 phrases : ce qui ne va pas (avec un exemple tiré du site) et ce qu'il faut faire" } ],
-  "positives": [ 0 à 3 points forts RÉELS et significatifs pour un client (pas de détail technique). Tableau vide si rien ne mérite d'être salué. ]
+  "score": nombre de 0 à 20 (demi-points autorisés),
+  "essentiel": "3 phrases franches : ce que vaut le site pour être trouvé et choisi, ce que cela lui fait perdre, la priorité n°1",
+  "impression": "${shots ? '2 phrases sur la première impression visuelle d’après les captures : moderne ou daté, soigné ou amateur, lisible sur téléphone' : ''}",
+  "constats": [ exactement 6 objets { "question": "question courte", "reponse": "constat franc en moins de 14 mots, avec un exemple du site" } pour : le titre Google dit-il le métier et la ville ; chaque service a-t-il sa page ; les titres de page sont-ils clairs ; les pages sont-elles reliées entre elles ; comprend-on le métier en 5 secondes ; sait-on comment contacter ],
+  "priorities": [ 3 objets { "level": "critique" | "important" | "planifier", "title": "titre court compréhensible par un non-spécialiste", "text": "2 phrases : le problème (avec un exemple du site) et ce qu'il faut faire" } ],
+  "positives": [ 0 à 2 points forts RÉELS et significatifs. Tableau vide si rien ne mérite d'être salué. ]
 }`;
 }
 
@@ -677,37 +701,60 @@ export async function reviewTexts(r: AuditResult, shots: string[] = []): Promise
   if (!r.content || r.content.text.length < 40) return { review: null, error: 'trop peu de texte lisible sur le site' };
   const images = shots.map((d) => d.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/)).filter((m): m is RegExpMatchArray => !!m)
     .map((m) => ({ type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } }));
-  try {
+  const ask = async (timeoutMs: number) => {
     const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'}/v1/messages`, {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.AUDIT_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 3000, system: SYSTEM,
+      body: JSON.stringify({ model: process.env.AUDIT_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 4000, system: SYSTEM,
         messages: [{ role: 'user', content: [...images, { type: 'text', text: reviewPrompt(r, images.length) }] }] }),
-      signal: AbortSignal.timeout(70000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!res.ok) {
       const body = (await res.text()).slice(0, 300);
       console.error('IA audit', res.status, body);
-      const why = /credit balance|billing/i.test(body) ? 'crédit épuisé sur console.anthropic.com' : res.status === 401 ? 'clé API refusée' : res.status === 404 ? 'modèle introuvable' : res.status === 429 ? 'trop de demandes, réessayer' : `erreur ${res.status}`;
-      return { review: null, error: why };
+      const why = /credit balance|billing/i.test(body) ? 'crédit épuisé sur console.anthropic.com' : res.status === 401 ? 'clé API refusée' : res.status === 404 ? 'modèle introuvable' : res.status === 429 || res.status === 529 ? 'service surchargé, réessayer' : `erreur ${res.status}`;
+      return { fatal: why };
     }
     const d = await res.json();
-    const raw = (d.content?.find?.((x: { type: string }) => x.type === 'text')?.text || '').trim();
-    const json = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
-    const str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
-    const levels: Level[] = ['critique', 'important', 'planifier'];
-    return { error: '', review: {
-      score: Math.max(0, Math.min(20, Number(json.score) || 0)),
-      essentiel: str(json.essentiel, 1000),
-      impression: images.length ? str(json.impression, 600) : '',
-      constats: (Array.isArray(json.constats) ? json.constats : []).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160) })).filter((x: { question: string }) => x.question),
-      priorities: (Array.isArray(json.priorities) ? json.priorities : []).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 450) })).filter((x: { title: string }) => x.title),
-      positives: (Array.isArray(json.positives) ? json.positives : []).slice(0, 3).map((x: unknown) => str(x, 200)).filter(Boolean),
-    } };
-  } catch (e) {
-    console.error('IA audit', e instanceof Error ? e.message : e);
-    return { review: null, error: e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'délai dépassé' : 'réponse illisible' };
+    const raw = ((d.content || []) as { type: string; text?: string }[]).filter((x) => x.type === 'text').map((x) => x.text || '').join('').trim();
+    return { raw, stop: String(d.stop_reason || '') };
+  };
+  /* Lecture tolérante : retire les balises de code et les retours à la ligne glissés dans les textes. */
+  const parse = (raw: string) => {
+    const body = raw.replace(/```(?:json)?/gi, '');
+    const chunk = body.slice(body.indexOf('{'), body.lastIndexOf('}') + 1);
+    try { return JSON.parse(chunk); } catch { return JSON.parse(chunk.replace(/[\r\n\t]+/g, ' ')); }
+  };
+  const t0 = Date.now();
+  let lastError = 'réponse illisible';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt === 1 && Date.now() - t0 > 60000) break;
+    try {
+      const out = await ask(attempt === 0 ? 75000 : 55000);
+      if ('fatal' in out) return { review: null, error: out.fatal as string };
+      let json: Record<string, unknown>;
+      try { json = parse(out.raw); } catch {
+        console.error('IA audit illisible', out.stop, out.raw.slice(0, 400));
+        lastError = out.stop === 'max_tokens' ? 'réponse trop longue, coupée' : 'réponse illisible';
+        continue;
+      }
+      const str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+      const levels: Level[] = ['critique', 'important', 'planifier'];
+      const arr = (v: unknown) => (Array.isArray(v) ? v : []);
+      return { error: '', review: {
+        score: Math.max(0, Math.min(20, Number(json.score) || 0)),
+        essentiel: str(json.essentiel, 1000),
+        impression: images.length ? str(json.impression, 600) : '',
+        constats: arr(json.constats).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160) })).filter((x: { question: string }) => x.question),
+        priorities: arr(json.priorities).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 450) })).filter((x: { title: string }) => x.title),
+        positives: arr(json.positives).slice(0, 3).map((x: unknown) => str(x, 200)).filter(Boolean),
+      } };
+    } catch (e) {
+      console.error('IA audit', e instanceof Error ? e.message : e);
+      lastError = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'délai dépassé' : `erreur de connexion (${e instanceof Error ? e.message.slice(0, 60) : 'inconnue'})`;
+    }
   }
+  return { review: null, error: lastError };
 }
 
 /* ===================== Stockage des bulletins ===================== */

@@ -101,7 +101,7 @@ export async function POST(request: Request) {
           ...NOTE_LABELS.map((n) => `• ${n.label} : ${fmt20(b.notes[n.id] ?? null)}/20`),
           `• Pages analysées : ${(b.pages ?? []).map((p) => p.label).join(', ') || 'accueil'}`,
           b.cap ? `• ${b.cap}` : '',
-          b.ai ? '• Textes et apparence analysés par l’IA : à relire avant envoi.' : `⚠ IA INDISPONIBLE (${aiError}) : la note des textes n’est PAS évaluée. Corrige puis relance depuis l’outil avant d’envoyer.`,
+          b.ai ? '• Audit SEO et apparence réalisés par l’IA : à relire avant envoi.' : `⚠ IA INDISPONIBLE (${aiError}) : la note Référencement et contenu n’est PAS évaluée. Corrige puis relance depuis l’outil avant d’envoyer.`,
           speedError ? '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.' : '',
           '',
           '1) RELIRE LE BULLETIN (en ligne, téléchargeable en PDF) :',

@@ -59,7 +59,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
         <div className="bv-mobile">{s?.screenshot ? <img src={s.screenshot} alt={`Le site ${b.host} sur téléphone`} /> : <div className="bv-skel bv-skel-m" aria-hidden="true"><b /><s /><s className="short" /><u /></div>}</div>
         <figcaption>Votre site tel que le voient vos clients, sur ordinateur et sur téléphone{sample ? ' (exemple fictif)' : ''}</figcaption>
       </figure>}
-      <div className={`bv-global ${tone(b.global)}`}><Score20 value={fmt20(b.global)} /><div><span className="eyebrow">NOTE DU SITE</span><p className="bv-verdict">{b.verdict}</p>{b.cap ? <p className="bv-cap"><AlertTriangle size={15} aria-hidden="true" /> {b.cap}</p> : <p className="bv-muted">Moyenne des notes ci-dessous</p>}</div></div>
+      <div className={`bv-global ${tone(b.global)}`}><Score20 value={fmt20(b.global)} /><div><span className="eyebrow">NOTE DU SITE</span><p className="bv-verdict">{b.verdict}</p><p className="bv-muted">Note globale de votre site</p></div></div>
       <div className="bv-actions no-print"><a className="button button-olive" href="/rendez-vous">Réserver un appel de 20 minutes <ArrowUpRight size={17} /></a><PrintButton name={`Bulletin-SEOKRAFT-${b.host}`} /></div>
     </section>
 
@@ -142,7 +142,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
     <details className="bv-method">
       <summary>Méthode et limites</summary>
       <p><strong>Périmètre :</strong> {b.pages && b.pages.length > 1 ? <>{b.pages.length} pages publiques de {b.host} : {b.pages.map((p) => p.label.toLowerCase()).join(', ')}</> : <>la page d’accueil publique de {b.host}</>}, telles qu’un visiteur les voit. Rien n’a été modifié sur votre site.</p>
-      <p><strong>Méthode :</strong> {checks.length ? `${checks.length} vérifications automatiques` : 'vérifications automatiques'} (Google, vitesse, sécurité, contact), mesures Google PageSpeed sur téléphone et ordinateur{b.ai ? ', et lecture des textes et des captures assistée par intelligence artificielle, relue par Marc avant envoi' : ''}.</p>
+      <p><strong>Méthode :</strong> {checks.length ? `${checks.length} vérifications automatiques` : 'vérifications automatiques'} (Google, vitesse, sécurité, contact), mesures Google PageSpeed sur téléphone et ordinateur{b.ai ? ', et audit du référencement et des captures assisté par intelligence artificielle, relue par Marc avant envoi' : ''}.</p>
       <p><strong>Limites :</strong> aucun formulaire n’a été envoyé, aucun accès privé n’a été utilisé et aucun test intrusif n’a été mené. Les notes sont indicatives et ne garantissent aucun classement sur Google.</p>
     </details>
     <footer className="al-foot"><a href="/">seokraft.fr</a><a href="/mentions-legales">Mentions légales</a><a href="/politique-de-confidentialite">Confidentialité</a></footer>

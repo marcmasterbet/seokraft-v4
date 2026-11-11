@@ -52,7 +52,7 @@ export default function AuditTool() {
       {busy && <p className="at-busy" role="status">Analyse du site, mesure Google et lecture des textes : environ 1 à 2 minutes…</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
       {b && <div className="at-actions">
-        <p className="at-result"><strong>{b.host} : {fmt20(b.global)}/20</strong> — {b.verdict}<br />{NOTE_LABELS.map((n) => `${n.label} ${fmt20(b.notes[n.id] ?? null)}`).join(' · ')}{b.cap && <><br />{b.cap}</>}{!b.ai && <><br /><em className="at-alert">IA indisponible ({b.aiError || 'erreur'}) : textes non évalués. Corriger puis relancer avant d’envoyer.</em></>}{b.speedError && <><br /><em className="at-alert">Mesure de vitesse Google indisponible : ajouter PSI_API_KEY dans Vercel.</em></>}</p>
+        <p className="at-result"><strong>{b.host} : {fmt20(b.global)}/20</strong> — {b.verdict}<br />{NOTE_LABELS.map((n) => `${n.label} ${fmt20(b.notes[n.id] ?? null)}`).join(' · ')}{b.cap && <><br />{b.cap}</>}{!b.ai && <><br /><em className="at-alert">IA indisponible ({b.aiError || 'erreur'}) : référencement non évalué. Corriger puis relancer avant d’envoyer.</em></>}{b.speedError && <><br /><em className="at-alert">Mesure de vitesse Google indisponible : ajouter PSI_API_KEY dans Vercel.</em></>}</p>
         <a className="button button-olive" href={link} target="_blank" rel="noopener noreferrer">Ouvrir le bulletin (relire, télécharger le PDF)</a>
         <div className="at-mail"><div className="at-mail-head"><strong>Mail au prospect</strong><button type="button" onClick={() => { navigator.clipboard?.writeText(mail).then(() => setCopied(true)); }}>{copied ? 'Copié ✓' : 'Copier'}</button></div><textarea readOnly rows={18} value={mail} /></div>
       </div>}
