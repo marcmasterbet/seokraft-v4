@@ -108,8 +108,11 @@ export default function Testimonials() {
  }, [open]);
 
  // La liste est répétée pour remplir l'écran, puis doublée pour une boucle sans à-coup.
+ // Les copies ne sont ajoutées qu'après chargement : le code HTML (lu par Google et les outils d'audit) ne contient chaque avis qu'une fois.
+ const [looped, setLooped] = useState(false);
+ useEffect(() => { setLooped(true); }, []);
  const base = [...testimonials, ...testimonials];
- const loop = [...base, ...base];
+ const loop = looped ? [...base, ...base] : testimonials;
 
  return <section className="testimonials-section" id="avis" aria-labelledby="avis-titre">
   <div className="tm-head">
@@ -122,7 +125,7 @@ export default function Testimonials() {
     {loop.map((t, k) => {
      const i = k % testimonials.length;
      const clone = k >= testimonials.length;
-     return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined}>
+     return <button type="button" className="tm-card" key={k} onClick={() => setOpen(i)} tabIndex={clone ? -1 : 0} aria-hidden={clone || undefined} data-nosnippet={clone || undefined}>
       <span className="tm-quote-mark" aria-hidden="true">“</span>
       <span className="tm-text">{nbsp(recommandations.cards[i].summary)}</span><span className="sr-only">Lire la recommandation complète</span>
       <Author t={t} i={i}/>

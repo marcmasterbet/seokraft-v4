@@ -47,7 +47,7 @@ function Contact({page=false}:{page?:boolean}){
    {error&&<p className="form-error" role="alert">{error} <a href="/rendez-vous">Réserver un appel</a></p>}
    <button className="button button-dark" type="submit" disabled={busy}>{busy?'Envoi en cours…':contact.options[0].button} <ArrowUpRight size={17}/></button>
   </form></div>
-   <aside className="contact-card contact-card-call"><S>{nbsp(contact.options[1].title)}</S>{contact.options[1].paragraphs.map(p=><p key={p}>{nbsp(p)}</p>)}<a className="button contact-call-button" href="/rendez-vous">{contact.options[1].button} <ArrowUpRight size={17}/></a></aside>
+   <aside className="contact-card contact-card-call"><S>{nbsp(contact.options[1].title)}</S>{contact.options[1].paragraphs.map(p=><p key={p}>{nbsp(p)}</p>)}<a className="button contact-call-button" href="/rendez-vous">{contact.options[1].button} <ArrowUpRight size={17}/></a><p className="contact-direct">Ou appelez directement : <a href="tel:+33672209153">06 72 20 91 53</a></p></aside>
   </div>
   <div className="contact-signature"><strong>{contact.signature.name}</strong>{contact.signature.lines.map(l=><p key={l}>{nbsp(l)}</p>)}<p className="accent-line">{nbsp(contact.signature.accent)}</p></div>
  </div>}</section>

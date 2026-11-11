@@ -8,12 +8,11 @@ import type { NextConfig } from 'next';
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://vercel.live",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://snap.licdn.com https://vercel.live",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com",
+  "img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://px.ads.linkedin.com",
   "font-src 'self'",
-  // script.google.com : réception du questionnaire de projet (Google Apps Script → Google Sheets)
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vercel.live https://script.google.com https://script.googleusercontent.com",
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.facebook.com https://connect.facebook.net https://px.ads.linkedin.com https://*.linkedin.com https://www.googleapis.com https://vercel.live",
   "frame-src https://cal.com https://app.cal.com https://vercel.live",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -37,10 +36,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  async rewrites() {
-    // Questionnaire de projet : page statique public/questionnaire.html servie sur /questionnaire
-    return [{ source: '/questionnaire', destination: '/questionnaire.html' }];
-  },
   async headers() {
     return [
       {
@@ -50,13 +45,13 @@ const nextConfig: NextConfig = {
           : securityHeaders,
       },
       {
-        // Questionnaire réservé aux prospects : jamais indexé
-        source: '/questionnaire(.*)',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
-      },
-      {
         source: '/fonts/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        // Outil d'audit privé : jamais indexé
+        source: '/outil-audit',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
       {
         // Fiche contact téléchargée depuis la page /carte (QR code de la carte de visite)

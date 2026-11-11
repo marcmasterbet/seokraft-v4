@@ -63,7 +63,7 @@ export const prestations = {
     question: "Vous lancez votre entreprise ou souhaitez enfin disposer d'une présence en ligne professionnelle ?",
     text: "Je crée des sites vitrines qui présentent clairement votre activité, valorisent vos prestations et permettent à vos visiteurs de vous contacter facilement.",
     benefit: "un site qui inspire confiance dès la première visite." },
-  { title: "Refonte de sites internet", href: "/creation-site-internet/strasbourg#refonte",
+  { title: "Refonte de sites internet", href: "#contact",
     question: "Votre entreprise a évolué, mais votre site ne reflète plus son niveau d'exigence ?",
     text: "Je retravaille sa structure, son design, sa navigation et ses contenus pour offrir une expérience plus claire, notamment sur mobile.",
     benefit: "une image digitale plus cohérente avec la qualité de votre entreprise." },
