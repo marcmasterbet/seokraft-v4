@@ -1,9 +1,9 @@
 import { NextResponse, after } from 'next/server';
-import { createBulletin } from '../../../lib/auditEngine';
+import { createBulletin, checkAndRecordQuota } from '../../../lib/auditEngine';
 import { NOTE_LABELS, buildBulletinMail, fmt20 } from '../../../components/auditTypes';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 const emailPattern = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
 
@@ -88,14 +88,21 @@ export async function POST(request: Request) {
     after(async () => {
       let report = '';
       let subject = `SEOKRAFT — Audit gratuit : ${new URL(url).hostname}`;
-      try {
-        const b = await createBulletin(url);
+      const tool = `https://www.seokraft.fr/outil-audit?${new URLSearchParams({ url, prenom: firstName })}`;
+      const quota = await checkAndRecordQuota(url, email);
+      if (!quota.ok) {
+        subject += ' — non lancé automatiquement';
+        report = `Audit NON lancé automatiquement : ${quota.reason} (protection de ton crédit IA).\nSi la demande est sérieuse, lance-le à la main depuis l’outil : ${tool}`;
+      } else try {
+        const { bulletin: b, aiError, speedError } = await createBulletin(url);
         subject = `SEOKRAFT — Audit gratuit : ${b.host} — ${fmt20(b.global)}/20`;
         report = [
           `NOTE DU SITE : ${fmt20(b.global)}/20 — ${b.verdict}`,
-          ...NOTE_LABELS.map((n) => `• ${n.label} : ${fmt20(b.notes[n.id])}/20`),
+          ...NOTE_LABELS.map((n) => `• ${n.label} : ${fmt20(b.notes[n.id] ?? null)}/20`),
           `• Pages analysées : ${(b.pages ?? []).map((p) => p.label).join(', ') || 'accueil'}`,
-          b.ai ? '• Textes analysés par l’IA : à relire avant envoi.' : '• Analyse des textes par l’IA indisponible (clé absente ou erreur) : note des textes estimée.',
+          b.cap ? `• ${b.cap}` : '',
+          b.ai ? '• Textes et apparence analysés par l’IA : à relire avant envoi.' : `⚠ IA INDISPONIBLE (${aiError}) : la note des textes n’est PAS évaluée. Corrige puis relance depuis l’outil avant d’envoyer.`,
+          speedError ? '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.' : '',
           '',
           '1) RELIRE LE BULLETIN (en ligne, téléchargeable en PDF) :',
           `https://www.seokraft.fr/bulletin/${b.id}`,
@@ -105,9 +112,8 @@ export async function POST(request: Request) {
           '────────────────────────',
           buildBulletinMail(b, firstName),
           '────────────────────────',
-        ].join('\n');
+        ].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
       } catch (e) {
-        const tool = `https://www.seokraft.fr/outil-audit?${new URLSearchParams({ url, prenom: firstName })}`;
         report = `L’analyse automatique n’a pas abouti (${e instanceof Error ? e.message : 'erreur'}).\nLancez-la à la main depuis l’outil : ${tool}`;
         subject += ' — analyse à relancer';
       }

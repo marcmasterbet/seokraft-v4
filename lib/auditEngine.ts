@@ -1,7 +1,8 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import tls from 'node:tls';
 import { load, type CheerioAPI } from 'cheerio';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { buildBulletin, type AuditResult, type Bulletin, type Check, type Speed, type TextReview, type Level } from '../components/auditTypes';
@@ -86,11 +87,24 @@ async function exists(url: string) {
 }
 
 /* ---------- Les vérifications ---------- */
-const text = ($: CheerioAPI) => $('body').clone().find('script,style,noscript,svg').remove().end().text().replace(/\s+/g, ' ').trim();
+/* Texte visible, avec un espace entre chaque bloc (sinon « Ustaritz » et « Accueil » se collent). */
+const text = ($: CheerioAPI) => {
+  const b = $('body').clone();
+  b.find('script,style,noscript,svg,template').remove();
+  b.find('br,p,div,li,td,th,tr,h1,h2,h3,h4,h5,h6,a,span,section,article,header,footer,nav,button,label,dt,dd,address,figcaption').each((_, e) => { $(e).append(' '); });
+  return b.text().replace(/\s+/g, ' ').trim();
+};
 
 type SubPage = { url: string; label: string; $: CheerioAPI };
 
-function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text: string }; sitemap: boolean; httpRedirects: boolean | null }, subs: SubPage[] = []): Check[] {
+type Extra = {
+  robots: { ok: boolean; text: string }; sitemap: boolean; httpRedirects: boolean | null;
+  internalPages: number; broken: string[];
+  images: { count: number; heavy: number; biggestKb: number; totalKb: number } | null;
+  certDays: number | null;
+};
+
+function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []): Check[] {
   const c: Check[] = [];
   const add = (x: Check) => c.push(x);
   const body = text($);
@@ -106,11 +120,12 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
   const year = new Date().getFullYear();
 
   /* --- Présence sur Google --- */
-  const title = $('head > title').first().text().trim();
+  const title = $('head > title').first().text().replace(/\s+/g, ' ').trim();
+  const generic = /^(accueil|home|bienvenue|page d.accueil|index|untitled|sans titre|document)\b/i.test(title) || (!!title && title.split(/\s+/).length <= 2);
   add({ id: 'title', cat: 'google', label: 'Titre de la page pour Google', weight: 2,
-    status: !title ? 'bad' : title.length < 25 || title.length > 65 ? 'warn' : 'ok',
+    status: !title || generic ? 'bad' : title.length < 25 || title.length > 65 ? 'warn' : 'ok',
     detail: !title ? 'Aucun titre n’est défini.' : `« ${title.slice(0, 90)} » (${title.length} caractères).`,
-    advice: !title ? 'Ajouter un titre qui contient votre métier et votre ville : c’est la ligne bleue cliquable dans Google.' : title.length < 25 ? 'Titre trop court : précisez votre métier et votre ville pour être trouvé sur les bonnes recherches.' : title.length > 65 ? 'Titre trop long : Google le coupe. Gardez l’essentiel (métier + ville) en moins de 60 caractères.' : 'Bonne longueur. Vérifiez qu’il contient bien votre métier et votre ville.' });
+    advice: !title ? 'Ajouter un titre qui contient votre métier et votre ville : c’est la ligne bleue cliquable dans Google.' : generic ? 'Ce titre ne dit ni votre métier ni votre ville : Google ne peut pas vous proposer sur les bonnes recherches.' : title.length < 25 ? 'Titre trop court : précisez votre métier et votre ville pour être trouvé sur les bonnes recherches.' : title.length > 65 ? 'Titre trop long : Google le coupe. Gardez l’essentiel (métier + ville) en moins de 60 caractères.' : 'Bonne longueur. Vérifiez qu’il contient bien votre métier et votre ville.' });
 
   const desc = $('meta[name="description"]').attr('content')?.trim() || '';
   add({ id: 'description', cat: 'google', label: 'Description dans les résultats Google',
@@ -124,6 +139,39 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
     status: h1.length === 0 ? 'bad' : h1.length > 1 ? 'warn' : 'ok',
     detail: h1.length === 0 ? 'Aucun titre principal.' : h1.length > 1 ? `${h1.length} titres principaux sur la page.` : `« ${h1Text.slice(0, 90)} »`,
     advice: h1.length === 0 ? 'Ajouter un titre principal clair : il indique à Google et aux visiteurs le sujet de la page.' : h1.length > 1 ? 'Garder un seul titre principal par page pour ne pas brouiller le message.' : 'Un seul titre principal : c’est correct.' });
+
+  /* Ville ciblée : on repère la ville de l'entreprise (code postal + ville, ou données structurées) et on vérifie qu'elle est dans le titre ou le grand titre. */
+  const jsonldAll = all.map((d) => d('script[type="application/ld+json"]').map((_, s) => d(s).text()).get().join(' ')).join(' ');
+  const cities = new Set<string>();
+  const CITY = "[A-ZÀ-Ý][a-zà-ÿ'’]+(?:-[A-Za-zÀ-ÿ'’]+)*(?:[ -](?:sur|sous|lès|les|en|de|du|la|le)[ -][A-ZÀ-Ý][a-zà-ÿ'’]+(?:-[A-Za-zÀ-ÿ'’]+)*)?";
+  for (const m of siteBody.matchAll(new RegExp(`\\b\\d{5}\\s+(${CITY})`, 'g'))) cities.add(m[1].trim());
+  for (const m of jsonldAll.matchAll(/"addressLocality"\s*:\s*"([^"]{2,40})"/g)) cities.add(m[1].trim());
+  for (const m of jsonldAll.matchAll(/"@type"\s*:\s*"City"\s*,\s*"name"\s*:\s*"([^"]{2,40})"/g)) cities.add(m[1].trim());
+  const headline = `${title} ${$('h1').text()} ${$('meta[name="description"]').attr('content') || ''}`;
+  for (const m of headline.matchAll(new RegExp(`(?:^|\\s)(?:à|au|sur|près de|autour de)\\s+(${CITY})`, 'g'))) if (!/^(Votre|Vos|Nos|Notre|Domicile|Distance|Partir|Vous)$/i.test(m[1])) cities.add(m[1].trim());
+  const cityList = [...cities].filter((c) => !/^(Tel|Tél|Fax|Mail|France|Siret|SIRET|Rcs|RCS)$/i.test(c)).slice(0, 4);
+  const norm = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const target = norm(title + ' ' + $('h1').text());
+  const cityOk = cityList.some((c) => target.includes(norm(c.split(/[ -]/)[0])));
+  add({ id: 'title-local', cat: 'google', label: 'Ville ciblée sur Google', weight: 2,
+    status: !cityList.length ? 'warn' : cityOk ? 'ok' : 'bad',
+    detail: !cityList.length ? 'Aucune ville clairement identifiable sur le site.' : cityOk ? `La ville (${cityList[0]}) apparaît dans le titre ou le grand titre.` : `Votre ville (${cityList[0]}) n’apparaît ni dans le titre Google ni dans le grand titre de l’accueil.`,
+    advice: cityOk ? 'Rien à faire.' : 'Vos clients cherchent « votre métier + votre ville ». Sans la ville dans le titre, Google vous montre rarement sur ces recherches.' });
+
+  const h2n = $('h2').length;
+  add({ id: 'structure', cat: 'google', label: 'Organisation du texte (intertitres)',
+    status: h2n === 0 ? 'bad' : h2n < 3 ? 'warn' : 'ok', detail: `${h2n} intertitre(s) sur la page d’accueil.`,
+    advice: h2n >= 3 ? 'Rien à faire.' : 'Découper la page en parties avec des intertitres clairs (vos services, votre zone, vos avis) : plus lisible pour les clients et pour Google.' });
+
+  add({ id: 'site-size', cat: 'google', label: 'Nombre de pages du site', weight: 2,
+    status: extra.internalPages >= 5 ? 'ok' : extra.internalPages >= 2 ? 'warn' : 'bad',
+    detail: extra.internalPages === 0 ? 'Le site ne contient qu’une seule page.' : `${extra.internalPages} page(s) trouvée(s) en plus de l’accueil.`,
+    advice: extra.internalPages >= 5 ? 'Rien à faire.' : 'Une page par service permet d’apparaître sur beaucoup plus de recherches Google. Un site d’une ou deux pages reste presque invisible.' });
+
+  add({ id: 'broken', cat: 'google', label: 'Liens cassés',
+    status: extra.broken.length === 0 ? 'ok' : 'bad',
+    detail: extra.broken.length === 0 ? 'Aucun lien cassé parmi les pages vérifiées.' : `${extra.broken.length} lien(s) mène(nt) à une page d’erreur : ${extra.broken.slice(0, 3).join(', ')}.`,
+    advice: extra.broken.length === 0 ? 'Rien à faire.' : 'Un lien qui mène à une erreur donne une image de site abandonné, et Google le remarque. À corriger.' });
 
   const robotsMeta = ($('meta[name="robots"]').attr('content') || '').toLowerCase() + ' ' + (page.headers.get('x-robots-tag') || '').toLowerCase();
   const noindex = robotsMeta.includes('noindex');
@@ -170,9 +218,9 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
   /* --- Contenu et clarté --- */
   const words = body ? body.split(' ').length : 0;
   add({ id: 'words', cat: 'contenu', label: 'Quantité de texte sur la page d’accueil', weight: 2,
-    status: words < 150 ? 'bad' : words < 350 ? 'warn' : 'ok',
+    status: words < 250 ? 'bad' : words < 500 ? 'warn' : 'ok',
     detail: `Environ ${words} mots.`,
-    advice: words < 150 ? 'Très peu de texte : Google a du mal à comprendre ce que vous faites. Présentez vos services, votre zone et ce qui vous distingue.' : words < 350 ? 'Texte un peu léger : développez vos services et répondez aux questions de vos clients.' : 'Volume de texte suffisant.' });
+    advice: words < 250 ? 'Très peu de texte : Google a du mal à comprendre ce que vous faites. Présentez vos services, votre zone et ce qui vous distingue.' : words < 500 ? 'Texte un peu léger : développez vos services et répondez aux questions de vos clients.' : 'Volume de texte suffisant.' });
 
   const imgs = $('img');
   const noAlt = imgs.filter((_, i) => !($(i).attr('alt') || '').trim()).length;
@@ -180,6 +228,10 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
     status: imgs.length === 0 ? 'warn' : noAlt === 0 ? 'ok' : noAlt / imgs.length > 0.5 ? 'bad' : 'warn',
     detail: imgs.length === 0 ? 'Aucune image sur la page.' : `${noAlt} image(s) sur ${imgs.length} sans description.`,
     advice: imgs.length === 0 ? 'Ajouter des photos réelles de votre activité : elles rassurent et retiennent les visiteurs.' : noAlt === 0 ? 'Rien à faire.' : 'Décrire chaque image : Google Images peut alors vous faire apparaître, et le site devient accessible aux malvoyants.' });
+
+  add({ id: 'photos', cat: 'contenu', label: 'Photos de l’activité',
+    status: imgs.length >= 4 ? 'ok' : imgs.length >= 1 ? 'warn' : 'bad', detail: `${imgs.length} image(s) sur la page d’accueil.`,
+    advice: imgs.length >= 4 ? 'Rien à faire.' : 'Montrer de vraies photos (équipe, réalisations, lieux) : c’est ce qui rassure le plus un client qui ne vous connaît pas.' });
 
   const og = $('meta[property="og:image"]').length > 0 && $('meta[property="og:title"]').length > 0;
   add({ id: 'og', cat: 'contenu', label: 'Aperçu lors d’un partage (réseaux sociaux)',
@@ -195,7 +247,7 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
   const years = [...body.matchAll(/(?:©|copyright)\s*(?:\d{4}\s*[-–]\s*)?(\d{4})/gi)].map((m) => Number(m[1]));
   const lastYear = years.length ? Math.max(...years) : null;
   add({ id: 'fresh', cat: 'contenu', label: 'Site tenu à jour',
-    status: lastYear === null ? 'ok' : lastYear >= year - 1 ? 'ok' : 'warn',
+    status: lastYear === null ? 'ok' : lastYear >= year - 1 ? 'ok' : lastYear >= year - 3 ? 'warn' : 'bad',
     detail: lastYear === null ? 'Aucune date visible.' : `Date affichée en bas de page : ${lastYear}.`,
     advice: lastYear !== null && lastYear < year - 1 ? 'Une date ancienne donne l’impression d’un site abandonné : mettez-la à jour.' : 'Rien à faire.' });
 
@@ -206,13 +258,43 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
     detail: viewport.includes('width=device-width') ? 'Le site s’adapte à la taille de l’écran.' : 'Le site n’est pas configuré pour les téléphones.',
     advice: viewport.includes('width=device-width') ? 'Rien à faire.' : 'Urgent : la majorité des visiteurs arrivent sur téléphone. Le site doit s’adapter à leur écran.' });
 
+  /* Site ancien : signes d'une technique dépassée (cadres, Flash, balises abandonnées, ancien format de page). */
+  const html0 = page.html;
+  const signs = ([
+    [/<frameset|<frame\s/i.test(html0), 'page construite en cadres (frames)'],
+    [/\.swf\b|application\/x-shockwave-flash/i.test(html0), 'animation Flash (plus lue par aucun navigateur)'],
+    [/<(font|center|marquee|blink)\b/i.test(html0), 'balises de mise en forme abandonnées'],
+    [/<!DOCTYPE\s+html\s+PUBLIC/i.test(html0), 'ancien format de page (HTML 4 / XHTML)'],
+    [$('table[width], td[width], table[bgcolor], td[bgcolor]').length > 3, 'mise en page en tableaux'],
+  ] as [boolean, string][]).filter(([on]) => on).map(([, l]) => l);
+  add({ id: 'outdated', cat: 'mobile', label: 'Technique du site à jour', weight: 3,
+    status: signs.length >= 2 || /cadres|Flash/.test(signs.join()) ? 'bad' : signs.length ? 'warn' : 'ok',
+    detail: signs.length ? `Signes d’un site ancien : ${signs.join(', ')}.` : 'Aucun signe de technique dépassée.',
+    advice: signs.length ? 'Le site repose sur une technique d’une autre époque : il s’affiche mal sur téléphone, il est moins bien compris par Google, et il est plus difficile à sécuriser.' : 'Rien à faire.' });
+
+  /* Site fait avec un outil « clé en main » : code lourd, peu de maîtrise de la vitesse et du référencement, site loué et non possédé. */
+  const BUILDERS: [RegExp, string][] = [[/wix\.com|wixstatic|_wix/i, 'Wix'], [/jimdo/i, 'Jimdo'], [/squarespace/i, 'Squarespace'], [/webnode/i, 'Webnode'], [/e-monsite/i, 'e-monsite'], [/sitew\./i, 'SiteW'], [/weebly/i, 'Weebly'], [/sites\.google\.com|googleusercontent\.com\/sites/i, 'Google Sites'], [/godaddy.*(website|builder)|img1\.wsimg\.com/i, 'GoDaddy'], [/site123/i, 'SITE123'], [/hostinger.*builder|zyrosite|zyro\.com/i, 'Hostinger Builder'], [/duda(mobile|\.co)|multiscreensite/i, 'Duda'], [/strikingly/i, 'Strikingly'], [/ionos.*(mywebsite|builder)|mywebsite-editor/i, 'IONOS MyWebsite']];
+  const builder = BUILDERS.find(([re]) => re.test(html0.slice(0, 200000)))?.[1] || (/\.gites\.fr$|\.gites-de-france\.com$|\.e-monsite\.com$|\.wixsite\.com$|\.jimdofree\.com$|\.webnode\.fr$|\.over-blog\.com$/i.test(new URL(page.url).hostname) ? 'une plateforme de sites clé en main' : '');
+  add({ id: 'builder', cat: 'mobile', label: 'Site sur mesure ou site « clé en main »', weight: 3,
+    status: builder ? 'bad' : 'ok',
+    detail: builder ? `Le site est réalisé avec ${builder}.` : 'Aucun outil de site « clé en main » détecté.',
+    advice: builder ? 'Ces outils chargent beaucoup de code inutile (site plus lent), limitent les réglages pour Google, et le site reste loué : vous ne le possédez pas et ne pouvez pas l’emporter ailleurs.' : 'Rien à faire.' });
+
+  if (extra.images) {
+    const im = extra.images;
+    add({ id: 'images', cat: 'mobile', label: 'Poids des images', weight: 2,
+      status: im.heavy === 0 && im.totalKb < 1500 ? 'ok' : im.biggestKb > 1000 || im.totalKb > 4000 ? 'bad' : 'warn',
+      detail: `${im.count} image(s) vérifiée(s) : ${(im.totalKb / 1024).toFixed(1).replace('.', ',')} Mo au total${im.heavy ? `, dont ${im.heavy} de plus de 300 Ko (la plus lourde : ${im.biggestKb} Ko)` : ''}.`,
+      advice: im.heavy === 0 && im.totalKb < 1500 ? 'Rien à faire.' : 'Des images trop lourdes ralentissent fortement le site sur téléphone. Les compresser divise souvent le temps de chargement par deux.' });
+  }
+
   const kb = Math.round(page.bytes / 1024);
   add({ id: 'weight', cat: 'mobile', label: 'Poids du code de la page',
     status: kb > 600 ? 'bad' : kb > 250 ? 'warn' : 'ok', detail: `${kb} Ko.`,
     advice: kb > 250 ? 'Page lourde : elle se charge lentement sur mobile. Alléger le code et les éléments inutiles.' : 'Poids raisonnable.' });
 
   add({ id: 'ttfb', cat: 'mobile', label: 'Réactivité du serveur',
-    status: page.ms > 1800 ? 'bad' : page.ms > 800 ? 'warn' : 'ok', detail: `Première réponse en ${(page.ms / 1000).toFixed(1)} s.`,
+    status: page.ms > 1800 ? 'bad' : page.ms > 800 ? 'warn' : 'ok', detail: `Première réponse en ${(page.ms / 1000).toFixed(1).replace('.', ',')} s.`,
     advice: page.ms > 800 ? 'Le serveur met du temps à répondre : un hébergement plus performant ou un cache accélérerait tout le site.' : 'Bonne réactivité.' });
 
   /* --- Sécurité et conformité --- */
@@ -223,22 +305,70 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
     advice: https ? 'Rien à faire.' : 'Urgent : les navigateurs affichent « Non sécurisé », ce qui fait fuir les visiteurs et pénalise le référencement.' });
 
   if (extra.httpRedirects !== null) add({ id: 'redirect', cat: 'securite', label: 'Redirection vers la version sécurisée',
-    status: extra.httpRedirects ? 'ok' : 'warn',
+    status: extra.httpRedirects ? 'ok' : 'bad',
     detail: extra.httpRedirects ? 'La version non sécurisée renvoie bien vers HTTPS.' : 'La version non sécurisée reste accessible.',
     advice: extra.httpRedirects ? 'Rien à faire.' : 'Rediriger automatiquement toutes les adresses en HTTP vers HTTPS.' });
 
   const mixed = https ? $('img[src^="http:"], script[src^="http:"], link[href^="http:"][rel="stylesheet"], iframe[src^="http:"]').length : 0;
   if (https) add({ id: 'mixed', cat: 'securite', label: 'Éléments non sécurisés dans la page',
-    status: mixed ? 'warn' : 'ok', detail: mixed ? `${mixed} élément(s) chargé(s) sans sécurité.` : 'Aucun.',
+    status: mixed > 2 ? 'bad' : mixed ? 'warn' : 'ok', detail: mixed ? `${mixed} élément(s) chargé(s) sans sécurité.` : 'Aucun.',
     advice: mixed ? 'Certaines images ou scripts sont chargés sans HTTPS : le cadenas peut disparaître.' : 'Rien à faire.' });
 
-  const hsts = !!page.headers.get('strict-transport-security');
-  const nosniff = (page.headers.get('x-content-type-options') || '').toLowerCase() === 'nosniff';
-  const frame = !!page.headers.get('x-frame-options') || /frame-ancestors/i.test(page.headers.get('content-security-policy') || '');
-  const sec = [hsts, nosniff, frame].filter(Boolean).length;
-  add({ id: 'headers', cat: 'securite', label: 'Protections techniques du serveur',
-    status: sec === 3 ? 'ok' : sec >= 1 ? 'warn' : 'bad', detail: `${sec} protection(s) sur 3 activée(s).`,
-    advice: sec === 3 ? 'Rien à faire.' : 'Activer les protections de base (HSTS, anti-détournement, anti-intégration) pour limiter les risques de piratage.' });
+  if (extra.certDays !== null) add({ id: 'cert', cat: 'securite', label: 'Certificat de sécurité', weight: 3,
+    status: extra.certDays < 0 ? 'bad' : extra.certDays < 14 ? 'warn' : 'ok',
+    detail: extra.certDays < 0 ? 'Le certificat est expiré : les navigateurs affichent une alerte rouge.' : `Valide encore ${extra.certDays} jour(s).`,
+    advice: extra.certDays < 0 ? 'Urgent : renouveler le certificat. Aujourd’hui, la plupart des visiteurs font demi-tour devant l’alerte.' : extra.certDays < 14 ? 'Le certificat expire bientôt : vérifier que son renouvellement automatique fonctionne.' : 'Rien à faire.' });
+
+  const H = (n: string) => page.headers.get(n) || '';
+  const protections = [
+    [!!H('strict-transport-security'), 'connexion sécurisée imposée (HSTS)'],
+    [H('x-content-type-options').toLowerCase() === 'nosniff', 'protection contre les fichiers piégés'],
+    [!!H('x-frame-options') || /frame-ancestors/i.test(H('content-security-policy')), 'protection contre l’imitation du site dans une autre page'],
+    [!!H('content-security-policy'), 'liste des sources autorisées (CSP)'],
+    [!!H('referrer-policy'), 'confidentialité des liens sortants'],
+  ] as [boolean, string][];
+  const sec = protections.filter(([on]) => on).length;
+  add({ id: 'headers', cat: 'securite', label: 'Protections du serveur contre le piratage', weight: 2,
+    status: sec >= 4 ? 'ok' : sec >= 2 ? 'warn' : 'bad', detail: `${sec} protection(s) sur 5 activée(s).${sec < 5 ? ` Manquantes : ${protections.filter(([on]) => !on).map(([, l]) => l).join(', ')}.` : ''}`,
+    advice: sec >= 4 ? 'Rien à faire.' : 'Ces protections de base, gratuites, limitent les risques de piratage et d’usurpation du site. Elles se règlent en une fois sur l’hébergement.' });
+
+  const leak = [H('server'), H('x-powered-by'), H('x-aspnet-version')].filter((v) => /\d+\.\d+/.test(v));
+  add({ id: 'server-version', cat: 'securite', label: 'Informations techniques exposées',
+    status: leak.length ? 'warn' : 'ok',
+    detail: leak.length ? `Le serveur affiche publiquement ses versions de logiciels : ${leak.join(', ').slice(0, 80)}.` : 'Le serveur n’affiche pas ses versions de logiciels.',
+    advice: leak.length ? 'Afficher les versions aide les pirates à cibler les failles connues. À masquer dans la configuration de l’hébergement.' : 'Rien à faire.' });
+
+  const gen = $('meta[name="generator"]').attr('content') || '';
+  const wp = gen.match(/WordPress\s+(\d+)\.(\d+)/i) || html0.match(/wp-(?:includes|content)[^"']*\?ver=(\d+)\.(\d+)/i);
+  const joomla = /Joomla!?\s*(1\.|2\.|3\.)/i.test(gen);
+  const oldWp = wp ? Number(wp[1]) < 6 || (Number(wp[1]) === 6 && Number(wp[2]) < 4) : false;
+  if (wp || joomla) {
+    const cms = joomla ? 'Joomla (ancienne version)' : `WordPress ${wp![1]}.${wp![2]}`;
+    add({ id: 'old-cms', cat: 'securite', label: 'Version de l’outil de gestion du site', weight: 2,
+      status: joomla || oldWp ? 'bad' : gen ? 'warn' : 'ok',
+      detail: joomla || oldWp ? `Le site tourne sur ${cms}, une version qui n’est plus à jour.` : gen ? `Le site affiche publiquement sa version : ${cms}.` : `Site géré avec ${cms}.`,
+      advice: joomla || oldWp ? 'Les versions anciennes ont des failles connues et sont la première cible des pirates. Mettre à jour en priorité, avec une sauvegarde.' : gen ? 'Masquer la version affichée et garder WordPress, le thème et les extensions à jour.' : 'Rien à faire, si les mises à jour sont faites régulièrement.' });
+  }
+
+  const jq = html0.match(/jquery[.-]?(\d)\.(\d+)(?:\.\d+)?(?:\.min)?\.js/i) || html0.match(/jquery(?:\.min)?\.js\?ver=(\d)\.(\d+)/i);
+  const oldJq = jq ? Number(jq[1]) < 3 || (Number(jq[1]) === 3 && Number(jq[2]) < 5) : false;
+  if (jq) add({ id: 'vuln-lib', cat: 'securite', label: 'Composants du site à jour', weight: 2,
+    status: oldJq ? 'bad' : 'ok',
+    detail: oldJq ? `Le site utilise jQuery ${jq[1]}.${jq[2]}, une version avec des failles de sécurité connues.` : `jQuery ${jq[1]}.${jq[2]} : version récente.`,
+    advice: oldJq ? 'Mettre à jour cette bibliothèque : les failles des anciennes versions sont publiques et exploitées.' : 'Rien à faire.' });
+
+  const httpForm = all.some((d) => d('form[action^="http:"]').length > 0) || (!https && all.some((d) => d('form input[type="password"], form input[type="email"], form textarea').length > 0));
+  add({ id: 'form-http', cat: 'securite', label: 'Formulaires protégés', weight: 2,
+    status: httpForm ? 'bad' : 'ok',
+    detail: httpForm ? 'Au moins un formulaire envoie les informations des visiteurs sans chiffrement.' : 'Les formulaires envoient les données de façon chiffrée (ou le site n’a pas de formulaire).',
+    advice: httpForm ? 'Les noms, e-mails et messages de vos clients circulent en clair : à corriger rapidement (obligation RGPD de sécurité).' : 'Rien à faire.' });
+
+  const hx = page.headers as Headers & { getSetCookie?: () => string[] };
+  const setCookie = typeof hx.getSetCookie === 'function' ? hx.getSetCookie() : [];
+  const weakCookies = setCookie.filter((c) => !/;\s*secure/i.test(c) || !/;\s*httponly/i.test(c)).length;
+  if (setCookie.length) add({ id: 'cookie-flags', cat: 'securite', label: 'Protection des cookies du site',
+    status: weakCookies ? 'warn' : 'ok', detail: weakCookies ? `${weakCookies} cookie(s) sur ${setCookie.length} sans protection complète.` : 'Les cookies du site sont protégés.',
+    advice: weakCookies ? 'Activer les options de protection des cookies (Secure, HttpOnly) pour éviter les vols de session.' : 'Rien à faire.' });
 
   const legal = /mentions[\s-]+l[ée]gales|legal|impressum/i.test(siteLinkTexts) || siteHrefs.some((h) => /mentions|legal/i.test(h));
   add({ id: 'legal', cat: 'securite', label: 'Mentions légales', weight: 2,
@@ -273,12 +403,33 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
     detail: form ? 'Un formulaire de contact est disponible.' : mail ? 'Seul un lien e-mail est proposé.' : hrefs.some((h) => /contact/i.test(h)) ? 'Un lien vers une page contact existe, sans formulaire.' : `Aucun moyen de contact écrit ${where}.`,
     advice: form ? 'Rien à faire.' : 'Proposer un formulaire simple (nom, e-mail, message) directement accessible : moins d’efforts, plus de demandes.' });
 
-  const cta = /devis|contactez|contact|rendez-vous|r[ée]server|appelez|demander/i.test(linkTexts + ' ' + $('button').text().toLowerCase());
-  add({ id: 'cta', cat: 'contact', label: 'Bouton d’appel à l’action',
-    status: cta ? 'ok' : 'bad', detail: cta ? 'Un bouton invite le visiteur à agir.' : 'Aucun bouton clair (devis, contact, rendez-vous).',
-    advice: cta ? 'Vérifier qu’il est visible dès l’arrivée sur la page, sans faire défiler.' : 'Ajouter un bouton visible « Demander un devis » ou « Nous contacter » en haut de page.' });
+  const CTA = /devis|contactez|nous contacter|contact|rendez-vous|r[ée]server|r[ée]servation|appelez|demander|disponibilit/i;
+  const cta = CTA.test(linkTexts + ' ' + $('button').text().toLowerCase());
+  /* Visible dès l'arrivée : dans l'en-tête, le menu, ou dans le premier quart du texte de la page. */
+  const ctaTop = $('header a, header button, nav a').filter((_, a) => CTA.test($(a).text())).length > 0
+    || (() => { const i = lower.search(/demander un devis|devis gratuit|contactez|nous contacter|r[ée]server|prendre rendez-vous|appelez/); return i >= 0 && i < lower.length * 0.25; })();
+  add({ id: 'cta', cat: 'contact', label: 'Bouton pour vous contacter dès l’arrivée', weight: 2,
+    status: !cta ? 'bad' : ctaTop ? 'ok' : 'warn',
+    detail: !cta ? 'Aucun bouton clair (devis, contact, rendez-vous, réservation).' : ctaTop ? 'Un bouton invite à agir dès le haut de la page.' : 'Un bouton existe, mais il faut descendre dans la page pour le trouver.',
+    advice: ctaTop ? 'Rien à faire.' : 'Placer un bouton bien visible « Demander un devis », « Réserver » ou « Nous appeler » tout en haut : la plupart des visiteurs ne descendent pas.' });
 
-  const address = /\b\d{5}\b/.test(siteBody) || all.some((d) => d('address').length > 0) || /"postalCode"/.test(jsonld);
+  const reviews = /avis client|avis de nos|t[ée]moignage|ils nous font confiance|recommandation|[★⭐]{3,}|\b[45][,.]\d\s*\/\s*5|note (?:moyenne|google)|avis google|trustpilot|avis v[ée]rifi/i.test(siteBody) || /trustindex|elfsight|google-reviews|reviews-widget|trustpilot/i.test(html);
+  add({ id: 'reviews', cat: 'contact', label: 'Avis clients visibles', weight: 2,
+    status: reviews ? 'ok' : 'bad', detail: reviews ? 'Des avis ou témoignages de clients sont présentés.' : `Aucun avis client ${where}.`,
+    advice: reviews ? 'Rien à faire.' : 'La grande majorité des clients lisent les avis avant de contacter une entreprise. Afficher quelques avis réels (Google ou témoignages) rassure immédiatement.' });
+
+  const proof = /r[ée]alisations|r[ée]f[ée]rences|portfolio|nos clients|depuis (?:19|20)\d{2}|\d+\s*ans d.exp[ée]rience|certifi|qualibat|\brge\b|garantie d[ée]cennale|agr[ée][ée]|dipl[oô]m/i.test(siteBody);
+  add({ id: 'proof', cat: 'contact', label: 'Preuves de sérieux',
+    status: proof ? 'ok' : 'warn', detail: proof ? 'Le site montre des preuves de sérieux (réalisations, expérience, labels…).' : 'Aucune preuve de sérieux repérée (réalisations, années d’expérience, labels, garanties).',
+    advice: proof ? 'Rien à faire.' : 'Montrer vos réalisations, vos années d’expérience, vos labels ou garanties : ce sont des raisons concrètes de vous faire confiance.' });
+
+  const emails = [...new Set([...siteHrefs.filter((h) => h.startsWith('mailto:')).map((h) => h.slice(7).split('?')[0]), ...(siteBody.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) || [])].map((e) => e.toLowerCase()))];
+  const freeMail = emails.filter((e) => /@(gmail|hotmail|yahoo|orange|wanadoo|free|sfr|laposte|outlook|live|aol|icloud|neuf|bbox|gmx)\./i.test(e));
+  if (emails.length) add({ id: 'email-pro', cat: 'contact', label: 'Adresse e-mail professionnelle',
+    status: freeMail.length ? 'warn' : 'ok', detail: freeMail.length ? `Adresse affichée : ${freeMail[0]}.` : 'L’adresse e-mail utilise le nom du site.',
+    advice: freeMail.length ? 'Une adresse personnelle (Gmail, Orange…) fait moins sérieux qu’une adresse à votre nom (contact@votresite.fr), et finit plus souvent en spam.' : 'Rien à faire.' });
+
+  const address = cityList.length > 0 || /\b\d{5}\b/.test(siteBody) || all.some((d) => d('address').length > 0) || /"postalCode"/.test(jsonld);
   add({ id: 'address', cat: 'contact', label: 'Adresse ou zone d’intervention',
     status: address ? 'ok' : 'warn', detail: address ? 'Une adresse ou un code postal est visible.' : 'Aucune adresse ni zone géographique détectée.',
     advice: address ? 'Rien à faire.' : 'Indiquer votre ville et votre zone d’intervention : essentiel pour apparaître dans les recherches locales.' });
@@ -289,91 +440,169 @@ function analyse(page: Page, $: CheerioAPI, extra: { robots: { ok: boolean; text
 
 export class AuditError extends Error {}
 
-/* Repère jusqu'à 4 pages principales du même site : liens du menu d'abord, puis le reste de la page. */
-const SKIP = /\.(pdf|jpe?g|png|gif|webp|svg|zip|docx?|xlsx?|mp4|mp3)$|\/(wp-admin|wp-login|login|connexion|compte|account|panier|cart|checkout|feed|tag|author)(\/|$)/i;
-function discoverPages($: CheerioAPI, base: string, max = 4) {
-  const limit = 12;
+/* Repère les pages du même site : liens du menu d'abord, puis le reste de la page, puis le plan du site. */
+const SKIP = /\.(pdf|jpe?g|png|gif|webp|svg|zip|docx?|xlsx?|mp4|mp3|css|js|xml|ico)$|\/(wp-admin|wp-login|wp-json|login|connexion|compte|account|panier|cart|checkout|feed|tag|author|cdn-cgi)(\/|$)/i;
+type Link = { url: string; label: string };
+function pageKey(u: URL) {
+  const q = new URLSearchParams(u.search);
+  [...q.keys()].forEach((k) => { if (/^(utm_|fbclid|gclid|lang$|ref$)/i.test(k)) q.delete(k); });
+  return (u.pathname.replace(/\/$/, '') || '/') + (q.toString() ? '?' + q.toString() : '');
+}
+function collectLinks($: CheerioAPI, base: string): Link[] {
   const home = new URL(base);
   const host = home.hostname.replace(/^www\./, '');
-  const seen = new Set([home.pathname.replace(/\/$/, '') || '/']);
-  const out: { url: string; label: string }[] = [];
+  const seen = new Set([pageKey(home), '/index.html', '/index.php', '/index.htm']);
+  const out: Link[] = [];
   const pick = (sel: string) => $(sel).each((_, a) => {
-    if (out.length >= limit) return;
-    const href = ($(a).attr('href') || '').trim();
-    if (!href || /^(#|mailto:|tel:|javascript:)/i.test(href)) return;
+    const href = ($(a).attr('href') || $(a).attr('src') || '').trim();
+    if (!href || /^(#|mailto:|tel:|javascript:|data:)/i.test(href)) return;
     let u: URL;
     try { u = new URL(href, base); } catch { return; }
     if (!/^https?:$/.test(u.protocol) || u.hostname.replace(/^www\./, '') !== host || SKIP.test(u.pathname)) return;
-    const key = u.pathname.replace(/\/$/, '') || '/';
+    u.hash = '';
+    const key = pageKey(u);
     if (seen.has(key)) return;
     seen.add(key);
-    u.hash = ''; u.search = '';
-    const label = $(a).text().replace(/\s+/g, ' ').trim().slice(0, 40) || decodeURIComponent(key.split('/').filter(Boolean).pop() || key).replace(/[-_]/g, ' ');
+    if (/^(accueil|home|index|bienvenue)$/i.test($(a).text().trim()) || /[?&]page=(accueil|home|index)\b/i.test(u.search)) return;
+    const label = $(a).text().replace(/\s+/g, ' ').trim().slice(0, 40) || decodeURIComponent(key.split(/[/?=&]/).filter(Boolean).pop() || key).replace(/[-_]/g, ' ').replace(/\.(html?|php)$/, '');
     out.push({ url: u.toString(), label });
   });
-  pick('header a[href], nav a[href], [role="navigation"] a[href]');
-  pick('a[href]');
-  /* La page de contact passe en premier : c'est elle qui décide si le client vous écrit. */
-  const isContact = (p: { url: string; label: string }) => /contact|joindre|devis|rendez|ecrire|écrire/i.test(p.label + ' ' + p.url);
-  return [...out.filter(isContact).slice(0, 1), ...out.filter((p) => !isContact(p))].slice(0, max);
+  pick('header a[href], nav a[href], [role="navigation"] a[href], [class*="menu"] a[href]');
+  pick('a[href], area[href], frame[src], iframe[src]');
+  return out;
+}
+/* La page de contact passe en premier : c'est elle qui décide si le client vous écrit. */
+function choosePages(links: Link[], max = 5) {
+  const isContact = (p: Link) => /contact|joindre|devis|rendez|ecrire|écrire|r[ée]serv/i.test(p.label + ' ' + p.url);
+  return [...links.filter(isContact).slice(0, 1), ...links.filter((p) => !isContact(p))].slice(0, max);
+}
+function sitemapLinks(xml: string, base: string): Link[] {
+  const host = new URL(base).hostname.replace(/^www\./, '');
+  return [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]).filter((u) => {
+    try { const x = new URL(u); return x.hostname.replace(/^www\./, '') === host && !SKIP.test(x.pathname) && !/\.xml$/i.test(x.pathname); } catch { return false; }
+  }).slice(0, 60).map((u) => ({ url: u, label: decodeURIComponent(new URL(u).pathname.split('/').filter(Boolean).pop() || 'page').replace(/[-_]/g, ' ').replace(/\.(html?|php)$/, '') }));
 }
 
-async function readSubPages(list: { url: string; label: string }[]): Promise<SubPage[]> {
+async function readSubPages(list: Link[]): Promise<{ pages: SubPage[]; broken: string[] }> {
+  const broken: string[] = [];
   const pages = await Promise.all(list.map(async (p) => {
     try {
       const pg = await fetchPage(p.url, 3);
-      if (pg.status >= 400 || !/<html|<body|<title/i.test(pg.html.slice(0, 5000))) return null;
-      return { url: pg.url, label: p.label, $: load(pg.html) };
+      if (pg.status >= 400) { broken.push(p.label || new URL(p.url).pathname); return null; }
+      if (!/<html|<body|<title/i.test(pg.html.slice(0, 5000))) return null;
+      return { url: pg.url, label: p.label, $: load(pg.html), bytes: pg.bytes };
     } catch { return null; }
   }));
-  return pages.filter((p): p is SubPage => p !== null);
+  return { pages: pages.filter((p): p is SubPage & { bytes: number } => p !== null), broken };
+}
+
+/* Poids réel des images de la page d'accueil (jusqu'à 20 images). */
+async function imageWeights($: CheerioAPI, base: string) {
+  const srcs = [...new Set($('img').map((_, i) => $(i).attr('src') || $(i).attr('data-src') || '').get().filter((x) => x && !x.startsWith('data:')))].slice(0, 20);
+  if (!srcs.length) return null;
+  const sizes = await Promise.all(srcs.map(async (src) => {
+    try {
+      const u = new URL(src, base);
+      await assertPublic(u);
+      const r = await fetch(u, { method: 'HEAD', headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(6000) });
+      const n = Number(r.headers.get('content-length') || 0);
+      return r.ok && n > 0 ? Math.round(n / 1024) : null;
+    } catch { return null; }
+  }));
+  const ok = sizes.filter((n): n is number => n !== null);
+  if (!ok.length) return null;
+  return { count: ok.length, heavy: ok.filter((n) => n > 300).length, biggestKb: Math.max(...ok), totalKb: ok.reduce((a, b) => a + b, 0) };
+}
+
+/* Jours restants avant l'expiration du certificat HTTPS. */
+function certDays(host: string): Promise<number | null> {
+  return new Promise((resolve) => {
+    try {
+      const sock = tls.connect({ host, port: 443, servername: host, rejectUnauthorized: false, timeout: 6000 }, () => {
+        const c = sock.getPeerCertificate();
+        sock.end();
+        resolve(c && c.valid_to ? Math.floor((new Date(c.valid_to).getTime() - Date.now()) / 86400000) : null);
+      });
+      sock.on('error', () => resolve(null));
+      sock.on('timeout', () => { sock.destroy(); resolve(null); });
+    } catch { resolve(null); }
+  });
 }
 
 export async function runAudit(input: string): Promise<AuditResult> {
   let raw = input.trim().slice(0, 300);
   if (!raw) throw new AuditError('Adresse manquante');
-    if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
-    let page: Page;
-    try {
-      page = await fetchPage(raw);
-    } catch (e) {
-      if (raw.startsWith('https://')) page = await fetchPage(raw.replace(/^https:/, 'http:'));
-      else throw e;
-    }
-    if (page.status >= 400) throw new AuditError(`Le site répond avec une erreur ${page.status}`);
-    const $ = load(page.html);
-    const origin = new URL(page.url).origin;
-    const [subs, robots, sitemap, httpRes] = await Promise.all([
-      readSubPages(discoverPages($, page.url)),
-      exists(`${origin}/robots.txt`),
-      exists(`${origin}/sitemap.xml`).then(async (r) => r.ok || (await exists(`${origin}/sitemap_index.xml`)).ok),
-      (async () => {
-        if (!page.url.startsWith('https://')) return null;
-        try {
-          const u = new URL(page.url.replace(/^https:/, 'http:'));
-          await assertPublic(u);
-          const r = await fetch(u, { redirect: 'manual', headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) });
-          return r.status >= 300 && r.status < 400 && (r.headers.get('location') || '').startsWith('https://');
-        } catch { return null; }
-      })(),
-    ]);
-    const robotsTxt = robots.ok && /sitemap:/i.test(robots.text) ? true : sitemap;
-    const result: AuditResult = {
-      url: page.url,
-      host: new URL(page.url).hostname.replace(/^www\./, ''),
-      fetchedAt: new Date().toISOString(),
-      title: $('head > title').first().text().trim(),
-      checks: analyse(page, $, { robots, sitemap: robotsTxt, httpRedirects: httpRes }, subs),
-      pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
-      content: {
-        description: $('meta[name="description"]').attr('content')?.trim() || '',
-        h1: $('h1').first().text().replace(/\s+/g, ' ').trim(),
-        h2: $('h2').map((_, h) => $(h).text().replace(/\s+/g, ' ').trim()).get().filter(Boolean).slice(0, 20),
-        ctas: [...new Set($('a, button').map((_, a) => $(a).text().replace(/\s+/g, ' ').trim()).get().filter((t) => t.length > 2 && t.length < 60))].slice(0, 40),
-        text: [text($).slice(0, 7000), ...subs.map((p) => `\n\n=== Page « ${p.label} » (${new URL(p.url).pathname}) ===\n${text(p.$).slice(0, 2500)}`)].join('').slice(0, 17000),
-      },
-    };
-    return result;
+  if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
+  let page: Page;
+  try {
+    page = await fetchPage(raw);
+  } catch (e) {
+    if (raw.startsWith('https://')) page = await fetchPage(raw.replace(/^https:/, 'http:'));
+    else throw e;
+  }
+  if (page.status >= 400) throw new AuditError(`Le site répond avec une erreur ${page.status}`);
+  let $ = load(page.html);
+  /* Site en cadres (frames) : le vrai contenu est dans le cadre principal. */
+  const frameSrc = $('frame[src], iframe[src]').map((_, f) => $(f).attr('src') || '').get().find((src) => {
+    try { return new URL(src, page.url).hostname === new URL(page.url).hostname; } catch { return false; }
+  });
+  let contentHtml = page.html;
+  if (frameSrc && text($).split(' ').length < 60) {
+    try { const fp = await fetchPage(new URL(frameSrc, page.url).toString(), 3); if (fp.status < 400) { contentHtml = fp.html; } } catch { /* on garde la page d'origine */ }
+  }
+  const $c = contentHtml === page.html ? $ : load(contentHtml);
+  const origin = new URL(page.url).origin;
+  const host = new URL(page.url).hostname;
+
+  const [robots, smap] = await Promise.all([exists(`${origin}/robots.txt`), exists(`${origin}/sitemap.xml`)]);
+  const smap2 = smap.ok ? smap : await exists(`${origin}/sitemap_index.xml`);
+  let links = [...collectLinks($, page.url), ...($c !== $ ? collectLinks($c, page.url) : [])];
+  const fromMap = smap2.ok ? sitemapLinks(smap2.text, page.url) : [];
+  const known = new Set(links.map((l) => pageKey(new URL(l.url))));
+  for (const l of fromMap) { const k = pageKey(new URL(l.url)); if (!known.has(k)) { known.add(k); links.push(l); } }
+  links = links.filter((l, i, arr) => arr.findIndex((x) => x.url === l.url) === i);
+
+  const [sub, httpRes, images, cert] = await Promise.all([
+    readSubPages(choosePages(links)),
+    (async () => {
+      if (!page.url.startsWith('https://')) return null;
+      try {
+        const u = new URL(page.url.replace(/^https:/, 'http:'));
+        await assertPublic(u);
+        const r = await fetch(u, { redirect: 'manual', headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) });
+        return r.status >= 300 && r.status < 400 && (r.headers.get('location') || '').startsWith('https://');
+      } catch { return null; }
+    })(),
+    imageWeights($c, page.url),
+    page.url.startsWith('https://') ? certDays(host) : Promise.resolve(null),
+  ]);
+  const subs = sub.pages;
+  const robotsTxt = robots.ok && /sitemap:/i.test(robots.text) ? true : smap2.ok;
+  const analysed: Page = { ...page, html: contentHtml };
+  const detail = (d: CheerioAPI, url: string, label: string) => ({
+    label, path: new URL(url).pathname + new URL(url).search,
+    title: d('head > title').first().text().replace(/\s+/g, ' ').trim(),
+    description: !!(d('meta[name="description"]').attr('content') || '').trim(),
+    h1: d('h1').first().text().replace(/\s+/g, ' ').trim().slice(0, 90),
+    words: (text(d) || '').split(' ').filter(Boolean).length,
+  });
+  const result: AuditResult = {
+    url: page.url,
+    host: host.replace(/^www\./, ''),
+    fetchedAt: new Date().toISOString(),
+    title: $('head > title').first().text().trim() || $c('head > title').first().text().trim(),
+    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert }, subs),
+    pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
+    pagesDetail: [detail($c, page.url, 'Accueil'), ...subs.map((p) => detail(p.$, p.url, p.label))],
+    content: {
+      description: $('meta[name="description"]').attr('content')?.trim() || '',
+      h1: $c('h1').first().text().replace(/\s+/g, ' ').trim(),
+      h2: $c('h2').map((_, h) => $c(h).text().replace(/\s+/g, ' ').trim()).get().filter(Boolean).slice(0, 20),
+      ctas: [...new Set($c('a, button').map((_, a) => $c(a).text().replace(/\s+/g, ' ').trim()).get().filter((t) => t.length > 2 && t.length < 60))].slice(0, 40),
+      text: [text($c).slice(0, 7000), ...subs.map((p) => `\n\n=== Page « ${p.label} » (${new URL(p.url).pathname}) ===\n${text(p.$).slice(0, 2500)}`)].join('').slice(0, 17000),
+    },
+  };
+  return result;
 }
 
 /* Mesure Google PageSpeed (téléphone), côté serveur. Clé facultative : PSI_API_KEY. */
@@ -383,8 +612,9 @@ export async function pageSpeedServer(url: string, strategy: 'mobile' | 'desktop
   const key = process.env.PSI_API_KEY || process.env.NEXT_PUBLIC_PSI_KEY;
   if (key) p.set('key', key);
   try {
-    const r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${p}`, { signal: AbortSignal.timeout(45000) });
-    if (!r.ok) return null;
+    let r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${p}`, { signal: AbortSignal.timeout(50000) });
+    if (!r.ok && r.status !== 400) { await new Promise((ok) => setTimeout(ok, 1500)); r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${p}`, { signal: AbortSignal.timeout(40000) }); }
+    if (!r.ok) { console.error('PageSpeed', strategy, r.status, (await r.text()).slice(0, 200)); return null; }
     const d = await r.json();
     const cat = d.lighthouseResult?.categories || {};
     const a = d.lighthouseResult?.audits || {};
@@ -396,64 +626,87 @@ export async function pageSpeedServer(url: string, strategy: 'mobile' | 'desktop
 }
 
 
-/* ===================== Analyse des textes par l'IA (Claude) ===================== */
-const SYSTEM = `Tu es Marc Bretzner, créateur de sites internet à Strasbourg (SEOKRAFT). Tu évalues le site d'un professionnel (sa page d'accueil et ses pages principales) comme le ferait un client qui le découvre : son message, ses textes et sa capacité à donner envie de contacter l'entreprise.
+/* ===================== Analyse des textes et de l'apparence par l'IA (Claude) ===================== */
+const SYSTEM = `Tu es un consultant exigeant en sites internet pour TPE et PME (référencement, rédaction commerciale, expérience client), qui travaille pour SEOKRAFT, studio web à Strasbourg. Tu évalues le site d'un professionnel comme le ferait un client exigeant qui compare avec trois concurrents avant de choisir.
 Règles :
-- Tu t'appuies UNIQUEMENT sur le contenu fourni. Tu n'inventes aucun fait, chiffre, avis ou service. Si une information manque, tu le dis.
-- Tu écris en français simple, sans jargon technique, sans anglicisme inutile, au vouvoiement, avec un ton bienveillant et franc.
-- Tu ne critiques jamais la personne, seulement la page.
+- Tu t'appuies UNIQUEMENT sur le contenu et les captures fournis. Tu n'inventes aucun fait, chiffre, avis ou service. Si une information manque, tu le dis.
+- Tu es franc et précis, jamais complaisant. Un site médiocre reçoit une note médiocre. Tu cites des exemples concrets tirés du site (un titre, une phrase, un bouton).
+- Tu écris en français simple, compréhensible par un artisan ou un commerçant : pas de jargon, pas d'anglicisme, vouvoiement.
+- Tu ne critiques jamais la personne, seulement le site.
 - Tu réponds UNIQUEMENT avec un objet JSON valide, sans texte autour.`;
 
-function reviewPrompt(r: AuditResult) {
+function reviewPrompt(r: AuditResult, shots: number) {
   const c = r.content!;
+  const pages = (r.pagesDetail ?? []).map((p) => `- ${p.label} (${p.path}) : titre « ${p.title || 'aucun'} », ${p.words} mots, grand titre « ${p.h1 || 'aucun'} »`).join('\n');
   return `Site analysé : ${r.url}
+${shots ? `Captures jointes : ${shots === 2 ? 'la page d’accueil sur téléphone, puis sur ordinateur' : 'la page d’accueil'}.` : 'Aucune capture disponible : ne juge pas l’apparence.'}
 Titre affiché par Google : ${r.title || '(aucun)'}
 Description Google : ${c.description || '(aucune)'}
-Titre principal (H1) : ${c.h1 || '(aucun)'}
+Grand titre de l'accueil (H1) : ${c.h1 || '(aucun)'}
 Intertitres (H2) : ${c.h2.join(' | ') || '(aucun)'}
 Textes des boutons et liens : ${c.ctas.join(' | ') || '(aucun)'}
-Titre et éléments ci-dessus : page d'accueil.
+Pages lues :
+${pages || '- accueil uniquement'}
 Texte visible des pages analysées (accueil, puis pages principales) :
 """
 ${c.text.slice(0, 17000)}
 """
 
+Barème STRICT de la note (sur 20) :
+- 17 à 20 : exceptionnel, rare. Offre limpide, ville et métier évidents, bénéfices clients, avis et preuves, appel à l'action fort, site moderne.
+- 13 à 16 : bon site avec des manques réels.
+- 9 à 12 : moyen. Le visiteur doit chercher l'information ou n'est pas convaincu.
+- 5 à 8 : faible. On ne comprend pas vite qui, quoi, où ; pas de preuve ; contact peu visible ; ou site d'apparence datée.
+- 0 à 4 : le site ne remplit pas son rôle.
+Si on ne comprend pas en 5 secondes le métier ET la ville, la note ne dépasse pas 9. S'il n'y a ni avis ni preuve de sérieux, elle ne dépasse pas 12. Si le site a l'air daté ou amateur sur les captures, elle ne dépasse pas 10.
+
 Réponds avec ce JSON exactement :
 {
-  "score": nombre de 0 à 20 (demi-points autorisés) évaluant le message et les textes : clarté de l'offre en 5 secondes, problèmes et bénéfices clients, preuves de confiance (avis, réalisations, chiffres), appel à l'action clair, mots que tapent les clients (métier, ville, service),
-  "essentiel": "3 ou 4 phrases qui résument ce que vaut le site pour un client, puis la priorité principale",
-  "constats": [ exactement 5 objets { "question": "question courte posée par un client", "reponse": "constat en moins de 12 mots" } pour : comprend-on l'offre en 5 secondes ; parle-t-on des problèmes des clients ; voit-on ce que le client y gagne ; qu'est-ce qui prouve que l'entreprise est fiable ; sait-on quoi faire pour la contacter ],
-  "priorities": [ 2 ou 3 objets { "level": "critique" | "important" | "planifier", "title": "titre court du problème", "text": "1 ou 2 phrases : ce qui ne va pas et ce qu'il faut faire" } ],
-  "positives": [ 2 ou 3 points forts réels, en une phrase courte chacun ]
+  "score": nombre de 0 à 20 (demi-points autorisés) selon le barème,
+  "essentiel": "3 ou 4 phrases franches : ce que vaut le site pour un client aujourd'hui, ce qu'il lui fait perdre, puis la priorité n°1",
+  "impression": "${shots ? '2 ou 3 phrases sur la première impression visuelle d’après les captures : moderne ou daté, soigné ou amateur, lisible ou non sur téléphone, ce que voit le visiteur en premier' : ''}",
+  "constats": [ exactement 6 objets { "question": "question courte posée par un client", "reponse": "constat franc en moins de 14 mots, avec un exemple du site si possible" } pour : comprend-on le métier en 5 secondes ; sait-on où se trouve l'entreprise ; parle-t-on des besoins des clients ; voit-on ce que le client y gagne ; qu'est-ce qui prouve que l'entreprise est fiable ; sait-on quoi faire pour la contacter ],
+  "priorities": [ 3 ou 4 objets { "level": "critique" | "important" | "planifier", "title": "titre court du problème, compréhensible par un non-spécialiste", "text": "2 phrases : ce qui ne va pas (avec un exemple tiré du site) et ce qu'il faut faire" } ],
+  "positives": [ 0 à 3 points forts RÉELS et significatifs pour un client (pas de détail technique). Tableau vide si rien ne mérite d'être salué. ]
 }`;
 }
 
-export async function reviewTexts(r: AuditResult): Promise<TextReview | null> {
+export async function reviewTexts(r: AuditResult, shots: string[] = []): Promise<{ review: TextReview | null; error: string }> {
   const key = process.env.ANTHROPIC_API_KEY;
-  if (!key || !r.content || r.content.text.length < 40) return null;
+  if (!key) return { review: null, error: 'clé ANTHROPIC_API_KEY absente dans Vercel' };
+  if (!r.content || r.content.text.length < 40) return { review: null, error: 'trop peu de texte lisible sur le site' };
+  const images = shots.map((d) => d.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/)).filter((m): m is RegExpMatchArray => !!m)
+    .map((m) => ({ type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } }));
   try {
     const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'}/v1/messages`, {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.AUDIT_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 1800, system: SYSTEM, messages: [{ role: 'user', content: reviewPrompt(r) }] }),
-      signal: AbortSignal.timeout(40000),
+      body: JSON.stringify({ model: process.env.AUDIT_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 3000, system: SYSTEM,
+        messages: [{ role: 'user', content: [...images, { type: 'text', text: reviewPrompt(r, images.length) }] }] }),
+      signal: AbortSignal.timeout(70000),
     });
-    if (!res.ok) { console.error('IA audit', res.status, (await res.text()).slice(0, 300)); return null; }
+    if (!res.ok) {
+      const body = (await res.text()).slice(0, 300);
+      console.error('IA audit', res.status, body);
+      const why = /credit balance|billing/i.test(body) ? 'crédit épuisé sur console.anthropic.com' : res.status === 401 ? 'clé API refusée' : res.status === 404 ? 'modèle introuvable' : res.status === 429 ? 'trop de demandes, réessayer' : `erreur ${res.status}`;
+      return { review: null, error: why };
+    }
     const d = await res.json();
-    const raw = (d.content?.[0]?.text || '').trim();
+    const raw = (d.content?.find?.((x: { type: string }) => x.type === 'text')?.text || '').trim();
     const json = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
     const str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
     const levels: Level[] = ['critique', 'important', 'planifier'];
-    return {
+    return { error: '', review: {
       score: Math.max(0, Math.min(20, Number(json.score) || 0)),
-      essentiel: str(json.essentiel, 900),
-      constats: (Array.isArray(json.constats) ? json.constats : []).slice(0, 5).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 140) })).filter((x: { question: string }) => x.question),
-      priorities: (Array.isArray(json.priorities) ? json.priorities : []).slice(0, 3).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 400) })).filter((x: { title: string }) => x.title),
+      essentiel: str(json.essentiel, 1000),
+      impression: images.length ? str(json.impression, 600) : '',
+      constats: (Array.isArray(json.constats) ? json.constats : []).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160) })).filter((x: { question: string }) => x.question),
+      priorities: (Array.isArray(json.priorities) ? json.priorities : []).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 450) })).filter((x: { title: string }) => x.title),
       positives: (Array.isArray(json.positives) ? json.positives : []).slice(0, 3).map((x: unknown) => str(x, 200)).filter(Boolean),
-    };
+    } };
   } catch (e) {
     console.error('IA audit', e instanceof Error ? e.message : e);
-    return null;
+    return { review: null, error: e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'délai dépassé' : 'réponse illisible' };
   }
 }
 
@@ -488,12 +741,64 @@ export async function loadBulletin(id: string): Promise<Bulletin | null> {
   }
 }
 
-/* Audit complet : technique + vitesse Google + textes (en parallèle), puis bulletin enregistré. */
-export async function createBulletin(url: string): Promise<Bulletin> {
+/* Audit complet : technique, puis mesures Google (téléphone + ordinateur, avec captures), puis lecture par l'IA avec les captures. */
+export type AuditRun = { bulletin: Bulletin; aiError: string; speedError: boolean };
+export async function createBulletin(url: string): Promise<AuditRun> {
   const result = await runAudit(url);
-  const [speed, desktop, review] = await Promise.all([pageSpeedServer(result.url, 'mobile'), pageSpeedServer(result.url, 'desktop'), reviewTexts(result)]);
-  const b = buildBulletin(randomBytes(12).toString('hex'), result, speed, review);
+  const [speed, desktop] = await Promise.all([pageSpeedServer(result.url, 'mobile'), pageSpeedServer(result.url, 'desktop')]);
+  const shots = [speed?.screenshot, desktop?.screenshot].filter((x): x is string => !!x);
+  const { review, error } = await reviewTexts(result, shots);
+  const b = buildBulletin(randomBytes(12).toString('hex'), result, speed, review, desktop);
   if (desktop?.screenshot) b.desktopScreenshot = desktop.screenshot;
+  if (b.speedDesktop) b.speedDesktop = { ...b.speedDesktop, screenshot: undefined };
   await saveBulletin(b);
-  return b;
+  return { bulletin: b, aiError: error, speedError: !speed || speed.performance === null };
+}
+
+/* ===================== Quotas des audits publics ===================== */
+/* Protège le crédit IA : une même adresse de site au plus 2 fois, une même adresse e-mail au plus 3 fois,
+   et un plafond d'audits publics par jour (AUDIT_DAILY_MAX, 20 par défaut). Chaque audit laisse une petite trace
+   dans le stockage (empreinte, jamais l'adresse en clair), que l'on compte ensuite. */
+const QUOTA_DIR = path.join(process.cwd(), '.data', 'quota');
+const fingerprint = (v: string) => createHash('sha256').update(`seokraft:${v.toLowerCase().trim()}`).digest('hex').slice(0, 32);
+export const siteKey = (url: string) => { try { return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./, '').toLowerCase(); } catch { return url.toLowerCase(); } };
+
+async function countMarks(prefix: string): Promise<number> {
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { list } = await import('@vercel/blob');
+    const r = await list({ prefix, limit: 100 });
+    return r.blobs.length;
+  }
+  try { return (await fs.readdir(path.join(QUOTA_DIR, prefix))).length; } catch { return 0; }
+}
+async function addMark(prefix: string) {
+  const name = `${Date.now()}-${randomBytes(4).toString('hex')}`;
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import('@vercel/blob');
+    await put(`${prefix}${name}.txt`, '1', { access: 'public', addRandomSuffix: false, contentType: 'text/plain' });
+    return;
+  }
+  await fs.mkdir(path.join(QUOTA_DIR, prefix), { recursive: true });
+  await fs.writeFile(path.join(QUOTA_DIR, prefix, name), '1');
+}
+
+export type QuotaResult = { ok: true } | { ok: false; reason: string };
+export async function checkAndRecordQuota(url: string, email: string): Promise<QuotaResult> {
+  const day = new Date().toISOString().slice(0, 10);
+  const site = `quota/site/${fingerprint(siteKey(url))}/`;
+  const mail = `quota/mail/${fingerprint(email)}/`;
+  const daily = `quota/day/${day}/`;
+  const max = Number(process.env.AUDIT_DAILY_MAX) || 20;
+  try {
+    const [s, m, d] = await Promise.all([countMarks(site), countMarks(mail), countMarks(daily)]);
+    if (s >= 2) return { ok: false, reason: `ce site a déjà été audité ${s} fois` };
+    if (m >= 3) return { ok: false, reason: `cette adresse e-mail a déjà demandé ${m} audits` };
+    if (d >= max) return { ok: false, reason: `plafond de ${max} audits publics atteint aujourd’hui` };
+    await Promise.all([addMark(site), addMark(mail), addMark(daily)]);
+    return { ok: true };
+  } catch (e) {
+    /* En cas de panne du stockage, on ne dépense rien : l'audit sera lancé à la main. */
+    console.error('Quota audit', e instanceof Error ? e.message : e);
+    return { ok: false, reason: 'vérification des quotas indisponible' };
+  }
 }

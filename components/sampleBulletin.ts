@@ -2,8 +2,9 @@ import type { Bulletin } from './auditTypes';
 
 /* Bulletin fictif, présenté comme exemple sur la landing page (aucune entreprise réelle). */
 export const SAMPLE_BULLETIN: Bulletin = {
-  id: 'exemple', version: 1, url: 'https://www.menuiserie-exemple.fr/', host: 'menuiserie-exemple.fr', createdAt: '2026-11-10T09:00:00.000Z',
-  global: 11, notes: { technique: 9.5, google: 12, textes: 11, contact: 11.5 }, verdict: 'Peut mieux faire, des clients vous échappent',
+  id: 'exemple', version: 2, url: 'https://www.menuiserie-exemple.fr/', host: 'menuiserie-exemple.fr', createdAt: '2026-11-10T09:00:00.000Z',
+  global: 10, notes: { vitesse: 7, securite: 12.5, google: 11, textes: 10.5, contact: 10 }, cap: 'Note limitée à 10/20 : le site est très lent sur téléphone.', verdict: 'Moyen, des clients vous échappent',
+  impression: 'Le site inspire confiance grâce à de belles photos d’atelier. Mais sur téléphone, le haut de page est occupé par une grande image qui met longtemps à apparaître, et aucun bouton n’est visible avant de faire défiler.',
   essentiel: 'Le site présente un vrai savoir-faire et de belles photos de réalisations. Mais sur téléphone, il met plus de 7 secondes à s’afficher, et le numéro n’est pas cliquable : beaucoup de visiteurs partent avant de vous contacter. Priorité : rendre le site rapide sur mobile et le contact évident dès l’arrivée.',
   priorities: [
     { level: 'critique', title: 'Le site est lent sur téléphone', text: 'Le contenu principal met plus de 7 secondes à apparaître. Alléger les photos du haut de page ferait gagner plusieurs secondes.' },
@@ -18,8 +19,34 @@ export const SAMPLE_BULLETIN: Bulletin = {
     { question: 'Voit-on ce que le client y gagne ?', reponse: 'Les bénéfices restent implicites' },
     { question: 'Qu’est-ce qui prouve que vous êtes fiable ?', reponse: 'De belles réalisations, mais aucun avis' },
     { question: 'Sait-on quoi faire pour vous contacter ?', reponse: 'Le contact est caché en bas de page' },
+    { question: 'Sait-on où se trouve l’entreprise ?', reponse: 'Oui, la ville apparaît dans le titre' },
   ],
-  speed: { strategy: 'mobile', performance: 38, accessibility: 81, seo: 83, bestPractices: 74, lcp: '7,4 s', cls: '0,21', fcp: '3,1 s', tbt: '640 ms' },
+  speed: { strategy: 'mobile', performance: 26, accessibility: 81, seo: 83, bestPractices: 74, lcp: '7,4 s', cls: '0,21', fcp: '3,1 s', tbt: '640 ms' },
+  speedDesktop: { strategy: 'desktop', performance: 64, accessibility: 83, seo: 83, bestPractices: 74, lcp: '2,9 s', cls: '0,08', fcp: '1,2 s', tbt: '120 ms' },
+  pages: [{ url: 'https://www.menuiserie-exemple.fr/', label: 'Accueil' }, { url: 'https://www.menuiserie-exemple.fr/contact', label: 'Contact' }, { url: 'https://www.menuiserie-exemple.fr/realisations', label: 'Réalisations' }],
+  pagesDetail: [
+    { label: 'Accueil', path: '/', title: 'Menuiserie Exemple, menuisier à Molsheim', description: false, h1: 'Votre menuisier à Molsheim depuis 1998', words: 412 },
+    { label: 'Contact', path: '/contact', title: 'Contact', description: false, h1: 'Contact', words: 38 },
+    { label: 'Réalisations', path: '/realisations', title: 'Réalisations', description: false, h1: 'Nos réalisations', words: 120 },
+  ],
+  checks: [
+    { group: 'vitesse', label: 'Vitesse sur téléphone (mesure Google)', status: 'bad', detail: 'Note de vitesse Google sur téléphone : 26/100. Contenu principal affiché en 7,4 s.', advice: 'Site lent sur téléphone : beaucoup de visiteurs partent avant même de voir la page.' },
+    { group: 'vitesse', label: 'Poids des images', status: 'bad', detail: '14 image(s) vérifiée(s) : 9,8 Mo au total, dont 9 de plus de 300 Ko (la plus lourde : 2 410 Ko).', advice: 'Des images trop lourdes ralentissent fortement le site sur téléphone. Les compresser divise souvent le temps de chargement par deux.' },
+    { group: 'vitesse', label: 'Vitesse sur ordinateur (mesure Google)', status: 'warn', detail: 'Note de vitesse Google sur ordinateur : 64/100. Contenu principal affiché en 2,9 s.', advice: 'Vitesse moyenne : chaque seconde d’attente fait partir des visiteurs. Il faut alléger les images et les scripts.' },
+    { group: 'vitesse', label: 'Adaptation au téléphone', status: 'ok', detail: 'Le site s’adapte à la taille de l’écran.', advice: '' },
+    { group: 'securite', label: 'Composants du site à jour', status: 'bad', detail: 'Le site utilise jQuery 1.12, une version avec des failles de sécurité connues.', advice: 'Mettre à jour cette bibliothèque : les failles des anciennes versions sont publiques et exploitées.' },
+    { group: 'securite', label: 'Protections du serveur contre le piratage', status: 'warn', detail: '2 protection(s) sur 5 activée(s).', advice: 'Ces protections de base, gratuites, limitent les risques de piratage et d’usurpation du site. Elles se règlent en une fois sur l’hébergement.' },
+    { group: 'securite', label: 'Connexion sécurisée (cadenas)', status: 'ok', detail: 'Le site est servi en HTTPS.', advice: '' },
+    { group: 'securite', label: 'Certificat de sécurité', status: 'ok', detail: 'Valide encore 64 jour(s).', advice: '' },
+    { group: 'securite', label: 'Mentions légales', status: 'ok', detail: 'Un lien vers les mentions légales est présent.', advice: '' },
+    { group: 'google', label: 'Description dans les résultats Google', status: 'bad', detail: 'Aucune description n’est définie.', advice: 'Rédiger une description de 140 à 160 caractères qui donne envie de cliquer : c’est votre « vitrine » dans Google.' },
+    { group: 'google', label: 'Nombre de pages du site', status: 'warn', detail: '3 page(s) trouvée(s) en plus de l’accueil.', advice: 'Une page par service permet d’apparaître sur beaucoup plus de recherches Google.' },
+    { group: 'google', label: 'Ville ciblée sur Google', status: 'ok', detail: 'La ville (Molsheim) apparaît dans le titre ou le grand titre.', advice: '' },
+    { group: 'textes', label: 'Photos de l’activité', status: 'ok', detail: '14 image(s) sur la page d’accueil.', advice: '' },
+    { group: 'contact', label: 'Avis clients visibles', status: 'bad', detail: 'Aucun avis client sur les pages analysées.', advice: 'La grande majorité des clients lisent les avis avant de contacter une entreprise. Afficher quelques avis réels rassure immédiatement.' },
+    { group: 'contact', label: 'Téléphone visible et cliquable', status: 'warn', detail: 'Un numéro est affiché, mais pas cliquable.', advice: 'Rendre le numéro cliquable : sur téléphone, un seul geste suffit pour vous appeler.' },
+    { group: 'contact', label: 'Bouton pour vous contacter dès l’arrivée', status: 'warn', detail: 'Un bouton existe, mais il faut descendre dans la page pour le trouver.', advice: 'Placer un bouton bien visible tout en haut : la plupart des visiteurs ne descendent pas.' },
+  ],
   positives: ['Le métier et la zone d’intervention sont clairs.', 'Les photos montrent de vraies réalisations.', 'Le site est sécurisé (cadenas HTTPS).'],
   ai: true,
 };

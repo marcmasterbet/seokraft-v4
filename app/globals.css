@@ -1200,3 +1200,47 @@ html:has(.lp){zoom:1}
 .bv-shots figcaption{padding-right:130px}@media(max-width:620px){.bv-shots figcaption{padding-right:60px}}
 .contact-direct{margin:14px 0 0;font-size:calc(14px * var(--t, 1) / var(--z));color:#e4e7d9}
 .contact-direct a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+/* Bulletin v2 : couleurs d'alerte, vitesse, sécurité, pages, détail */
+.bv{--bad:#a63d2f;--warn:#8a5d0e;--ok:#4a5438}
+.bv-global.is-bad .bv-score,.bv-global.is-bad .bv-verdict{color:var(--bad)}
+.bv-global.is-warn .bv-score,.bv-global.is-warn .bv-verdict{color:var(--warn)}
+.bv-cap{display:flex;gap:6px;align-items:flex-start;color:var(--bad);font-weight:700;font-size:14px;margin:4px 0 0;max-width:360px;line-height:1.4}
+.bv-cap svg{flex:none;margin-top:2px}
+.bv-notes{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.bv-note.is-bad{border-color:#e2b8b0;background:#fbf3f1}.bv-note.is-bad .bv-note-val,.bv-note.is-bad .bv-note-head svg{color:var(--bad)}.bv-note.is-bad .bv-bar i{background:var(--bad)}
+.bv-note.is-warn .bv-note-val,.bv-note.is-warn .bv-note-head svg{color:var(--warn)}.bv-note.is-warn .bv-bar i{background:#c08a2b}
+.bv-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;margin:12px 0 0;color:#5f6158}
+.bv-legend span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--ok)}
+.bv-legend .is-bad::before{background:var(--bad)}.bv-legend .is-warn::before{background:#c08a2b}
+.bv-impression{margin:16px 0 0;padding:14px 16px;background:#fbfaf6;border:1px solid #ddd8cc;font-size:16px}
+.bv-critique{background:#fbf3f1!important;border-color:#e2b8b0!important;border-left-color:var(--bad)!important}
+.bv-critique h3{color:var(--bad)}
+.bv-critique .bv-tag{background:var(--bad);color:#fff!important;border-color:var(--bad)}
+.bv-speeds{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:14px}
+.bv-speed{background:#fbfaf6;border:1px solid #ddd8cc;border-top:5px solid #bdb8ab;padding:16px 18px}
+.bv-speed.g-ok{border-top-color:var(--ok)}.bv-speed.g-warn{border-top-color:#c08a2b}.bv-speed.g-bad{border-top-color:var(--bad);background:#fbf3f1}
+.bv-speed-head{display:flex;gap:8px;align-items:center;font-weight:700;margin:0}
+.bv-speed-score{font-family:'Playfair Display',Georgia,serif;font-size:20px;margin:4px 0 0}
+.bv-speed-score b{font-size:44px;font-weight:400}
+.g-ok .bv-speed-score{color:var(--ok)}.g-warn .bv-speed-score{color:var(--warn)}.g-bad .bv-speed-score,.g-bad .bv-speed-word{color:var(--bad)}
+.bv-speed-word{font-weight:700;margin:0 0 6px}
+.bv-speed .bv-table{margin:0}.bv-speed .bv-table th,.bv-speed .bv-table td{padding:8px 0;font-size:14px}
+.bv-intro{margin:-8px 0 14px}
+.bv-checks{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px}
+.bv-checks li{display:flex;gap:12px;align-items:flex-start;background:#fbfaf6;border:1px solid #ddd8cc;padding:12px 14px}
+.bv-ck-ico{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--ok);margin-top:1px}
+.bv-ck-warn .bv-ck-ico{background:#c08a2b}
+.bv-ck-bad{background:#fbf3f1!important;border-color:#e2b8b0!important}.bv-ck-bad .bv-ck-ico{background:var(--bad)}.bv-ck-bad .bv-ck-label{color:var(--bad)}
+.bv-ck-label{font-weight:700;margin:0;line-height:1.35}
+.bv-ck-detail{margin:2px 0 0;font-size:15px;color:#3f4139}
+.bv-ck-advice{margin:4px 0 0;font-size:14px;color:#5f6158}
+.bv-pages{display:flex;flex-direction:column;gap:8px}
+.bv-page{background:#fbfaf6;border:1px solid #ddd8cc;padding:12px 14px}
+.bv-page p{margin:2px 0;font-size:14px;color:#3f4139;overflow-wrap:anywhere}
+.bv-page .bv-page-name{font-weight:700;font-size:15px;color:var(--ink)}
+.bv-page-name span{font-weight:400;color:#5f6158;font-size:13px;margin-left:6px}
+.bv-page .is-bad{color:var(--bad);font-weight:700}.bv-page .is-warn{color:var(--warn)}
+.bv-annex-group h3{font-size:22px;margin:22px 0 0}
+.at-alert{color:#a63d2f;font-weight:700}
+@media print{.bv-checks li,.bv-speed,.bv-page{break-inside:avoid}}
+.bv-global.is-bad .bv-score svg{color:var(--bad)}.bv-global.is-warn .bv-score svg{color:#c08a2b}

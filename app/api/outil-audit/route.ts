@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createBulletin, AuditError } from '../../../lib/auditEngine';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 /* Accès : outil privé de Marc (mot de passe AUDIT_TOOL_PASSWORD). */
 function authorised(request: Request) {
@@ -24,7 +24,8 @@ export async function POST(request: Request) {
   if (!authorised(request)) { fails.get(ip)!.push(Date.now()); if (fails.size > 5000) fails.clear(); return NextResponse.json({ error: 'Accès refusé' }, { status: 401 }); }
   try {
     const data = (await request.json()) as { url?: unknown };
-    return NextResponse.json(await createBulletin(typeof data.url === 'string' ? data.url : ''));
+    const run = await createBulletin(typeof data.url === 'string' ? data.url : '');
+    return NextResponse.json({ ...run.bulletin, aiError: run.aiError, speedError: run.speedError });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur';
     console.error('Outil audit', msg);
