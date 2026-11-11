@@ -19,7 +19,7 @@ export type AuditResult = {
   title: string;
   checks: Check[];
   /* Contenu lisible de la page, transmis à l'analyse des textes (jamais stocké). */
-  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string };
+  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string; siteMap?: string };
   pages?: { url: string; label: string }[];   // pages lues (accueil en premier)
   pagesDetail?: { label: string; path: string; title: string; description: boolean; h1: string; words: number }[];
 };

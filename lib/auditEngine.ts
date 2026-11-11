@@ -483,7 +483,9 @@ function collectLinks($: CheerioAPI, base: string): Link[] {
     if (seen.has(key)) return;
     seen.add(key);
     if (/^(accueil|home|index|bienvenue)$/i.test($(a).text().trim()) || /[?&]page=(accueil|home|index)\b/i.test(u.search)) return;
-    const label = $(a).text().replace(/\s+/g, ' ').trim().slice(0, 40) || decodeURIComponent(key.split(/[/?=&]/).filter(Boolean).pop() || key).replace(/[-_]/g, ' ').replace(/\.(html?|php)$/, '');
+    const own = $(a).clone(); own.find('*').each((_, e) => { $(e).append(' '); });
+    const firstLine = ($(a).attr('title') || own.find('strong, b, h2, h3, h4, span').first().text() || own.text()).replace(/\s+/g, ' ').trim();
+    const label = firstLine.slice(0, 40) || decodeURIComponent(key.split(/[/?=&]/).filter(Boolean).pop() || key).replace(/[-_]/g, ' ').replace(/\.(html?|php)$/, '');
     out.push({ url: u.toString(), label });
   });
   pick('header a[href], nav a[href], [role="navigation"] a[href], [class*="menu"] a[href]');
@@ -619,6 +621,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
       h2: $c('h2').map((_, h) => $c(h).text().replace(/\s+/g, ' ').trim()).get().filter(Boolean).slice(0, 20),
       ctas: [...new Set($c('a, button').map((_, a) => $c(a).text().replace(/\s+/g, ' ').trim()).get().filter((t) => t.length > 2 && t.length < 60))].slice(0, 40),
       text: text($c).slice(0, 1500),
+      siteMap: links.slice(0, 60).map((l) => `${l.label} (${new URL(l.url).pathname})`).join(' | ').slice(0, 4000),
       outline: [{ label: 'Accueil', d: $c }, ...subs.map((p) => ({ label: p.label, d: p.$ }))].map(({ label, d }) => {
         const hs = d('h1,h2,h3').map((_, h) => `${h.tagName.toUpperCase()} ${d(h).text().replace(/\s+/g, ' ').trim().slice(0, 80)}`).get().slice(0, 25);
         const links = d('main a[href], article a[href], section a[href], p a[href]').map((_, a) => d(a).text().replace(/\s+/g, ' ').trim().slice(0, 40)).get().filter(Boolean).slice(0, 12);
@@ -665,8 +668,11 @@ function reviewPrompt(r: AuditResult, shots: number) {
 ${shots ? `Captures jointes : ${shots === 2 ? 'la page d’accueil sur téléphone, puis sur ordinateur' : 'la page d’accueil'}.` : 'Aucune capture disponible : ne juge pas l’apparence.'}
 Titre Google de l'accueil : ${r.title || '(aucun)'}
 Description Google de l'accueil : ${c.description || '(aucune)'}
-Pages lues :
+Pages lues en détail :
 ${pages || '- accueil uniquement'}
+
+Toutes les pages du site trouvées dans les liens et le plan du site (${(c.siteMap || '').split(' | ').filter(Boolean).length} pages) :
+${c.siteMap || '(aucune autre page)'}
 
 Structure de chaque page (titres H1, H2, H3 et liens dans le contenu) :
 ${c.outline || '(non disponible)'}
@@ -683,6 +689,8 @@ Barème STRICT de la note (sur 20) :
 - 5 à 8 : faible. Titres sans métier ni ville, structure absente.
 - 0 à 4 : le site ne peut pas être trouvé sur Google.
 Si ni le métier ni la ville ne sont dans le titre Google de l'accueil, la note ne dépasse pas 9.
+IMPORTANT : vérifie dans la liste de toutes les pages avant d'affirmer qu'une page manque. N'écris jamais « non vérifié » ni « semble » : si tu n'es pas sûr d'un problème, ne le cite pas.
+Niveau « critique » UNIQUEMENT pour un défaut qui fait perdre des clients de façon certaine (impossible de trouver le métier, la ville ou le contact). Un site déjà bien construit n'a pas de point critique.
 
 Réponds avec ce JSON exactement (réponse courte, sans retour à la ligne dans les textes) :
 {
@@ -690,7 +698,7 @@ Réponds avec ce JSON exactement (réponse courte, sans retour à la ligne dans 
   "essentiel": "3 phrases franches : ce que vaut le site pour être trouvé et choisi, ce que cela lui fait perdre, la priorité n°1",
   "impression": "${shots ? '2 phrases sur la première impression visuelle d’après les captures : moderne ou daté, soigné ou amateur, lisible sur téléphone' : ''}",
   "constats": [ exactement 6 objets { "question": "question courte", "reponse": "constat franc en moins de 14 mots, avec un exemple du site" } pour : le titre Google dit-il le métier et la ville ; chaque service a-t-il sa page ; les titres de page sont-ils clairs ; les pages sont-elles reliées entre elles ; comprend-on le métier en 5 secondes ; sait-on comment contacter ],
-  "priorities": [ 3 objets { "level": "critique" | "important" | "planifier", "title": "titre court compréhensible par un non-spécialiste", "text": "2 phrases : le problème (avec un exemple du site) et ce qu'il faut faire" } ],
+  "priorities": [ 3 objets { "level": "critique" | "important" | "planifier", "title": "titre court compréhensible par un non-spécialiste", "text": "2 phrases courtes, 280 caractères maximum : le problème (avec un exemple du site) et ce qu'il faut faire" } ],
   "positives": [ 0 à 2 points forts RÉELS et significatifs. Tableau vide si rien ne mérite d'être salué. ]
 }`;
 }
@@ -738,7 +746,15 @@ export async function reviewTexts(r: AuditResult, shots: string[] = []): Promise
         lastError = out.stop === 'max_tokens' ? 'réponse trop longue, coupée' : 'réponse illisible';
         continue;
       }
-      const str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+      /* Coupe proprement à la fin d'une phrase, jamais au milieu d'un mot. */
+      const str = (v: unknown, n: number) => {
+        if (typeof v !== 'string') return '';
+        const t = v.replace(/\s+/g, ' ').trim();
+        if (t.length <= n) return t;
+        const cut = t.slice(0, n);
+        const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+        return end > n * 0.4 ? cut.slice(0, end + 1) : cut.slice(0, cut.lastIndexOf(' ')) + '…';
+      };
       const levels: Level[] = ['critique', 'important', 'planifier'];
       const arr = (v: unknown) => (Array.isArray(v) ? v : []);
       return { error: '', review: {
@@ -746,7 +762,7 @@ export async function reviewTexts(r: AuditResult, shots: string[] = []): Promise
         essentiel: str(json.essentiel, 1000),
         impression: images.length ? str(json.impression, 600) : '',
         constats: arr(json.constats).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160) })).filter((x: { question: string }) => x.question),
-        priorities: arr(json.priorities).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 450) })).filter((x: { title: string }) => x.title),
+        priorities: arr(json.priorities).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 700) })).filter((x: { title: string }) => x.title),
         positives: arr(json.positives).slice(0, 3).map((x: unknown) => str(x, 200)).filter(Boolean),
       } };
     } catch (e) {

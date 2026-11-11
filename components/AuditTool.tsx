@@ -49,7 +49,7 @@ export default function AuditTool() {
         <span />
         <button className="button button-olive" type="submit" disabled={busy}>{busy ? 'Analyse en cours…' : 'Lancer l’audit'}</button>
       </form>
-      {busy && <p className="at-busy" role="status">Analyse du site, mesure Google et lecture des textes : environ 1 à 2 minutes…</p>}
+      {busy && <p className="at-busy" role="status">Analyse du site, mesures Google et audit SEO : environ 1 à 2 minutes…</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
       {b && <div className="at-actions">
         <p className="at-result"><strong>{b.host} : {fmt20(b.global)}/20</strong> — {b.verdict}<br />{NOTE_LABELS.map((n) => `${n.label} ${fmt20(b.notes[n.id] ?? null)}`).join(' · ')}{b.cap && <><br />{b.cap}</>}{!b.ai && <><br /><em className="at-alert">IA indisponible ({b.aiError || 'erreur'}) : référencement non évalué. Corriger puis relancer avant d’envoyer.</em></>}{b.speedError && <><br /><em className="at-alert">Mesure de vitesse Google indisponible : ajouter PSI_API_KEY dans Vercel.</em></>}</p>
