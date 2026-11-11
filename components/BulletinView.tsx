@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck } from 'lucide-react';
 import PrintButton from './PrintButton';
 import Score20 from './Score20';
-import { NOTE_LABELS, LEVEL_LABEL, fmt20, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
+import { NOTE_LABELS, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
 
 /* Bulletin d'audit SEOKRAFT : page en ligne (téléphone d'abord) et PDF via l'impression. */
 const ICONS: Record<NoteId | 'technique', typeof Monitor> = { vitesse: Gauge, securite: ShieldCheck, technique: Monitor, google: Search, textes: PenLine, contact: MessageCircle };
@@ -28,9 +28,11 @@ function SpeedCard({ m, icon: Icon, title }: { m: Speed; icon: typeof Monitor; t
     <p className="bv-speed-score"><b>{p ?? '–'}</b>/100</p>
     <p className="bv-speed-word">{p === null ? 'Mesure indisponible' : p >= 90 ? 'Rapide' : p >= 50 ? 'Moyen : des visiteurs partent' : 'Lent : beaucoup de visiteurs partent'}</p>
     <table className="bv-table"><tbody>
-      <tr><th>Premier affichage<small>quand quelque chose apparaît</small></th><td>{m.fcp}</td></tr>
-      <tr><th>Contenu principal<small>bon : moins de {m.strategy === 'desktop' ? '1,5' : '2,5'} s</small></th><td>{m.lcp}</td></tr>
-      <tr><th>Page qui bouge<small>0 = rien ne saute</small></th><td>{m.cls}</td></tr>
+      {([['fcp', 'Premier affichage', 'quand quelque chose apparaît', m.fcp], ['lcp', 'Contenu principal', 'quand l’essentiel est visible', m.lcp], ['cls', 'Page qui bouge', 'décalages pendant le chargement', m.cls]] as const).map(([k, label, hint, v]) => {
+        const r = rateMetric(k, v, m.strategy);
+        const goal = k === 'lcp' ? METRIC_GOAL.lcp(m.strategy === 'desktop') : METRIC_GOAL[k];
+        return <tr key={k}><th>{label}<small>{hint} · {goal}</small></th><td>{v}{r && <span className={`bv-rate bv-rate-${r.status}`}>{r.word}</span>}</td></tr>;
+      })}
     </tbody></table>
   </div>;
 }
@@ -98,7 +100,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
       <h2>Vitesse, sur téléphone et sur ordinateur</h2>
       {s && s.performance !== null ? <>
         <div className="bv-speeds"><SpeedCard m={s} icon={Smartphone} title="Sur téléphone" />{sd && sd.performance !== null && <SpeedCard m={sd} icon={Monitor} title="Sur ordinateur" />}</div>
-        <p className="bv-muted">Mesures Google PageSpeed sur votre page d’accueil. Au-delà de 3 secondes d’attente, plus de la moitié des visiteurs sur téléphone abandonnent. <a href={`https://pagespeed.web.dev/analysis?url=${encodeURIComponent(b.url)}`} target="_blank" rel="noopener noreferrer">Refaire le test sur le site de Google</a>.</p>
+        <p className="bv-muted">Mesures Google PageSpeed sur votre page d’accueil. Au-delà de 3 secondes d’attente, plus de la moitié des visiteurs sur téléphone abandonnent (étude Google, 2016 : 53 % des visites sur mobile abandonnées au-delà de 3 s). <a href={`https://pagespeed.web.dev/analysis?url=${encodeURIComponent(b.url)}`} target="_blank" rel="noopener noreferrer">Refaire le test sur le site de Google</a>.</p>
       </> : !sample && <p className="bv-muted">La mesure Google n’a pas pu être réalisée lors de cet audit. Voici nos propres mesures.</p>}
       {speedChecks.length > 0 && <CheckList items={speedChecks} />}
     </section>

@@ -1,0 +1,29 @@
+/* Test du contrôle de cohérence : le bulletin réel du 11/11/2026, tel qu'il avait été publié, doit être bloqué.
+   Usage : node tests/regression/validator.test.ts */
+import assert from 'node:assert/strict';
+import { validateBulletin } from '../../components/bulletinCheck.ts';
+
+const TITLE = 'Conciergerie digitale – Développez vos revenus Airbnb & Booking sans les contraintes de la gestion quotidienne';
+const ck = (group: string, label: string, status: string, detail: string, advice: string) => ({ group, label, status, detail, advice });
+/* Extrait fidèle du bulletin 96e3518ddd3b60e1669dd617 avant correction. */
+const old: any = {
+  id: '96e3518ddd3b60e1669dd617', version: 2, url: 'https://conciergerie.digital-bnb.com/', host: 'conciergerie.digital-bnb.com', createdAt: '2026-11-11T20:00:00Z', global: 12,
+  notes: { vitesse: 13, securite: 16, google: 11, textes: 12, contact: 10 }, verdict: 'Moyen, des clients vous échappent', essentiel: 'Le site présente bien son métier.',
+  priorities: [{ level: 'critique', title: 'Aucun numéro de téléphone visible', text: 'Afficher un numéro cliquable.' }], positives: [],
+  constats: [{ question: 'Sait-on comment contacter ?', reponse: 'Oui : bouton « Devis gratuit » en haut, WhatsApp, Calendly et e-mail sur la page contact' }],
+  speed: { strategy: 'mobile', performance: 65, accessibility: 92, seo: 85, bestPractices: 96, lcp: '8,3 s', cls: '0', fcp: '2,7 s', tbt: '–' },
+  speedDesktop: { strategy: 'desktop', performance: 72, accessibility: 92, seo: 85, bestPractices: 96, lcp: '1,3 s', cls: '0,403', fcp: '0,6 s', tbt: '–' },
+  ai: true, pagesDetail: [{ label: 'Accueil', path: '/', title: TITLE, description: false, h1: '', words: 935 }],
+  checks: [
+    ck('google', 'Hiérarchie des titres (H1, H2, H3)', 'bad', '0 H1, 13 H2, 7 H3.', 'Rien à faire.'),
+    ck('google', 'Titre de la page pour Google', 'warn', `« ${TITLE.slice(0, 90)} » (110 caractères).`, 'Viser moins de 60 caractères.'),
+    ck('contact', 'Formulaire ou e-mail de contact', 'warn', 'Seul un lien e-mail est proposé.', 'Proposer un formulaire simple.'),
+    ck('contact', 'Avis clients visibles', 'ok', 'Des avis ou témoignages de clients sont présentés.', ''),
+    ck('contact', 'Preuves de sérieux', 'warn', 'Aucune preuve de sérieux repérée (réalisations, années d’expérience, labels, garanties).', 'Montrer vos réalisations.'),
+  ],
+};
+const errors = validateBulletin(old);
+console.log(errors.map((e) => `  · ${e}`).join('\n'));
+for (const re of [/Hiérarchie des titres.*Rien à faire/, /seul un lien e-mail/, /aucune preuve/, /tronqué|caractères/, /CLS sur ordinateur.*pas signalé/, /CLS sur ordinateur.*priorités/, /WhatsApp/])
+  assert.ok(errors.some((e) => re.test(e)), `Incohérence non détectée : ${re}`);
+console.log(`✓ Le bulletin d’origine est bloqué (${errors.length} incohérences détectées).`);

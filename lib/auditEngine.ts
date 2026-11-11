@@ -3,6 +3,7 @@ import { isIP } from 'node:net';
 import tls from 'node:tls';
 import { load, type CheerioAPI } from 'cheerio';
 import { randomBytes, createHash } from 'node:crypto';
+import { validateBulletin } from '../components/bulletinCheck';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { buildBulletin, type AuditResult, type Bulletin, type Check, type Speed, type TextReview, type Level } from '../components/auditTypes';
@@ -104,6 +105,21 @@ type Extra = {
   certDays: number | null;
 };
 
+const listFr = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs[xs.length - 1]}`);
+/* Moyens de contact détectés sur toutes les pages lues : une seule liste, partagée par les vérifications et par l'IA. */
+export function contactChannels(all: CheerioAPI[], hrefs: string[], texts: string): string[] {
+  const out: string[] = [];
+  if (all.some((d) => d('form').filter((_, f) => d(f).find('textarea, input[type="email"]').length > 0).length > 0)) out.push('formulaire');
+  if (hrefs.some((h) => h.startsWith('tel:'))) out.push('téléphone');
+  if (hrefs.some((h) => h.startsWith('mailto:'))) out.push('e-mail');
+  if (hrefs.some((h) => /wa\.me\/|api\.whatsapp\.com|whatsapp:\/\/|web\.whatsapp\.com/i.test(h))) out.push('WhatsApp');
+  const booking = hrefs.find((h) => /calendly\.com|cal\.com\/|zcal\.co|tidycal\.com|calendar\.app\.google|youcanbook\.me|doctolib|planity|setmore|simplybook|booking\.com\/hotel/i.test(h));
+  if (booking) out.push(/calendly/i.test(booking) ? 'Calendly' : 'prise de rendez-vous en ligne');
+  if (hrefs.some((h) => /m\.me\/|messenger\.com/i.test(h))) out.push('Messenger');
+  if (/devis|contactez|nous contacter|demander|rendez-vous|r[ée]server/i.test(texts)) out.push('bouton de devis ou de contact');
+  return out;
+}
+
 function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []): Check[] {
   const c: Check[] = [];
   const add = (x: Check) => c.push(x);
@@ -124,7 +140,7 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
   const generic = /^(accueil|home|bienvenue|page d.accueil|index|untitled|sans titre|document)\b/i.test(title) || (!!title && title.split(/\s+/).length <= 2);
   add({ id: 'title', cat: 'google', label: 'Titre de la page pour Google', weight: 2,
     status: !title || generic ? 'bad' : title.length < 25 || title.length > 65 ? 'warn' : 'ok',
-    detail: !title ? 'Aucun titre n’est défini.' : `« ${title.slice(0, 90)} » (${title.length} caractères).`,
+    detail: !title ? 'Aucun titre n’est défini.' : `« ${title} » (${title.length} caractères).`,
     advice: !title ? 'Ajouter un titre qui contient votre métier et votre ville : c’est la ligne bleue cliquable dans Google.' : generic ? 'Ce titre ne dit ni votre métier ni votre ville : Google ne peut pas vous proposer sur les bonnes recherches.' : title.length < 25 ? 'Titre trop court : précisez votre métier et votre ville pour être trouvé sur les bonnes recherches.' : title.length > 65 ? 'Titre trop long : Google le coupe. Gardez l’essentiel (métier + ville) en moins de 60 caractères.' : 'Bonne longueur. Vérifiez qu’il contient bien votre métier et votre ville.' });
 
   const desc = $('meta[name="description"]').attr('content')?.trim() || '';
@@ -167,10 +183,18 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
   const levels = $('h1,h2,h3,h4').map((_, h) => Number(h.tagName.slice(1))).get() as number[];
   let jumps = 0; levels.forEach((l, i) => { if (i && l > levels[i - 1] + 1) jumps++; });
   const h3n = $('h3').length;
-  add({ id: 'hierarchy', cat: 'google', label: 'Hiérarchie des titres (H1, H2, H3)',
-    status: !levels.length || levels[0] !== 1 && h1.length === 0 ? 'bad' : jumps > 1 ? 'warn' : 'ok',
-    detail: `${h1.length} H1, ${h2n} H2, ${h3n} H3${jumps ? `, ${jumps} saut(s) de niveau` : ''}.`,
-    advice: jumps > 1 || !levels.length ? 'Organiser les titres comme un sommaire (un H1, puis des H2, puis des H3) : Google comprend mieux de quoi parle chaque partie.' : 'Rien à faire.' });
+  /* Une seule évaluation fixe à la fois le statut et la recommandation. */
+  const hier: { status: 'ok' | 'warn' | 'bad'; advice: string } = !levels.length
+    ? { status: 'bad', advice: 'Structurer la page avec un titre principal (H1) unique, puis des intertitres (H2) et des sous-titres (H3) : Google comprend mieux de quoi parle chaque partie.' }
+    : h1.length === 0
+      ? { status: 'bad', advice: 'Ajouter un titre principal (H1) unique en haut de chaque page, qui dit votre métier et votre ville. Vos intertitres (H2, H3) existent déjà : il leur manque ce titre de tête.' }
+      : h1.length > 1
+        ? { status: 'warn', advice: 'Garder un seul titre principal (H1) par page, et passer les autres en intertitres (H2).' }
+        : jumps > 1
+          ? { status: 'warn', advice: 'Organiser les titres comme un sommaire, sans sauter de niveau (H1, puis H2, puis H3).' }
+          : { status: 'ok', advice: 'Rien à faire.' };
+  add({ id: 'hierarchy', cat: 'google', label: 'Hiérarchie des titres (H1, H2, H3)', status: hier.status,
+    detail: `${h1.length} H1, ${h2n} H2, ${h3n} H3${jumps ? `, ${jumps} saut(s) de niveau` : ''}.`, advice: hier.advice });
 
   /* Maillage interne : liens de l'accueil vers les autres pages, et textes de liens parlants. */
   const host0 = new URL(page.url).hostname.replace(/^www\./, '');
@@ -416,11 +440,15 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     advice: tel ? 'Rien à faire.' : phoneVisible ? 'Rendre le numéro cliquable : sur téléphone, un seul geste suffit pour vous appeler.' : 'Afficher un numéro de téléphone cliquable : c’est souvent le premier réflexe d’un client pressé.' });
 
   const form = all.some((d) => d('form').filter((_, f) => d(f).find('textarea, input[type="email"]').length > 0).length > 0);
-  const mail = siteHrefs.some((h) => h.startsWith('mailto:'));
+  const ch = contactChannels(all, siteHrefs, linkTexts + ' ' + all.map((d) => d('button').text()).join(' ').toLowerCase());
+  const others = ch.filter((x) => x !== 'formulaire' && x !== 'téléphone' && x !== 'bouton de devis ou de contact');
+  const contactPage = hrefs.some((h) => /contact/i.test(h));
   add({ id: 'form', cat: 'contact', label: 'Formulaire ou e-mail de contact', weight: 2,
-    status: form ? 'ok' : mail ? 'warn' : hrefs.some((h) => /contact/i.test(h)) ? 'warn' : 'bad',
-    detail: form ? 'Un formulaire de contact est disponible.' : mail ? 'Seul un lien e-mail est proposé.' : hrefs.some((h) => /contact/i.test(h)) ? 'Un lien vers une page contact existe, sans formulaire.' : `Aucun moyen de contact écrit ${where}.`,
-    advice: form ? 'Rien à faire.' : 'Proposer un formulaire simple (nom, e-mail, message) directement accessible : moins d’efforts, plus de demandes.' });
+    status: form ? 'ok' : others.length || contactPage ? 'warn' : 'bad',
+    detail: form ? `Un formulaire de contact est disponible${others.length ? `, ainsi que : ${others.join(', ')}` : ''}.`
+      : others.length ? `Pas de formulaire : contact par ${listFr(others)}.`
+      : contactPage ? 'Un lien vers une page contact existe, sans formulaire.' : `Aucun moyen de contact écrit ${where}.`,
+    advice: form ? 'Rien à faire.' : others.length ? 'Ajouter un formulaire simple (nom, e-mail, message) en complément : certains visiteurs préfèrent écrire sans ouvrir leur messagerie.' : 'Proposer un formulaire simple (nom, e-mail, message) directement accessible : moins d’efforts, plus de demandes.' });
 
   const CTA = /devis|contactez|nous contacter|contact|rendez-vous|r[ée]server|r[ée]servation|appelez|demander|disponibilit/i;
   const cta = CTA.test(linkTexts + ' ' + $('button').text().toLowerCase());
@@ -437,10 +465,14 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     status: reviews ? 'ok' : 'bad', detail: reviews ? 'Des avis ou témoignages de clients sont présentés.' : `Aucun avis client ${where}.`,
     advice: reviews ? 'Rien à faire.' : 'La grande majorité des clients lisent les avis avant de contacter une entreprise. Afficher quelques avis réels (Google ou témoignages) rassure immédiatement.' });
 
-  const proof = /r[ée]alisations|r[ée]f[ée]rences|portfolio|nos clients|depuis (?:19|20)\d{2}|\d+\s*ans d.exp[ée]rience|certifi|qualibat|\brge\b|garantie d[ée]cennale|agr[ée][ée]|dipl[oô]m/i.test(siteBody);
+  const proofOther = /r[ée]alisations|r[ée]f[ée]rences|portfolio|nos clients|depuis (?:19|20)\d{2}|\d+\s*ans d.exp[ée]rience|certifi|qualibat|\brge\b|garantie d[ée]cennale|agr[ée][ée]|dipl[oô]m/i.test(siteBody);
+  /* Les avis clients sont une preuve de sérieux : on ne peut pas dire « aucune preuve » s'ils sont visibles. */
   add({ id: 'proof', cat: 'contact', label: 'Preuves de sérieux',
-    status: proof ? 'ok' : 'warn', detail: proof ? 'Le site montre des preuves de sérieux (réalisations, expérience, labels…).' : 'Aucune preuve de sérieux repérée (réalisations, années d’expérience, labels, garanties).',
-    advice: proof ? 'Rien à faire.' : 'Montrer vos réalisations, vos années d’expérience, vos labels ou garanties : ce sont des raisons concrètes de vous faire confiance.' });
+    status: proofOther ? 'ok' : 'warn',
+    detail: proofOther ? `Le site montre des preuves de sérieux (réalisations, expérience, labels…)${reviews ? ', en plus des avis clients' : ''}.`
+      : reviews ? 'En dehors de vos avis clients, aucune autre preuve repérée (réalisations, années d’expérience, labels, garanties).'
+      : 'Aucune preuve de sérieux repérée (avis, réalisations, années d’expérience, labels, garanties).',
+    advice: proofOther ? 'Rien à faire.' : reviews ? 'Compléter vos avis par des preuves concrètes : réalisations en photo, années d’expérience, labels ou garanties.' : 'Montrer vos réalisations, vos années d’expérience, vos labels ou garanties : ce sont des raisons concrètes de vous faire confiance.' });
 
   const emails = [...new Set([...siteHrefs.filter((h) => h.startsWith('mailto:')).map((h) => h.slice(7).split('?')[0]), ...(siteBody.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) || [])].map((e) => e.toLowerCase()))];
   const freeMail = emails.filter((e) => /@(gmail|hotmail|yahoo|orange|wanadoo|free|sfr|laposte|outlook|live|aol|icloud|neuf|bbox|gmx)\./i.test(e));
@@ -621,6 +653,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
       h2: $c('h2').map((_, h) => $c(h).text().replace(/\s+/g, ' ').trim()).get().filter(Boolean).slice(0, 20),
       ctas: [...new Set($c('a, button').map((_, a) => $c(a).text().replace(/\s+/g, ' ').trim()).get().filter((t) => t.length > 2 && t.length < 60))].slice(0, 40),
       text: text($c).slice(0, 1500),
+      channels: contactChannels([$c, ...subs.map((p) => p.$)], [$c, ...subs.map((p) => p.$)].flatMap((d) => d('a[href]').map((_, a) => (d(a).attr('href') || '').trim()).get()), [$c, ...subs.map((p) => p.$)].map((d) => d('a, button').text()).join(' ').toLowerCase()),
       siteMap: links.slice(0, 60).map((l) => `${l.label} (${new URL(l.url).pathname})`).join(' | ').slice(0, 4000),
       outline: [{ label: 'Accueil', d: $c }, ...subs.map((p) => ({ label: p.label, d: p.$ }))].map(({ label, d }) => {
         const hs = d('h1,h2,h3').map((_, h) => `${h.tagName.toUpperCase()} ${d(h).text().replace(/\s+/g, ' ').trim().slice(0, 80)}`).get().slice(0, 25);
@@ -639,8 +672,9 @@ export async function pageSpeedServer(url: string, strategy: 'mobile' | 'desktop
   const key = process.env.PSI_API_KEY || process.env.NEXT_PUBLIC_PSI_KEY;
   if (key) p.set('key', key);
   try {
-    let r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${p}`, { signal: AbortSignal.timeout(50000) });
-    if (!r.ok && r.status !== 400) { await new Promise((ok) => setTimeout(ok, 1500)); r = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${p}`, { signal: AbortSignal.timeout(40000) }); }
+    const PSI = process.env.PSI_BASE_URL || 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
+    let r = await fetch(`${PSI}?${p}`, { signal: AbortSignal.timeout(50000) });
+    if (!r.ok && r.status !== 400) { await new Promise((ok) => setTimeout(ok, 1500)); r = await fetch(`${PSI}?${p}`, { signal: AbortSignal.timeout(40000) }); }
     if (!r.ok) { console.error('PageSpeed', strategy, r.status, (await r.text()).slice(0, 200)); return null; }
     const d = await r.json();
     const cat = d.lighthouseResult?.categories || {};
@@ -677,6 +711,7 @@ ${c.siteMap || '(aucune autre page)'}
 Structure de chaque page (titres H1, H2, H3 et liens dans le contenu) :
 ${c.outline || '(non disponible)'}
 
+Moyens de contact détectés automatiquement sur le site : ${(c.channels || []).join(', ') || 'aucun'}. Utilise exactement cette liste quand tu parles des moyens de contact ; n'en ajoute pas, n'en retire pas.
 Boutons et liens de l'accueil : ${c.ctas.slice(0, 25).join(' | ') || '(aucun)'}
 Début du texte de l'accueil : """${c.text.slice(0, 1500)}"""
 
@@ -814,6 +849,12 @@ export async function createBulletin(url: string): Promise<AuditRun> {
   const b = buildBulletin(randomBytes(12).toString('hex'), result, speed, review, desktop);
   if (desktop?.screenshot) b.desktopScreenshot = desktop.screenshot;
   if (b.speedDesktop) b.speedDesktop = { ...b.speedDesktop, screenshot: undefined };
+  /* Contrôle de cohérence : un bulletin incohérent n'est jamais publié. */
+  const problems = validateBulletin(b);
+  if (problems.length) {
+    console.error('Bulletin bloqué', b.host, problems);
+    throw new AuditError(`Bulletin bloqué avant publication (${problems.length} incohérence${problems.length > 1 ? 's' : ''}) : ${problems.join(' | ')}`);
+  }
   await saveBulletin(b);
   return { bulletin: b, aiError: error, speedError: !speed || speed.performance === null };
 }

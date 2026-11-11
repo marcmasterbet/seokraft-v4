@@ -1244,3 +1244,6 @@ html:has(.lp){zoom:1}
 .at-alert{color:#a63d2f;font-weight:700}
 @media print{.bv-checks li,.bv-speed,.bv-page{break-inside:avoid}}
 .bv-global.is-bad .bv-score svg{color:var(--bad)}.bv-global.is-warn .bv-score svg{color:#c08a2b}
+.bv-rate{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;vertical-align:1px;color:#fff;background:var(--ok)}
+.bv-rate-warn{background:#c08a2b}.bv-rate-bad{background:var(--bad)}
+.bv-speed .bv-table td{white-space:nowrap;text-align:right}

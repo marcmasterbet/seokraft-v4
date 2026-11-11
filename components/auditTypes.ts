@@ -19,7 +19,7 @@ export type AuditResult = {
   title: string;
   checks: Check[];
   /* Contenu lisible de la page, transmis à l'analyse des textes (jamais stocké). */
-  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string; siteMap?: string };
+  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string; siteMap?: string; channels?: string[] };
   pages?: { url: string; label: string }[];   // pages lues (accueil en premier)
   pagesDetail?: { label: string; path: string; title: string; description: boolean; h1: string; words: number }[];
 };
@@ -66,6 +66,19 @@ export function verdict(score: number): [string, string] {
 }
 
 /* Transforme la mesure Google PageSpeed (téléphone) en vérifications du rapport. */
+/* Statut d'une mesure de vitesse, selon les seuils de Google. Une seule fonction, utilisée par les vérifications ET par l'affichage. */
+export type Rating = { status: Status; word: string };
+const num = (v: string) => parseFloat(String(v).replace(',', '.').replace(/[^\d.]/g, ''));
+export function rateMetric(metric: 'fcp' | 'lcp' | 'cls', value: string, strategy: 'mobile' | 'desktop'): Rating | null {
+  const v = num(value);
+  if (Number.isNaN(v)) return null;
+  const d = strategy === 'desktop';
+  const [good, poor] = metric === 'cls' ? [0.1, 0.25] : metric === 'fcp' ? [1.8, 3] : d ? [1.5, 3] : [2.5, 4];
+  const status: Status = v <= good ? 'ok' : v <= poor ? 'warn' : 'bad';
+  return { status, word: status === 'ok' ? 'Bon' : status === 'warn' ? 'À améliorer' : 'Mauvais' };
+}
+export const METRIC_GOAL = { fcp: 'bon : 1,8 s ou moins', cls: 'bon : 0,1 ou moins (0 = rien ne bouge)', lcp: (d: boolean) => `bon : ${d ? '1,5' : '2,5'} s ou moins` };
+
 export function speedChecks(m: Speed | null): Check[] {
   if (!m || m.performance === null) return [];
   const p = m.performance;
@@ -74,10 +87,14 @@ export function speedChecks(m: Speed | null): Check[] {
   const out: Check[] = [{ id: d ? 'psi-perf-d' : 'psi-perf', cat: 'mobile', label: `Vitesse ${on} (mesure Google)`, weight: d ? 2 : 3,
     status: p >= 80 ? 'ok' : p >= 50 ? 'warn' : 'bad', detail: `Note de vitesse Google ${on} : ${p}/100. Contenu principal affiché en ${m.lcp}.`,
     advice: p >= 80 ? 'Bonne vitesse.' : p >= 50 ? 'Vitesse moyenne : chaque seconde d’attente fait partir des visiteurs. Il faut alléger les images et les scripts.' : `Site lent ${on} : beaucoup de visiteurs partent avant même de voir la page.` }];
-  const lcp = parseFloat(m.lcp.replace(',', '.'));
-  if (!Number.isNaN(lcp)) out.push({ id: d ? 'psi-lcp-d' : 'psi-lcp', cat: 'mobile', label: `Temps d’affichage ${on}`, weight: 2,
-    status: lcp <= (d ? 1.5 : 2.5) ? 'ok' : lcp <= (d ? 3 : 4) ? 'warn' : 'bad', detail: `${m.lcp} avant que le contenu principal apparaisse (objectif : moins de ${d ? '1,5' : '2,5'} s).`,
-    advice: 'Alléger la grande image ou le bloc du haut de page pour qu’il s’affiche plus vite.' });
+  const lcp = rateMetric('lcp', m.lcp, m.strategy);
+  if (lcp) out.push({ id: d ? 'psi-lcp-d' : 'psi-lcp', cat: 'mobile', label: `Temps d’affichage ${on}`, weight: 2,
+    status: lcp.status, detail: `${m.lcp} avant que le contenu principal apparaisse (objectif : ${d ? '1,5' : '2,5'} s ou moins).`,
+    advice: lcp.status === 'ok' ? 'Rien à faire.' : 'Alléger la grande image ou le bloc du haut de page pour qu’il s’affiche plus vite.' });
+  const cls = rateMetric('cls', m.cls, m.strategy);
+  if (cls) out.push({ id: d ? 'psi-cls-d' : 'psi-cls', cat: 'mobile', label: `Stabilité de la page ${on}`, weight: 2,
+    status: cls.status, detail: `Décalage de mise en page : ${m.cls} (${cls.word.toLowerCase()} ; seuils Google : 0,1 ou moins = bon, plus de 0,25 = mauvais).`,
+    advice: cls.status === 'ok' ? 'Rien à faire.' : `Des éléments bougent pendant le chargement ${on} : le visiteur clique à côté ou perd sa lecture. Réserver la place des images, bandeaux et polices avant leur affichage.` });
   if (!d && m.accessibility !== null) out.push({ id: 'psi-a11y', cat: 'contenu', label: 'Lisibilité et accessibilité (mesure Google)',
     status: m.accessibility >= 90 ? 'ok' : m.accessibility >= 70 ? 'warn' : 'bad', detail: `Note Google : ${m.accessibility}/100.`,
     advice: m.accessibility >= 90 ? 'Rien à faire.' : 'Améliorer les contrastes, la taille des textes et la description des boutons : le site sera plus agréable pour tous.' });
@@ -92,7 +109,7 @@ const IMPACT: Record<string, number> = {
   viewport: 10, 'psi-perf': 9, https: 9, indexable: 9, outdated: 9, cert: 9, robots: 8, phone: 8, cta: 8, 'title-local': 8, 'old-cms': 8, 'vuln-lib': 8,
   form: 7, title: 7, words: 7, reviews: 7, 'psi-perf-d': 7, images: 7, 'form-http': 7, 'server-version': 6,
   legal: 6, privacy: 6, 'pages-seo': 6, 'psi-lcp': 6, description: 6, address: 6, broken: 6, mixed: 6, 'psi-lcp-d': 5, proof: 5,
-  h1: 5, maillage: 5, hierarchy: 4, schema: 5, cookies: 5, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
+  h1: 5, 'psi-cls': 7, 'psi-cls-d': 6, maillage: 5, hierarchy: 4, schema: 5, cookies: 5, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
   alt: 3, 'psi-a11y': 3, sitemap: 3, structure: 3, 'cookie-flags': 3, weight: 2, og: 2, favicon: 0, lang: 0,
 };
 const rankOf = (c: Check) => (c.status === 'bad' ? 2 : c.status === 'warn' ? 1 : 0) * 100 + (IMPACT[c.id] ?? 1) * 10 + (c.weight ?? 1);
@@ -167,6 +184,7 @@ export type Bulletin = {
   pages?: { url: string; label: string }[];
   pagesDetail?: PageDetail[];
   checks?: BulletinCheck[];      // tous les points vérifiés (annexe)
+  channels?: string[];           // moyens de contact détectés (liste unique, partagée par toutes les sections)
 };
 
 export const NOTE_LABELS: { id: NoteId; label: string; hint: string }[] = [
@@ -197,6 +215,7 @@ const PROBLEM: Record<string, string | [string, string]> = {
   viewport: 'Le site est illisible sur téléphone', https: 'Le navigateur affiche « Non sécurisé »', cert: 'Le certificat de sécurité est expiré',
   indexable: 'Google n’a pas le droit d’afficher le site', robots: 'Google n’a pas le droit de lire le site', outdated: ['Le site a l’air d’une autre époque', 'Le site utilise des techniques vieillissantes'],
   builder: 'Un site « clé en main » qui limite vos résultats', 'psi-perf': ['Le site est lent sur téléphone', 'Le site pourrait être plus rapide sur téléphone'],
+  'psi-cls': ['La page bouge pendant le chargement sur téléphone', 'La page bouge un peu pendant le chargement sur téléphone'], 'psi-cls-d': ['La page bouge pendant le chargement sur ordinateur', 'La page bouge un peu pendant le chargement sur ordinateur'],
   'psi-perf-d': ['Le site est lent sur ordinateur', 'Le site pourrait être plus rapide sur ordinateur'], 'psi-lcp': 'Le contenu met trop de temps à s’afficher', images: 'Des images trop lourdes ralentissent le site',
   phone: ['Aucun numéro de téléphone visible', 'Le numéro n’est pas cliquable sur téléphone'], cta: ['Rien n’invite le visiteur à vous contacter', 'Le bouton de contact est trop loin dans la page'],
   form: ['Pas de moyen simple de vous écrire', 'Pas de formulaire pour vous écrire en un clic'], reviews: 'Aucun avis client pour rassurer', proof: 'Rien ne prouve votre sérieux',
@@ -260,7 +279,12 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
   const tech = keyIssues(checks, 10).map((c) => ({ level: LEVEL_OF(c), title: problemTitle(c), text: `${c.detail} ${c.advice}` }));
   const order: Record<Level, number> = { critique: 0, important: 1, planifier: 2 };
   /* Le regard de l'IA (concret, tiré du site) passe d'abord, puis les constats techniques, du plus grave au moins grave. */
-  const priorities = [...(review?.priorities ?? []), ...tech].sort((a, b) => order[a.level] - order[b.level]).slice(0, 8);
+  let priorities = [...(review?.priorities ?? []), ...tech].sort((a, b) => order[a.level] - order[b.level]).slice(0, 8);
+  /* Un défaut « Mauvais » de stabilité doit toujours figurer dans les priorités. */
+  for (const c of checks.filter((x) => /^psi-cls/.test(x.id) && x.status === 'bad')) {
+    const t = problemTitle(c);
+    if (!priorities.some((p) => p.title === t)) priorities = [...priorities.slice(0, 7), { level: LEVEL_OF(c), title: t, text: `${c.detail} ${c.advice}` }].sort((a, b) => order[a.level] - order[b.level]);
+  }
 
   /* Points forts : seulement ceux qui comptent pour un client, jamais des évidences techniques. */
   const GOOD: Record<string, string> = { reviews: 'Des avis clients sont visibles.', proof: 'Le site montre des preuves de sérieux.', 'title-local': 'La ville est bien ciblée pour Google.', cta: 'Un bouton invite à prendre contact dès l’arrivée.', phone: 'Le téléphone est visible et cliquable.', 'psi-perf': 'Le site est rapide sur téléphone.', headers: 'Le serveur est bien protégé.' };
@@ -278,7 +302,7 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
 
   return { id, version: 2, url: result.url, host: result.host, createdAt: new Date().toISOString(), global, notes: { vitesse, securite, google, textes, contact }, cap,
     verdict: verdict20(global), essentiel, impression: review?.impression || undefined, priorities, positives, constats: review?.constats ?? [], speed, speedDesktop: desktop, ai: !!review,
-    pages: result.pages, pagesDetail: result.pagesDetail, checks: all };
+    pages: result.pages, pagesDetail: result.pagesDetail, checks: all, channels: result.content?.channels ?? [] };
 }
 
 /* Mail à envoyer au prospect (Marc le relit puis l'envoie lui-même). */
