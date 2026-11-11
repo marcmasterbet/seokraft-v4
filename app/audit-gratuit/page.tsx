@@ -1,0 +1,12 @@
+import type { Metadata } from 'next';
+import AuditLanding from '../../components/AuditLanding';
+
+const description = 'Votre site noté sur 20, gratuitement : vitesse, Google, textes et contact analysés, et les points à corriger en premier. Par SEOKRAFT, studio web à Strasbourg.';
+export const metadata: Metadata = {
+ title: 'Audit gratuit : votre site noté sur 20 | SEOKRAFT',
+ description,
+ alternates: { canonical: '/audit-gratuit' },
+ openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title: 'Votre site noté sur 20, gratuitement | SEOKRAFT', description, url: 'https://www.seokraft.fr/audit-gratuit' }
+};
+
+export default function Page(){return <AuditLanding/>}
