@@ -1,4 +1,4 @@
-import { lookup } from 'node:dns/promises';
+import { lookup, Resolver } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import tls from 'node:tls';
 import { load, type CheerioAPI } from 'cheerio';
@@ -32,12 +32,34 @@ function privateIp(ip: string) {
   const [a, b] = ip.split('.').map(Number);
   return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
 }
+/* Pannes passagères du serveur (DNS occupé, connexion coupée) : on réessaie au lieu d'abandonner l'audit. */
+const TRANSIENT = /EBUSY|EAI_AGAIN|ETIMEOUT|ETIMEDOUT|ESERVFAIL|ECONNRESET|ECONNREFUSED|EPIPE|ENETUNREACH|EHOSTUNREACH|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET|UND_ERR_HEADERS_TIMEOUT|other side closed/i;
+const errText = (e: unknown) => { const x = e as { code?: string; message?: string; cause?: { code?: string; message?: string } }; return `${x?.code || ''} ${x?.message || ''} ${x?.cause?.code || ''} ${x?.cause?.message || ''}`; };
+export const isTransient = (e: unknown) => TRANSIENT.test(errText(e));
+const wait = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
+export async function withRetry<T>(fn: () => Promise<T>, tries = 3): Promise<T> {
+  for (let i = 0; ; i++) {
+    try { return await fn(); } catch (e) { if (i >= tries - 1 || !isTransient(e)) throw e; await wait(400 * 3 ** i); }
+  }
+}
+/* Résolution DNS : le résolveur du système (3 essais), puis des serveurs DNS publics en secours. */
+async function resolveHost(host: string): Promise<string[]> {
+  try { return (await withRetry(() => lookup(host, { all: true }))).map((r) => r.address); } catch (e) {
+    if (!isTransient(e)) throw e;
+    const r = new Resolver({ timeout: 4000, tries: 2 });
+    r.setServers(['1.1.1.1', '8.8.8.8']);
+    const [v4, v6] = await Promise.all([r.resolve4(host).catch(() => [] as string[]), r.resolve6(host).catch(() => [] as string[])]);
+    if (!v4.length && !v6.length) throw new AuditError('Le site est momentanément injoignable (adresse introuvable). Réessayez dans quelques minutes.');
+    return [...v4, ...v6];
+  }
+}
+
 export async function assertPublic(url: URL) {
   if (!/^https?:$/.test(url.protocol)) throw new Error('Adresse non prise en charge');
   if (process.env.AUDIT_ALLOW_LOCAL === '1') return;
   if (url.port && !['80', '443'].includes(url.port)) throw new Error('Port non autorisé');
   const host = url.hostname.replace(/^\[|\]$/g, '');
-  const ips = isIP(host) ? [host] : (await lookup(host, { all: true })).map((r) => r.address);
+  const ips = isIP(host) ? [host] : await resolveHost(host);
   if (!ips.length || ips.some(privateIp)) throw new Error('Adresse non autorisée');
 }
 
@@ -50,7 +72,8 @@ async function fetchPage(start: string, maxHops = 5): Promise<Page> {
   const t0 = Date.now();
   for (let i = 0; i <= maxHops; i++) {
     await assertPublic(current);
-    const res = await fetch(current, { redirect: 'manual', headers: { 'User-Agent': UA, Accept: 'text/html,*/*' }, signal: AbortSignal.timeout(12000) });
+    const target = current;
+    const res = await withRetry(() => fetch(target, { redirect: 'manual', headers: { 'User-Agent': UA, Accept: 'text/html,*/*' }, signal: AbortSignal.timeout(12000) }));
     if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
       hops.push(current.toString());
       current = new URL(res.headers.get('location')!, current);

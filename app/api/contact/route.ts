@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spamReason } from '../../../lib/spamFilter';
+import { upsertProspect, event } from '../../../lib/crmStore';
 
 export const runtime = 'nodejs';
 
@@ -76,7 +77,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Service de contact non configuré' }, { status: 503 });
     }
 
-    const content = `Nom : ${name}\nEmail : ${email}\nTéléphone : ${phone}\nObjet : ${subject}\n\n${message}`;
+    /* Rangement dans le CRM avant l'envoi du mail : la demande est gardée même si l'e-mail échoue. */
+    let crmLine = '';
+    try {
+      const site = /https?:\/\/[^\s]+|\bwww\.[^\s]+/i.exec(message)?.[0] || '';
+      const p = await upsertProspect({ email, website: site }, { source: 'contact', contactName: name, email, phone, website: site }, (x) => {
+        x.history.push(event(`Message reçu (${subject}) : ${message.slice(0, 1500)}`));
+      });
+      crmLine = `\n\nFiche dans le CRM : https://www.seokraft.fr/crm?p=${p.id}`;
+    } catch (e) { console.error('CRM (contact)', e instanceof Error ? e.message : e); }
+
+    const content = `Nom : ${name}\nEmail : ${email}\nTéléphone : ${phone}\nObjet : ${subject}\n\n${message}${crmLine}`;
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },

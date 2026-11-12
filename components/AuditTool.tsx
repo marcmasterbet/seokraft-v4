@@ -12,7 +12,7 @@ export default function AuditTool() {
   const [firstName, setFirstName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [b, setB] = useState<(Bulletin & { aiError?: string; speedError?: boolean }) | null>(null);
+  const [b, setB] = useState<(Bulletin & { aiError?: string; speedError?: boolean; crmId?: string }) | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -25,11 +25,11 @@ export default function AuditTool() {
   async function run(e: FormEvent) {
     e.preventDefault(); setError(''); setB(null); setCopied(false); setBusy(true);
     try {
-      const r = await fetch('/api/outil-audit', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-audit-key': key }, body: JSON.stringify({ url }) });
+      const r = await fetch('/api/outil-audit', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-audit-key': key }, body: JSON.stringify({ url, prenom: firstName }) });
       const d = await r.json().catch(() => ({}));
       if (r.status === 401) { setLogged(false); try { sessionStorage.removeItem(KEY_STORE); } catch {} throw new Error('Mot de passe incorrect.'); }
       if (!r.ok) throw new Error(d.error || 'Analyse impossible.');
-      setB(d as Bulletin & { aiError?: string; speedError?: boolean });
+      setB(d as Bulletin & { aiError?: string; speedError?: boolean; crmId?: string });
     } catch (err) { setError(err instanceof Error ? err.message : 'Erreur.'); }
     finally { setBusy(false); }
   }
@@ -53,7 +53,7 @@ export default function AuditTool() {
       {error && <p className="form-error" role="alert">{error}</p>}
       {b && <div className="at-actions">
         <p className="at-result"><strong>{b.host} : {fmt20(b.global)}/20</strong> — {b.verdict}<br />{NOTE_LABELS.map((n) => `${n.label} ${fmt20(b.notes[n.id] ?? null)}`).join(' · ')}{b.cap && <><br />{b.cap}</>}{!b.ai && <><br /><em className="at-alert">IA indisponible ({b.aiError || 'erreur'}) : référencement non évalué. Corriger puis relancer avant d’envoyer.</em></>}{b.speedError && <><br /><em className="at-alert">Mesure de vitesse Google indisponible : ajouter PSI_API_KEY dans Vercel.</em></>}</p>
-        <a className="button button-olive" href={link} target="_blank" rel="noopener noreferrer">Ouvrir le bulletin (relire, télécharger le PDF)</a>
+        <a className="button button-olive" href={link} target="_blank" rel="noopener noreferrer">Ouvrir le bulletin (relire, télécharger le PDF)</a>{b.crmId && <a className="button button-dark" href={`/crm?p=${b.crmId}`} target="_blank" rel="noopener noreferrer">Voir la fiche dans le CRM</a>}
         <div className="at-mail"><div className="at-mail-head"><strong>Mail au prospect</strong><button type="button" onClick={() => { navigator.clipboard?.writeText(mail).then(() => setCopied(true)); }}>{copied ? 'Copié ✓' : 'Copier'}</button></div><textarea readOnly rows={18} value={mail} /></div>
       </div>}
     </section>

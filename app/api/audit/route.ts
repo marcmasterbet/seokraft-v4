@@ -1,6 +1,7 @@
 import { spamReason } from '../../../lib/spamFilter';
+import { upsertProspect, event, advance } from '../../../lib/crmStore';
 import { NextResponse, after } from 'next/server';
-import { createBulletin, checkAndRecordQuota } from '../../../lib/auditEngine';
+import { createBulletin, checkAndRecordQuota, isTransient } from '../../../lib/auditEngine';
 import { NOTE_LABELS, buildBulletinMail, fmt20 } from '../../../components/auditTypes';
 
 export const runtime = 'nodejs';
@@ -98,7 +99,9 @@ export async function POST(request: Request) {
         subject += ' — non lancé automatiquement';
         report = `Audit NON lancé automatiquement : ${quota.reason} (protection de ton crédit IA).\nSi la demande est sérieuse, lance-le à la main depuis l’outil : ${tool}`;
       } else try {
-        const { bulletin: b, aiError, speedError } = await createBulletin(url);
+        /* Une panne passagère (serveur occupé) relance l'audit une fois, 5 secondes plus tard. */
+        const run = await createBulletin(url).catch(async (e) => { if (!isTransient(e)) throw e; await new Promise((ok) => setTimeout(ok, 5000)); return createBulletin(url); });
+        const { bulletin: b, aiError, speedError } = run;
         subject = `SEOKRAFT — Audit gratuit : ${b.host} — ${fmt20(b.global)}/20`;
         report = [
           `NOTE DU SITE : ${fmt20(b.global)}/20 — ${b.verdict}`,
@@ -121,6 +124,17 @@ export async function POST(request: Request) {
         report = `L’analyse automatique n’a pas abouti (${e instanceof Error ? e.message : 'erreur'}).\nLancez-la à la main depuis l’outil : ${tool}`;
         subject += ' — analyse à relancer';
       }
+      /* Rangement dans le CRM (sans jamais bloquer le mail à Marc). */
+      try {
+        const done = /^NOTE DU SITE : ([\d,]+)\/20/.exec(report);
+        const bid = /\/bulletin\/([a-f0-9]{24})/.exec(report)?.[1] || '';
+        const p = await upsertProspect({ email, website: url }, { source: 'audit', contactName: name, email, website: url, company: new URL(url).hostname.replace(/^www\./, '') }, (x) => {
+          if (bid) { x.bulletinId = bid; x.score = done ? Number(done[1].replace(',', '.')) : x.score; }
+          advance(x, 'audit_demande');
+          x.history.push(event(bid ? `Demande d’audit gratuit reçue · note ${done?.[1] ?? '?'}/20` : `Demande d’audit gratuit reçue · ${subject.split(' — ').pop()}`));
+        });
+        report = `FICHE DANS LE CRM : https://www.seokraft.fr/crm?p=${p.id}\n\n${report}`;
+      } catch (e) { console.error('CRM (audit)', e instanceof Error ? e.message : e); }
       const content = `NOUVELLE DEMANDE D'AUDIT GRATUIT (à livrer sous 24 h)\n\nPrénom : ${name}\nEmail : ${email}\nSite à auditer : ${url}\n\n${report}`;
       if (process.env.AUDIT_DEBUG === '1') console.log('AUDIT-MAIL', subject, '\n' + content);
       const res = await fetch('https://api.resend.com/emails', {

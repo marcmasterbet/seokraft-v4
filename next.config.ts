@@ -36,6 +36,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  async rewrites() {
+    // Adresse courte du questionnaire de projet
+    return [{ source: '/questionnaire', destination: '/questionnaire.html' }];
+  },
   async headers() {
     return [
       {
@@ -47,6 +51,11 @@ const nextConfig: NextConfig = {
       {
         source: '/fonts/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        // CRM privé et questionnaire personnel : jamais indexés
+        source: '/:p(crm|questionnaire|questionnaire.html)',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
       {
         // Outil d'audit privé : jamais indexé

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createBulletin, AuditError } from '../../../lib/auditEngine';
+import { upsertProspect, event } from '../../../lib/crmStore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 180;
@@ -23,9 +24,19 @@ export async function POST(request: Request) {
   if (blocked(ip)) return NextResponse.json({ error: 'Trop d’essais, réessayez plus tard.' }, { status: 429 });
   if (!authorised(request)) { fails.get(ip)!.push(Date.now()); if (fails.size > 5000) fails.clear(); return NextResponse.json({ error: 'Accès refusé' }, { status: 401 }); }
   try {
-    const data = (await request.json()) as { url?: unknown };
+    const data = (await request.json()) as { url?: unknown; prenom?: unknown };
     const run = await createBulletin(typeof data.url === 'string' ? data.url : '');
-    return NextResponse.json({ ...run.bulletin, aiError: run.aiError, speedError: run.speedError });
+    /* Le bulletin est rangé dans la fiche du prospect (créée si besoin, étape « À contacter »). */
+    let crmId = '';
+    try {
+      const b = run.bulletin;
+      const p = await upsertProspect({ website: b.url }, { source: 'outil', website: b.url, company: b.host, contactName: typeof (data as { prenom?: unknown }).prenom === 'string' ? String((data as { prenom?: string }).prenom).slice(0, 80) : '' }, (x) => {
+        x.bulletinId = b.id; x.score = b.global;
+        x.history.push(event(`Audit réalisé avec l’outil · note ${String(b.global).replace('.', ',')}/20`));
+      });
+      crmId = p.id;
+    } catch (e) { console.error('CRM (outil)', e instanceof Error ? e.message : e); }
+    return NextResponse.json({ ...run.bulletin, aiError: run.aiError, speedError: run.speedError, crmId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur';
     console.error('Outil audit', msg);
