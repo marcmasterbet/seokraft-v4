@@ -1,3 +1,4 @@
+import { spamReason } from '../../../lib/spamFilter';
 import { NextResponse, after } from 'next/server';
 import { createBulletin, checkAndRecordQuota } from '../../../lib/auditEngine';
 import { NOTE_LABELS, buildBulletinMail, fmt20 } from '../../../components/auditTypes';
@@ -74,6 +75,9 @@ export async function POST(request: Request) {
     if (!emailPattern.test(email) || !name || !url) {
       return NextResponse.json({ error: 'Données invalides' }, { status: 400 });
     }
+    /* Spam : même réponse qu'une demande normale, mais aucun audit lancé (aucun crédit dépensé) et aucun e-mail. */
+    const spam = spamReason({ email, name, url });
+    if (spam) { console.warn('Spam bloqué (audit)', spam); return NextResponse.json({ ok: true }); }
 
     const key = process.env.RESEND_API_KEY;
     const to = process.env.CONTACT_TO_EMAIL;

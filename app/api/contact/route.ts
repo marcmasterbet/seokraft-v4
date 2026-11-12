@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { spamReason } from '../../../lib/spamFilter';
 
 export const runtime = 'nodejs';
 
@@ -62,6 +63,10 @@ export async function POST(request: Request) {
     if (!emailPattern.test(email) || !name || !SUBJECTS.has(subject) || message.length < 15) {
       return NextResponse.json({ error: 'Données invalides' }, { status: 400 });
     }
+
+    /* Spam : même réponse qu'un envoi réussi, mais rien n'est transmis. */
+    const spam = spamReason({ email, message, name });
+    if (spam) { console.warn('Spam bloqué (contact)', spam); return NextResponse.json({ ok: true }); }
 
     const key = process.env.RESEND_API_KEY;
     const to = process.env.CONTACT_TO_EMAIL;
