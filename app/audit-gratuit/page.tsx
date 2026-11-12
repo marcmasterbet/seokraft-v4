@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import AuditLanding from '../../components/AuditLanding';
 
-const description = 'Votre site noté sur 20, gratuitement : vitesse, Google, textes et contact analysés, et les points à corriger en premier. Par SEOKRAFT, studio web à Strasbourg.';
+const description = 'Votre site noté sur 20, gratuitement : vitesse, Google, textes et contact analysés, et les priorités à corriger. Par SEOKRAFT, à Strasbourg.';
 export const metadata: Metadata = {
  title: 'Audit gratuit : votre site noté sur 20 | SEOKRAFT',
  description,

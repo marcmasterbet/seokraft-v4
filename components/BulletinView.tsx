@@ -48,10 +48,10 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
   const speedChecks = group('vitesse');
   const grave = b.priorities.filter((p) => p.level === 'critique').length;
   return <main className="bv">
-    <header className="bv-top"><a href="/" className="al-logo" title="SEOKRAFT, studio web à Strasbourg"><span className="al-wm">SEOKRAFT<span>.</span></span><span className="al-ls">STUDIO WEB INDÉPENDANT</span></a>{sample && <span className="bv-sample">Exemple fictif</span>}</header>
+    <header className="bv-top"><a href="/" className="al-logo" title="SEOKRAFT, création de sites internet à Strasbourg"><span className="al-wm">SEOKRAFT<span>.</span></span></a>{sample && <span className="bv-sample">Exemple fictif</span>}</header>
 
     <section className="bv-hero">
-      <span className="eyebrow">BULLETIN DE VOTRE SITE</span>
+      <span className="eyebrow">AUDIT DE VOTRE SITE</span>
       <p className="bv-host">{b.host}</p>
       <h1>Votre site, <em>vu par vos clients.</em></h1>
       <p className="bv-date">Audit du {date}{b.pages && b.pages.length > 1 ? ` · ${b.pages.length} pages analysées` : ''}{checks.length ? ` · ${checks.length} points vérifiés` : ''}</p>
@@ -62,7 +62,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
         <figcaption>Votre site tel que le voient vos clients, sur ordinateur et sur téléphone{sample ? ' (exemple fictif)' : ''}</figcaption>
       </figure>}
       <div className={`bv-global ${tone(b.global)}`}><Score20 value={fmt20(b.global)} /><div><span className="eyebrow">NOTE DU SITE</span><p className="bv-verdict">{b.verdict}</p><p className="bv-muted">Note globale de votre site</p></div></div>
-      <div className="bv-actions no-print"><a className="button button-olive" href="/rendez-vous">Réserver un appel de 20 minutes <ArrowUpRight size={17} /></a><PrintButton name={`Bulletin-SEOKRAFT-${b.host}`} /></div>
+      <div className="bv-actions no-print"><a className="button button-olive" href="/rendez-vous">Réserver un appel de 20 minutes <ArrowUpRight size={17} /></a><PrintButton name={`Audit-SEOKRAFT-${b.host}`} /></div>
     </section>
 
     <section className="bv-sec">
@@ -129,13 +129,13 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
     <section className="bv-sec bv-cta">
       <div className="bv-who"><div className="bv-photo"><Image src="/images/marc-portrait-rond.webp" alt="Marc Bretzner" fill sizes="96px" loading="eager" style={{ objectFit: 'cover' }} /></div><div><h2>Envie d’en parler&nbsp;?</h2><p>Je vous explique ces résultats et ce que je ferais en premier à votre place. 20 minutes au téléphone, gratuit et sans engagement.</p></div></div>
       <a className="button button-olive" href="/rendez-vous">Réserver mon appel <ArrowUpRight size={17} /></a>
-      <p className="bv-sign">Marc Bretzner · SEOKRAFT, studio web à Strasbourg · 06 72 20 91 53 · contact@seokraft.fr</p>
+      <p className="bv-sign">Marc Bretzner · SEOKRAFT, création de sites internet à Strasbourg · 06 72 20 91 53 · contact@seokraft.fr</p>
     </section>
 
     {checks.length > 0 && <section className="bv-sec bv-annex">
       <h2>Le détail, point par point</h2>
       <p className="bv-muted bv-intro">Tous les points vérifiés, classés du plus grave au plus anodin.</p>
-      {(['google', 'textes', 'contact'] as NoteId[]).map((g) => group(g).length > 0 && <div key={g} className="bv-annex-group">
+      {(['google', 'textes'] as NoteId[]).map((g) => group(g).length > 0 && <div key={g} className="bv-annex-group">
         <h3>{NOTE_LABELS.find((n) => n.id === g)?.label}</h3>
         <CheckList items={group(g)} />
       </div>)}

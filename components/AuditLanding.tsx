@@ -1,12 +1,13 @@
 'use client';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import { ArrowRight, ArrowUpRight, Check, Smartphone, Search, Phone, ShieldCheck, Mail, Plus } from 'lucide-react';
 import { trackSeokraftConversion } from './AnalyticsConsent';
 import Score20 from './Score20';
 
 /* Landing page « Votre site sur 20 » : un seul objectif, demander son audit gratuit. */
-const STEPS = ['Lecture de votre page d’accueil', 'Mesure de la vitesse par Google', 'Analyse de vos textes', 'Préparation de votre bulletin', 'Relecture par Marc avant envoi'];
+/* Étapes affichées après la demande : l'audit est lancé et relu par Marc, puis envoyé sous 24 h. */
+const STEPS = ['Demande reçue', 'Analyse de votre site et relecture par Marc', 'Envoi de votre audit par e-mail, sous 24 heures'];
 
 function hostOf(v: string) { try { return new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`).hostname.replace(/^www\./, ''); } catch { return ''; } }
 
@@ -18,10 +19,10 @@ function AuditForm({ id }: { id: string }) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     if (step !== 3) return;
-    const t = setInterval(() => setProgress((p) => Math.min(p + 1, STEPS.length - 1)), 2600);
-    return () => clearInterval(t);
+    setProgress(1); // demande reçue ✓, analyse à venir
   }, [step]);
 
+  const opened = useRef(Date.now());
   function next(e: FormEvent) {
     e.preventDefault(); setError('');
     const h = hostOf(url.trim());
@@ -31,8 +32,9 @@ function AuditForm({ id }: { id: string }) {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true); setError('');
     const f = Object.fromEntries(new FormData(e.currentTarget).entries());
+    const t = Date.now() - opened.current; // temps passé sur la page : un robot remplit le formulaire instantanément
     try {
-      const r = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...f, url }) });
+      const r = await fetch('/api/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...f, url, t }) });
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error === 'Trop de demandes' ? 'Plusieurs demandes ont été envoyées en peu de temps. Merci de réessayer dans quelques minutes.' : 'Merci de vérifier votre prénom et votre adresse e-mail.'); }
       trackSeokraftConversion('audit_request'); setStep(3);
     } catch (err) { setError(err instanceof Error ? err.message : 'Une erreur est survenue. Merci de réessayer.'); }
@@ -41,8 +43,8 @@ function AuditForm({ id }: { id: string }) {
 
   if (step === 3) return <div className="lp-card lp-done" role="status" aria-live="polite">
     <span className="lp-kicker">ADRESSE REÇUE : {hostOf(url).toUpperCase()}</span>
-    <h2>Votre audit est en cours.</h2>
-    <p>Vous pouvez fermer cette page : votre bulletin vous sera envoyé par e-mail <strong>sous 24 heures</strong>, après relecture.</p>
+    <h2>Votre demande est bien reçue.</h2>
+    <p>Vous pouvez fermer cette page : votre audit vous sera envoyé par e-mail <strong>sous 24 heures</strong>.</p>
     <ul className="lp-progress">{STEPS.map((s, i) => <li key={s} className={i < progress ? 'is-done' : i === progress ? 'is-current' : ''}><span aria-hidden="true">{i < progress ? <Check size={14} /> : null}</span>{s}</li>)}</ul>
     <p className="lp-small">Pensez à regarder vos courriers indésirables si rien n’arrive : l’e-mail viendra de <strong>contact@seokraft.fr</strong>.</p>
   </div>;
@@ -79,7 +81,7 @@ const FAQ: [string, string][] = [
 export default function AuditLanding() {
   const [open, setOpen] = useState<number | null>(null);
   return <div className="lp">
-    <header className="lp-top"><a href="/" className="al-logo" title="SEOKRAFT, studio web à Strasbourg"><span className="al-wm">SEOKRAFT<span>.</span></span><span className="al-ls">STUDIO WEB INDÉPENDANT</span></a></header>
+    <header className="lp-top"><a href="/" className="al-logo" title="SEOKRAFT, création de sites internet à Strasbourg"><span className="al-wm">SEOKRAFT<span>.</span></span></a></header>
     <main>
       <section className="lp-hero">
         <div className="lp-hero-copy">
@@ -90,7 +92,7 @@ export default function AuditLanding() {
         </div>
         <div className="lp-hero-form"><AuditForm id="audit-haut" /></div>
         <ul className="lp-ticks lp-hero-ticks"><li><Check size={18} aria-hidden="true" />Gratuit et sans engagement</li><li><Check size={18} aria-hidden="true" />Expliqué sans mot technique</li><li><Check size={18} aria-hidden="true" />Le bulletin est à vous, quoi que vous décidiez</li></ul>
-        <div className="lp-me lp-hero-me"><div className="lp-me-photo"><Image src="/images/marc-portrait-rond.webp" alt="Marc Bretzner, fondateur de SEOKRAFT" fill sizes="80px" style={{ objectFit: 'cover' }} /></div><p><strong>Marc Bretzner, SEOKRAFT</strong>Studio web indépendant à Strasbourg, 15 ans de développement. Je relis chaque bulletin avant de vous l’envoyer.</p></div>
+        <div className="lp-me lp-hero-me"><div className="lp-me-photo"><Image src="/images/marc-portrait-rond.webp" alt="Marc Bretzner, fondateur de SEOKRAFT" fill sizes="80px" style={{ objectFit: 'cover' }} /></div><p><strong>Marc Bretzner, SEOKRAFT</strong>Développeur web indépendant à Strasbourg, 15 ans de développement. Je relis chaque bulletin avant de vous l’envoyer.</p></div>
       </section>
 
       <section className="lp-how">
@@ -126,7 +128,7 @@ export default function AuditLanding() {
 
       <section className="lp-trust">
         <span className="eyebrow">QUI EST DERRIÈRE</span>
-        <h2>Un studio web local, <em>des clients qui le disent.</em></h2>
+        <h2>Un développeur web local, <em>des clients qui le disent.</em></h2>
         <blockquote>« Il a pris le temps de m’alerter spontanément d’un problème sur mon site internet, ce qui nous a permis de le corriger rapidement. »<cite>Itclean Propreté</cite></blockquote>
         <blockquote>« Il a su donner vie à notre projet avec beaucoup de professionnalisme, de créativité et un vrai souci du détail. »<cite>Séverine Kayser, REMUS SYSTEMS</cite></blockquote>
       </section>

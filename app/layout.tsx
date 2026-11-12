@@ -5,10 +5,10 @@ import BackToTop from '../components/BackToTop';
 import AnalyticsConsent from '../components/AnalyticsConsent';
 export const metadata: Metadata = {
  metadataBase: new URL('https://www.seokraft.fr'),
- title: 'Studio web à Strasbourg : création, refonte & SEO | SEOKRAFT',
- description: 'SEOKRAFT, studio web à Strasbourg : création et refonte de sites internet, développement sur mesure, copywriting et SEO. Parlons de votre projet.',
+ title: 'Création de sites internet à Strasbourg, refonte & SEO | SEOKRAFT',
+ description: 'SEOKRAFT, création de sites internet à Strasbourg : refonte, développement sur mesure, copywriting et SEO. Parlons de votre projet.',
  alternates: { canonical: '/' },
- openGraph: { type:'website', locale:'fr_FR', url:'https://www.seokraft.fr', siteName:'SEOKRAFT', title:'Studio web à Strasbourg : création, refonte & SEO | SEOKRAFT', description:'SEOKRAFT, studio web à Strasbourg : création et refonte de sites internet, développement sur mesure, copywriting et SEO. Parlons de votre projet.' },
+ openGraph: { type:'website', locale:'fr_FR', url:'https://www.seokraft.fr', siteName:'SEOKRAFT', title:'Création de sites internet à Strasbourg, refonte & SEO | SEOKRAFT', description:'SEOKRAFT, création de sites internet à Strasbourg : refonte, développement sur mesure, copywriting et SEO. Parlons de votre projet.' },
  robots: { index: true, follow: true },
 };
 const schema = {

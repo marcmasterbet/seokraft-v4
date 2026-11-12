@@ -5,7 +5,7 @@ export default function Brand({home = false}: {home?: boolean}) {
   return (
     <Link href={home ? '#accueil' : '/'} className="brand" title="Retour à l’accueil">
       <span className="brand-name">SEOKRAFT<span className="brand-mark">.</span></span>
-      <span className="brand-sub">STUDIO WEB INDÉPENDANT</span>
+      
     </Link>
   );
 }

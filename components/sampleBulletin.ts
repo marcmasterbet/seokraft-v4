@@ -3,7 +3,7 @@ import type { Bulletin } from './auditTypes';
 /* Bulletin fictif, présenté comme exemple sur la landing page (aucune entreprise réelle). */
 export const SAMPLE_BULLETIN: Bulletin = {
   id: 'exemple', version: 2, url: 'https://www.menuiserie-exemple.fr/', host: 'menuiserie-exemple.fr', createdAt: '2026-11-10T09:00:00.000Z',
-  global: 10, notes: { vitesse: 7, securite: 12.5, google: 11, textes: 10.5, contact: 10 }, cap: 'Note limitée à 10/20 : le site est très lent sur téléphone.', verdict: 'Moyen, des clients vous échappent',
+  global: 10, notes: { vitesse: 7, securite: 12.5, google: 11, textes: 10 }, cap: 'Note limitée à 10/20 : le site est très lent sur téléphone.', verdict: 'Moyen, des clients vous échappent',
   impression: 'Le site inspire confiance grâce à de belles photos d’atelier. Mais sur téléphone, le haut de page est occupé par une grande image qui met longtemps à apparaître, et aucun bouton n’est visible avant de faire défiler.',
   essentiel: 'Le site présente un vrai savoir-faire et de belles photos de réalisations. Mais sur téléphone, il met plus de 7 secondes à s’afficher, et le numéro n’est pas cliquable : beaucoup de visiteurs partent avant de vous contacter. Priorité : rendre le site rapide sur mobile et le contact évident dès l’arrivée.',
   priorities: [
@@ -43,9 +43,9 @@ export const SAMPLE_BULLETIN: Bulletin = {
     { group: 'google', label: 'Nombre de pages du site', status: 'warn', detail: '3 page(s) trouvée(s) en plus de l’accueil.', advice: 'Une page par service permet d’apparaître sur beaucoup plus de recherches Google.' },
     { group: 'google', label: 'Ville ciblée sur Google', status: 'ok', detail: 'La ville (Molsheim) apparaît dans le titre ou le grand titre.', advice: '' },
     { group: 'textes', label: 'Photos de l’activité', status: 'ok', detail: '14 image(s) sur la page d’accueil.', advice: '' },
-    { group: 'contact', label: 'Avis clients visibles', status: 'bad', detail: 'Aucun avis client sur les pages analysées.', advice: 'La grande majorité des clients lisent les avis avant de contacter une entreprise. Afficher quelques avis réels rassure immédiatement.' },
-    { group: 'contact', label: 'Téléphone visible et cliquable', status: 'warn', detail: 'Un numéro est affiché, mais pas cliquable.', advice: 'Rendre le numéro cliquable : sur téléphone, un seul geste suffit pour vous appeler.' },
-    { group: 'contact', label: 'Bouton pour vous contacter dès l’arrivée', status: 'warn', detail: 'Un bouton existe, mais il faut descendre dans la page pour le trouver.', advice: 'Placer un bouton bien visible tout en haut : la plupart des visiteurs ne descendent pas.' },
+    { group: 'textes', label: 'Avis clients visibles', status: 'bad', detail: 'Aucun avis client sur les pages analysées.', advice: 'La grande majorité des clients lisent les avis avant de contacter une entreprise. Afficher quelques avis réels rassure immédiatement.' },
+    { group: 'textes', label: 'Téléphone visible et cliquable', status: 'warn', detail: 'Un numéro est affiché, mais pas cliquable.', advice: 'Rendre le numéro cliquable : sur téléphone, un seul geste suffit pour vous appeler.' },
+    { group: 'textes', label: 'Bouton pour vous contacter dès l’arrivée', status: 'warn', detail: 'Un bouton existe, mais il faut descendre dans la page pour le trouver.', advice: 'Placer un bouton bien visible tout en haut : la plupart des visiteurs ne descendent pas.' },
   ],
   positives: ['Le métier et la zone d’intervention sont clairs.', 'Les photos montrent de vraies réalisations.', 'Le site est sécurisé (cadenas HTTPS).'],
   ai: true,

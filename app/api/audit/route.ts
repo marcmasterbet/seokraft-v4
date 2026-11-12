@@ -68,6 +68,8 @@ export async function POST(request: Request) {
     if (raw.length > 5000) return NextResponse.json({ error: 'Requête trop longue' }, { status: 413 });
     const data = JSON.parse(raw) as Record<string, unknown>;
     if (clean(data.website, 200)) return NextResponse.json({ ok: true });
+    /* Robot : formulaire rempli en moins d'une seconde et demie (même avec le remplissage automatique du navigateur, un humain met plus longtemps). */
+    if (typeof data.t !== 'number' || data.t < 1500) { console.warn('Robot bloqué (audit) : formulaire trop rapide', data.t); return NextResponse.json({ ok: true }); }
 
     const name = oneLine(clean(data.name, 120));
     const email = clean(data.email, 254);
@@ -77,6 +79,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Données invalides' }, { status: 400 });
     }
     /* Spam : même réponse qu'une demande normale, mais aucun audit lancé (aucun crédit dépensé) et aucun e-mail. */
+    /* Inutile d'auditer seokraft.fr depuis la page publique : demande ignorée sans rien dépenser. */
+    if (/(^|\.)seokraft\.fr$/i.test(new URL(url).hostname)) { console.warn('Demande ignorée (audit de seokraft.fr)', email); return NextResponse.json({ ok: true }); }
     const spam = spamReason({ email, name, url });
     if (spam) { console.warn('Spam bloqué (audit)', spam); return NextResponse.json({ ok: true }); }
 
@@ -94,8 +98,14 @@ export async function POST(request: Request) {
       let report = '';
       let subject = `SEOKRAFT — Audit gratuit : ${new URL(url).hostname}`;
       const tool = `https://www.seokraft.fr/outil-audit?${new URLSearchParams({ url, prenom: firstName })}`;
-      const quota = await checkAndRecordQuota(url, email);
-      if (!quota.ok) {
+      /* Audit automatique (par défaut). Mode manuel possible : variable Vercel AUDIT_AUTO=0
+         (la demande est seulement rangée dans le CRM et envoyée à Marc, qui lance l'audit depuis son outil). */
+      const auto = process.env.AUDIT_AUTO !== '0';
+      const quota = auto ? await checkAndRecordQuota(url, email) : { ok: false as const, reason: 'manuel' };
+      if (!auto) {
+        subject += ' — à auditer';
+        report = `À AUDITER : si la demande est sérieuse, lance l’audit en un clic (adresse et prénom déjà remplis) :\n${tool}\n\nLe bulletin se rangera tout seul dans sa fiche du CRM. Tu as 24 h pour le lui envoyer.\nSi c’est un plaisantin, ignore simplement ce mail : rien n’a été dépensé.`;
+      } else if (!quota.ok) {
         subject += ' — non lancé automatiquement';
         report = `Audit NON lancé automatiquement : ${quota.reason} (protection de ton crédit IA).\nSi la demande est sérieuse, lance-le à la main depuis l’outil : ${tool}`;
       } else try {
@@ -131,7 +141,7 @@ export async function POST(request: Request) {
         const p = await upsertProspect({ email, website: url }, { source: 'audit', contactName: name, email, website: url, company: new URL(url).hostname.replace(/^www\./, '') }, (x) => {
           if (bid) { x.bulletinId = bid; x.score = done ? Number(done[1].replace(',', '.')) : x.score; }
           advance(x, 'audit_demande');
-          x.history.push(event(bid ? `Demande d’audit gratuit reçue · note ${done?.[1] ?? '?'}/20` : `Demande d’audit gratuit reçue · ${subject.split(' — ').pop()}`));
+          x.history.push(event(bid ? `Demande d’audit gratuit reçue · note ${done?.[1] ?? '?'}/20` : `Demande d’audit gratuit reçue${auto ? ` · ${subject.split(' — ').pop()}` : ' · audit à lancer depuis l’outil'}`));
         });
         report = `FICHE DANS LE CRM : https://www.seokraft.fr/crm?p=${p.id}\n\n${report}`;
       } catch (e) { console.error('CRM (audit)', e instanceof Error ? e.message : e); }

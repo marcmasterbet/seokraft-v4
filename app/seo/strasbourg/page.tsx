@@ -10,7 +10,7 @@ export const metadata: Metadata = {
  description: 'Accompagnement SEO à Strasbourg : optimisation technique des pages, référencement local et suivi de la visibilité Google. Échangeons sur votre site.',
  alternates: { canonical: '/seo/strasbourg' },
  robots: { index: true, follow: true },
- openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg' }
+ openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, création de sites internet à Strasbourg' }], title: 'Référencement naturel à Strasbourg | SEOKRAFT', description: 'Un référencement naturel pensé pour les entreprises de Strasbourg et d’Alsace.', url: 'https://www.seokraft.fr/seo/strasbourg' }
 };
 
 const services = [

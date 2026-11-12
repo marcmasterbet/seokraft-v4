@@ -1,5 +1,5 @@
 import LegalLayout from '../../components/LegalLayout';
-export const metadata={title:'Mentions légales | SEOKRAFT, studio web à Strasbourg',description:'Mentions légales du site seokraft.fr : éditeur, directeur de la publication, hébergeur, propriété intellectuelle et contact de SEOKRAFT à Strasbourg.',alternates:{canonical:'/mentions-legales'}};
+export const metadata={title:'Mentions légales | SEOKRAFT, création de sites internet à Strasbourg',description:'Mentions légales du site seokraft.fr : éditeur, directeur de la publication, hébergeur, propriété intellectuelle et contact de SEOKRAFT à Strasbourg.',alternates:{canonical:'/mentions-legales'}};
 export default function Page(){return <LegalLayout title="Mentions légales">
 <h2>Éditeur du site</h2>
 <p>Le site <a href="https://www.seokraft.fr">www.seokraft.fr</a> est édité par <strong>Marc Bretzner</strong>, entrepreneur individuel (EI), exerçant une activité de développement web, de référencement naturel (SEO) et d’optimisation de visibilité dans les moteurs et systèmes d’intelligence artificielle (GEO).</p>

@@ -5,7 +5,7 @@ const title = 'Créer le site internet de son association : par où commencer ?'
 const seoTitle = 'Créer le site internet de son association';
 const description = 'Pages essentielles, adhésions et dons en ligne, budget, obligations légales et mise à jour : le guide pour un site internet d’association utile et durable.';
 
-export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/site-internet-association' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/site-internet-association', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/site-internet-association' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, création de sites internet à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/site-internet-association', type: 'article' } };
 
 const article = {
  title,

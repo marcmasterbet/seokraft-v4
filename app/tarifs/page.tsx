@@ -9,7 +9,7 @@ export const metadata: Metadata = {
  title: 'Tarifs création de site internet à Strasbourg | SEOKRAFT',
  description,
  alternates: { canonical: '/tarifs' },
- openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title: 'Tarifs création de site internet | SEOKRAFT', description, url: 'https://www.seokraft.fr/tarifs' }
+ openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, création de sites internet à Strasbourg' }], title: 'Tarifs création de site internet | SEOKRAFT', description, url: 'https://www.seokraft.fr/tarifs' }
 };
 
 export default function TarifsPage(){return <><SiteHeader/><main><PricingSection page/><HomeFaq extra={faqTarifs}/><Contact/></main><SiteFooter/></>}

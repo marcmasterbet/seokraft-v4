@@ -1374,3 +1374,4 @@ html:has(.crm) .sk-cookie-overlay{display:none!important}
 .crm-remind.due p b{color:var(--bad)}
 .crm-yes{color:var(--olive)}.crm-no{color:var(--mut)}
 .crm-box.crm-fields{margin-top:14px}
+.bv-notes{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:560px){.bv-notes{grid-template-columns:1fr}}

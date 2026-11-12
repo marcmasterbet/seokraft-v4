@@ -4,6 +4,8 @@
    Pour bloquer un nouveau domaine sans toucher au code : variable Vercel SPAM_BLOCKLIST, domaines séparés par des virgules. */
 
 const BLOCKED = ['probox.my.id', 'unpartage.online'];
+/* Adresses e-mail jetables (créées en un clic, sans inscription) : utilisées par les robots et les plaisantins. */
+const DISPOSABLE = ['jysnk.com', 'yopmail.com', 'yopmail.fr', 'yopmail.net', 'mailinator.com', 'guerrillamail.com', 'guerrillamail.info', 'guerrillamailblock.com', 'sharklasers.com', 'grr.la', 'pokemail.net', 'spam4.me', '10minutemail.com', '10minutemail.net', 'temp-mail.org', 'tempmail.com', 'tempmail.net', 'tempmailo.com', 'tempail.com', 'tmpmail.org', 'tmpmail.net', 'trashmail.com', 'trashmail.de', 'getnada.com', 'nada.email', 'maildrop.cc', 'dispostable.com', 'throwawaymail.com', 'fakeinbox.com', 'mohmal.com', 'emailondeck.com', 'mintemail.com', 'moakt.com', 'tmail.ws', 'mailnesia.com', 'mailcatch.com', 'mytemp.email', 'burnermail.io', 'spamgourmet.com', 'jetable.org', 'emailfake.com', 'fakemail.net', 'crazymailing.com', 'mail.tm', 'mail.gw', 'inboxkitten.com', 'cuvox.de', 'armyspy.com', 'dayrep.com', 'einrot.com', 'fleckens.hu', 'gustr.com', 'jourrapide.com', 'rhyta.com', 'superrito.com', 'teleworm.us', 'mvrht.net', 'mailpoof.com', 'linshiyouxiang.net', '1secmail.com', '1secmail.net', '1secmail.org', 'vjuum.com', 'laafd.com', 'txcct.com', 'rteet.com', 'dpptd.com', 'kzccv.com', 'qiott.com', 'wwjmp.com', 'esiix.com', 'xojxe.com', 'yoggm.com'];
 /* Domaines gratuits très utilisés par les robots pour leurs adresses jetables. */
 const SUSPICIOUS_EMAIL = /\.my\.id$|\.(tk|ml|ga|cf|gq)$/i;
 const OWN = /(^|\.)seokraft\.fr$/i;
@@ -15,7 +17,7 @@ export function spamReason(fields: { email: string; message?: string; name?: str
   const list = [...BLOCKED, ...(process.env.SPAM_BLOCKLIST || '').split(',').map((d) => d.trim().toLowerCase().replace(/^www\./, '')).filter(Boolean)];
   const emailHost = (fields.email.split('@')[1] || '').toLowerCase();
   if (matches(emailHost, list)) return `adresse e-mail bloquée (${emailHost})`;
-  if (SUSPICIOUS_EMAIL.test(emailHost)) return `adresse e-mail jetable (${emailHost})`;
+  if (SUSPICIOUS_EMAIL.test(emailHost) || matches(emailHost, DISPOSABLE)) return `adresse e-mail jetable (${emailHost})`;
   const text = `${fields.name || ''} ${fields.message || ''}`;
   const links = text.match(/https?:\/\/[^\s<>"')]+|\b[a-z0-9-]+\.(?:online|site|xyz|top|click|link|shop|store|live|icu|buzz)\b[^\s]*/gi) || [];
   for (const l of links) {

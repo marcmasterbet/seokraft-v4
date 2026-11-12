@@ -141,7 +141,7 @@ export function buildMail(o: { host: string; score: number; firstName?: string; 
     'Belle journée,',
     '',
     'Marc Bretzner',
-    'SEOKRAFT, studio web à Strasbourg',
+    'SEOKRAFT, création de sites internet à Strasbourg',
     '06 72 20 91 53',
     'https://www.seokraft.fr',
   ].join('\n');
@@ -169,7 +169,7 @@ export type Bulletin = {
   host: string;
   createdAt: string;
   global: number;                // sur 20, au demi-point
-  notes: { vitesse?: number; securite?: number; technique?: number; google: number; textes: number | null; contact: number };
+  notes: { vitesse?: number; securite?: number; technique?: number; google: number; textes: number | null; contact?: number };
   cap?: string;                  // raison pour laquelle la note est plafonnée
   verdict: string;
   essentiel: string;
@@ -189,12 +189,12 @@ export type Bulletin = {
 
 export const NOTE_LABELS: { id: NoteId; label: string; hint: string }[] = [
   { id: 'vitesse', label: 'Vitesse et téléphone', hint: 'Le site s’affiche-t-il vite, sur téléphone comme sur ordinateur ?' },
-  { id: 'securite', label: 'Sécurité et conformité', hint: 'Vos visiteurs et vos données sont-ils protégés ?' },
+  { id: 'securite', label: 'Sécurité et RGPD', hint: 'Vos visiteurs et leurs données sont-ils protégés ? Le site est-il en règle ?' },
   { id: 'google', label: 'Visibilité sur Google', hint: 'Ce que Google comprend et affiche de vous' },
-  { id: 'textes', label: 'Référencement et contenu', hint: 'Vos titres et vos pages correspondent-ils à ce que tapent vos clients ?' },
-  { id: 'contact', label: 'Contact et confiance', hint: 'Est-il simple et rassurant de vous contacter ?' },
+  { id: 'textes', label: 'Aspect général', hint: 'Contenu, image du site et facilité à vous contacter' },
 ];
-const GROUP_OF: Record<Category, NoteId> = { mobile: 'vitesse', securite: 'securite', google: 'google', contenu: 'textes', contact: 'contact' };
+/* Les points de contact (bouton, téléphone, avis, preuves) font partie de l'aspect général : plus de note « Contact » à part. */
+const GROUP_OF: Record<Category, NoteId> = { mobile: 'vitesse', securite: 'securite', google: 'google', contenu: 'textes', contact: 'textes' };
 
 export const LEVEL_LABEL: Record<Level, string> = { critique: 'Prioritaire', important: 'Important', planifier: 'À planifier' };
 
@@ -246,10 +246,10 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
   const vitesse = half(Math.min(st('builder') === 'bad' ? 10 : 20, 20 * curve(pct(['mobile']))));
   const securite = half(20 * curve(pct(['securite'])));
   const google = half(20 * curve(speed?.seo != null ? 0.85 * pct(['google']) + 0.15 * (speed.seo / 100) : pct(['google'])));
-  const contact = half(20 * curve(pct(['contact'])));
-  const textes = review ? half(0.75 * Math.max(0, Math.min(20, review.score)) + 0.25 * 20 * curve(pct(['contenu']))) : null;
-  /* Le contact compte double : c'est lui qui transforme un visiteur en client. */
-  const parts: [number, number][] = [[vitesse, 1], [securite, 1], [google, 1], [contact, 2], ...(textes !== null ? [[textes, 1.5] as [number, number]] : [])];
+  /* Aspect général : le regard de l'IA (contenu, image, message) et les vérifications de contenu et de contact. */
+  const checksAspect = 20 * curve(pct(['contenu', 'contact']));
+  const textes = half(review ? 0.6 * Math.max(0, Math.min(20, review.score)) + 0.4 * checksAspect : checksAspect);
+  const parts: [number, number][] = [[vitesse, 1], [securite, 1], [google, 1], [textes, 1.5]];
   let global = half(parts.reduce((s, [v, w]) => s + v * w, 0) / parts.reduce((s, [, w]) => s + w, 0));
 
   /* Plafonds : un défaut grave empêche une bonne note, quoi que fasse le reste du site. */
@@ -260,14 +260,13 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
     [st('old-cms') === 'bad' || st('vuln-lib') === 'bad', 10, 'le site utilise des logiciels anciens avec des failles connues'],
     [st('builder') === 'bad', 12, 'le site est construit avec un outil « clé en main » limité'],
     [st('viewport') === 'bad', 8, 'le site n’est pas adapté aux téléphones'],
-    [st('phone') === 'bad' && st('form') === 'bad', 8, 'aucun moyen simple de contacter l’entreprise'],
+    [st('phone') === 'bad' && st('form') === 'bad' && st('cta') === 'bad', 11, 'aucun moyen simple de contacter l’entreprise'],
     [st('outdated') === 'bad', 9, 'le site repose sur une technologie dépassée'],
     [st('https') === 'bad', 9, 'le site n’est pas sécurisé'],
     [speed?.performance != null && speed.performance < 30, 10, 'le site est très lent sur téléphone'],
     [st('cta') === 'bad', 11, 'aucun bouton n’invite à prendre contact'],
     [review !== null && review.score <= 8, 11, 'le message ne donne pas envie de choisir l’entreprise'],
     [st('words') === 'bad', 11, 'le site contient trop peu de texte pour Google'],
-    [st('phone') === 'bad', 12, 'aucun numéro de téléphone visible'],
     [st('legal') === 'bad', 12, 'les mentions légales, obligatoires, sont absentes'],
     [st('title-local') === 'bad', 13, 'le site ne cible pas sa ville sur Google'],
     [st('reviews') === 'bad' || st('reviews') === 'warn', 15, 'aucun avis client visible'],
@@ -300,7 +299,7 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
     .map((c) => ({ group: GROUP_OF[c.cat], label: c.label, status: c.status, detail: c.detail, advice: c.status === 'ok' ? '' : c.advice }))
     .sort((a, b) => rankSt[a.status] - rankSt[b.status]);
 
-  return { id, version: 2, url: result.url, host: result.host, createdAt: new Date().toISOString(), global, notes: { vitesse, securite, google, textes, contact }, cap,
+  return { id, version: 2, url: result.url, host: result.host, createdAt: new Date().toISOString(), global, notes: { vitesse, securite, google, textes }, cap,
     verdict: verdict20(global), essentiel, impression: review?.impression || undefined, priorities, positives, constats: review?.constats ?? [], speed, speedDesktop: desktop, ai: !!review,
     pages: result.pages, pagesDetail: result.pagesDetail, checks: all, channels: result.content?.channels ?? [] };
 }
@@ -326,7 +325,7 @@ export function buildBulletinMail(b: Bulletin, firstName = '') {
     'Belle journée,',
     '',
     'Marc Bretzner',
-    'SEOKRAFT, studio web à Strasbourg',
+    'SEOKRAFT, création de sites internet à Strasbourg',
     '06 72 20 91 53',
     'https://www.seokraft.fr',
   ].filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n');

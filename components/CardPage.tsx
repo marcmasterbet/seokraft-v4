@@ -10,7 +10,7 @@ export default function CardPage(){
    <div className="vc-photo"><Image src="/images/marc-accueil.webp" alt="Marc Bretzner, fondateur de SEOKRAFT" fill priority sizes="112px" style={{objectFit:'cover',objectPosition:'center 30%'}}/></div>
    <h1>Marc Bretzner<span>.</span></h1>
    <p className="vc-role">Création de sites internet &amp; SEO</p>
-   <p className="vc-brand">SEOKRAFT<span>.</span> · Studio web indépendant · Strasbourg</p>
+   <p className="vc-brand">SEOKRAFT<span>.</span> · Développeur web indépendant · Strasbourg</p>
    <a className="vc-phone" href="tel:+33672209153"><Phone size={15} aria-hidden="true"/> 06 72 20 91 53</a>
   </header>
 

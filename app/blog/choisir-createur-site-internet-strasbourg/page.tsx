@@ -5,7 +5,7 @@ const title = 'Comment choisir son créateur de site internet à Strasbourg ?';
 const seoTitle = 'Choisir son créateur de site internet à Strasbourg';
 const description = 'Freelance ou agence, réalisations, avis, devis, propriété du site : les critères et les questions à poser pour choisir son créateur de site à Strasbourg.';
 
-export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/choisir-createur-site-internet-strasbourg' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, studio web à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/choisir-createur-site-internet-strasbourg', type: 'article' } };
+export const metadata: Metadata = { title: `${seoTitle} | SEOKRAFT`, description, alternates: { canonical: '/blog/choisir-createur-site-internet-strasbourg' }, robots: { index: true, follow: true }, openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, création de sites internet à Strasbourg' }], title, description, url: 'https://www.seokraft.fr/blog/choisir-createur-site-internet-strasbourg', type: 'article' } };
 
 const article = {
  title,
@@ -16,7 +16,7 @@ const article = {
  sections: [
   { heading: 'Freelance ou agence ?', paragraphs: [
    'Une agence réunit plusieurs spécialistes et convient bien aux projets importants, avec de nombreuses pages, des fonctionnalités complexes ou plusieurs interlocuteurs dans votre entreprise.',
-   'Un freelance ou un studio indépendant vous offre un interlocuteur unique : la personne avec qui vous échangez est celle qui conçoit votre site. Pour un site vitrine, un artisan, un indépendant ou une association, c’est souvent plus simple, plus réactif et plus économique.',
+   'Un freelance ou un développeur indépendant vous offre un interlocuteur unique : la personne avec qui vous échangez est celle qui conçoit votre site. Pour un site vitrine, un artisan, un indépendant ou une association, c’est souvent plus simple, plus réactif et plus économique.',
    'Dans les deux cas, ce qui compte n’est pas la taille de la structure, mais la qualité des réalisations, la clarté de l’accompagnement et la capacité à comprendre votre activité.'
   ]},
   { heading: 'Regarder les réalisations, vraiment', paragraphs: [

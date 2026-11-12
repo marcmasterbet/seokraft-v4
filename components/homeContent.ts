@@ -2,7 +2,7 @@
  * Textes de la page d'accueil — rédigés par Jeff Bond (copywriter), intégrés mot pour mot.
  * Ne pas reformuler : toute modification doit venir de Jeff / Marc.
  * Choix validés par Marc (28/10/2026) : numéros des étapes retirés, 2e partie des titres en italique olive,
- * résumés de Jeff dans les cartes d'avis, logo « Studio web indépendant ».
+ * résumés de Jeff dans les cartes d'avis, logo seul, sans mention dessous (12/11/2026).
  * Allègement validé par Marc (28/10/2026) : textes conservés ici mais NON affichés —
  *   tarifs.offerLead + offerList, tarifs.hostingLabel/hostingText, inclus.after,
  *   hebergement.after + accent, recommandations.accent (doublons). Pour les réafficher, voir Home.tsx / Testimonials.tsx.
@@ -12,14 +12,14 @@
 export type Title = [string, string];
 
 export const meta = {
- title: "Studio web à Strasbourg : création, refonte & SEO | SEOKRAFT",
- description: "SEOKRAFT, studio web à Strasbourg : création et refonte de sites internet, développement sur mesure, copywriting et SEO. Parlons de votre projet."
+ title: "Création de sites internet à Strasbourg, refonte & SEO | SEOKRAFT",
+ description: "SEOKRAFT, création de sites internet à Strasbourg : refonte, développement sur mesure, copywriting et SEO. Parlons de votre projet."
 };
 
 /* BLOC 1 — HERO */
 export const hero = {
- eyebrow: "STUDIO WEB INDÉPENDANT · STRASBOURG · ALSACE",
- title: ["Studio web à Strasbourg : ", "votre site doit convaincre, pas seulement exister"] as Title, // le point final est affiché après
+ eyebrow: "CRÉATION DE SITES INTERNET · STRASBOURG · ALSACE",
+ title: ["Création de sites internet à Strasbourg : ", "votre site doit convaincre, pas seulement exister"] as Title, // le point final est affiché après
  accent: "Votre futur client ne devrait pas avoir à chercher pourquoi il doit vous choisir.",
  paragraphs: [
   "Lorsqu'un prospect découvre votre site internet, il doit comprendre rapidement ce que vous proposez, ce qui vous différencie et comment vous contacter.",
@@ -133,7 +133,7 @@ export const seoGeo = {
 
 /* BLOC 6 — À PROPOS */
 export const aPropos = {
- eyebrow: "UN STUDIO WEB À TAILLE HUMAINE",
+ eyebrow: "UN DÉVELOPPEUR WEB INDÉPENDANT",
  title: ["15 ans d'expérience dans le développement. ", "Un seul interlocuteur pour votre site."] as Title,
  paragraphs: [
   "Je suis Marc Bretzner, fondateur de SEOKRAFT.",
@@ -301,7 +301,7 @@ export const contact = {
  ],
  signature: {
   name: "SEOKRAFT — Marc Bretzner",
-  lines: ["Studio web indépendant basé à Strasbourg.", "Création de sites internet, refonte, développement sur mesure et référencement SEO & GEO en Alsace et partout en France."],
+  lines: ["Développeur web indépendant basé à Strasbourg.", "Création de sites internet, refonte, développement sur mesure et référencement SEO & GEO en Alsace et partout en France."],
   accent: "Votre entreprise a son expertise. Donnons à vos futurs clients les moyens de la découvrir et de la comprendre."
  }
 };
