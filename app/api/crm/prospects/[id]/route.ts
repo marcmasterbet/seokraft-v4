@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authorised, getProspect, saveProspect, deleteProspect, event, removeDoc } from '../../../../../lib/crmStore';
-import { STAGE_LABEL, nextAction, type Prospect, type Stage } from '../../../../../components/crmTypes';
+import { STAGE_LABEL, nextAction, emptyClient, nextDomain, type Prospect, type Stage, type ClientInfo } from '../../../../../components/crmTypes';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
   switch (d.action) {
     case 'update': {
       const f = (d.fields || {}) as Record<string, unknown>;
-      const keys: [keyof Prospect, number][] = [['company', 200], ['contactName', 200], ['email', 254], ['phone', 40], ['website', 300], ['city', 80], ['trade', 80], ['priority', 20], ['bulletinId', 24]];
+      const keys: [keyof Prospect, number][] = [['company', 200], ['contactName', 200], ['email', 254], ['phone', 40], ['website', 300], ['city', 80], ['address', 200], ['siret', 20], ['google', 60], ['distance', 30], ['trade', 80], ['priority', 20], ['bulletinId', 24]];
       for (const [k, n] of keys) if (k in f) (p as Record<string, unknown>)[k] = s(f[k], n);
       if ('score' in f) p.score = f.score === null || f.score === '' ? null : Math.max(0, Math.min(20, Number(String(f.score).replace(',', '.')) || 0));
       break;
@@ -37,6 +37,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
       if ((st === 'audit_envoye' && p.followCycle !== 'audit') || (st === 'devis' && p.followCycle !== 'devis')) { p.followFrom = now; p.followCycle = st === 'devis' ? 'devis' : 'audit'; p.relances = 0; }
       p.stage = st;
       p.manualAction = null;
+      if (st === 'client' && !p.client) { p.client = emptyClient(); p.history.push(event('Devenu client : fiche client à compléter (projet, maintenance, hébergement)')); }
       break;
     }
     case 'relance': {
@@ -57,6 +58,30 @@ export async function PATCH(request: Request, { params }: Ctx) {
       const due = s(d.due, 40);
       p.manualAction = label ? { label, due: due && !Number.isNaN(Date.parse(due)) ? new Date(due).toISOString() : '' } : null;
       if (label) p.history.push(event(`Action prévue : ${label}${due ? ` (${new Date(due).toLocaleDateString('fr-FR')})` : ''}`));
+      break;
+    }
+    case 'client': {
+      const f = (d.fields || {}) as Record<string, unknown>;
+      const c: ClientInfo = { ...emptyClient(), ...(p.client || {}) };
+      for (const k of ['project', 'price', 'maintenanceAmount', 'host'] as const) if (k in f) c[k] = s(f[k], 120);
+      for (const k of ['launchDate', 'maintenanceStart', 'domainRenewal'] as const) if (k in f) { const v = s(f[k], 10); c[k] = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''; }
+      if ('maintenance' in f) c.maintenance = !!f.maintenance;
+      if ('invoiceDay' in f) c.invoiceDay = Math.max(0, Math.min(28, Math.round(Number(f.invoiceDay) || 0)));
+      if ('hostedBy' in f) c.hostedBy = f.hostedBy === 'moi' || f.hostedBy === 'client' ? f.hostedBy : '';
+      if (c.maintenance && !c.maintenanceStart && c.launchDate) c.maintenanceStart = c.launchDate;
+      p.client = c;
+      p.history.push(event('Fiche client mise à jour'));
+      break;
+    }
+    case 'clientDone': {
+      const c: ClientInfo = { ...emptyClient(), ...(p.client || {}) };
+      const what = s(d.what, 20);
+      if (what === 'facture') { c.lastInvoiced = new Date().toISOString().slice(0, 7); p.history.push(event(`Facture de maintenance faite (${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })})`, 'relance')); }
+      else if (what === 'avis') { c.reviewAsked = true; p.history.push(event('Recommandation LinkedIn demandée', 'relance')); }
+      else if (what === 'engagement') { c.commitmentSeen = true; p.history.push(event('Fin d’engagement : vu')); }
+      else if (what === 'domaine') { c.domainRenewal = nextDomain(c.domainRenewal); p.history.push(event('Domaine renouvelé')); }
+      else return NextResponse.json({ error: 'Action inconnue' }, { status: 400 });
+      p.client = c;
       break;
     }
     case 'removeDoc': {

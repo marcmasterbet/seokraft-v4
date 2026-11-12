@@ -125,7 +125,7 @@ export async function upsertProspect(match: { id?: string; email?: string; websi
 }
 /* Avance d'étape sans jamais reculer (une nouvelle demande ne fait pas repasser un client en « à contacter »). */
 const ORDER: Stage[] = ['a_contacter', 'audit_demande', 'audit_envoye', 'relance', 'rdv', 'devis', 'client'];
-export function advance(p: Prospect, to: Stage) { if (p.stage === 'perdu' || ORDER.indexOf(to) > ORDER.indexOf(p.stage)) p.stage = to; }
+export function advance(p: Prospect, to: Stage) { if (p.stage === 'perdu' || p.stage === 'cote' || ORDER.indexOf(to) > ORDER.indexOf(p.stage)) p.stage = to; }
 
 /* Pièces jointes (PDF). */
 export async function saveDoc(id: string, name: string, data: Buffer, contentType: string) {
