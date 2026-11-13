@@ -62,6 +62,10 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
         <figcaption>Votre site tel que le voient vos clients, sur ordinateur et sur téléphone{sample ? ' (exemple fictif)' : ''}</figcaption>
       </figure>}
       <div className={`bv-global ${tone(b.global)}`}><Score20 value={fmt20(b.global)} /><div><span className="eyebrow">NOTE DU SITE</span><p className="bv-verdict">{b.verdict}</p><p className="bv-muted">Note globale de votre site</p></div></div>
+      {b.positives.length > 0 && <div className="bv-good-top">
+        <p className="bv-good-title">Ce qui va déjà bien</p>
+        <ul className="bv-good">{b.positives.map((p, i) => <li key={i}><Check size={18} aria-hidden="true" />{p}</li>)}</ul>
+      </div>}
       <div className="bv-actions no-print"><a className="button button-olive" href="/rendez-vous">Réserver un appel de 20 minutes <ArrowUpRight size={17} /></a><PrintButton name={`Audit-SEOKRAFT-${b.host}`} /></div>
     </section>
 
@@ -121,10 +125,6 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
       </div>)}</div>
     </section>}
 
-    {b.positives.length > 0 && <section className="bv-sec">
-      <h2>Ce qui va déjà bien</h2>
-      <ul className="bv-good">{b.positives.map((p, i) => <li key={i}><Check size={18} aria-hidden="true" />{p}</li>)}</ul>
-    </section>}
 
     <section className="bv-sec bv-cta">
       <div className="bv-who"><div className="bv-photo"><Image src="/images/marc-portrait-rond.webp" alt="Marc Bretzner" fill sizes="96px" loading="eager" style={{ objectFit: 'cover' }} /></div><div><h2>Envie d’en parler&nbsp;?</h2><p>Je vous explique ces résultats et ce que je ferais en premier à votre place. 20 minutes au téléphone, gratuit et sans engagement.</p></div></div>

@@ -165,7 +165,7 @@ export default function CrmApp() {
 
     <div className="crm-wrap">
       <section className="crm-list" aria-label="Prospects">
-        {space === 'clients' && clientToday.length > 0 && <div className="crm-today"><b>{clientToday.length} rappel{clientToday.length > 1 ? 's' : ''} client aujourd’hui</b><span>Facture de maintenance, avis Google, fin d’engagement ou domaine : voir les lignes en rouge.</span></div>}
+        {space === 'clients' && clientToday.length > 0 && <div className="crm-today"><b>{clientToday.length} rappel{clientToday.length > 1 ? 's' : ''} client aujourd’hui</b><span>Facture de maintenance, recommandation LinkedIn, fin d’engagement ou domaine : cliquez sur « Fait » une fois l’action faite.</span></div>}
         {space === 'prospects' && today.length > 0 && <button type="button" className="crm-today" onClick={() => { setTab('jour'); setView('liste'); }}><b>{today.length} action{today.length > 1 ? 's' : ''} à faire aujourd’hui</b><span>Relances et réponses en attente, le mail est prêt dans chaque fiche.</span></button>}
         {info && <p className="crm-info">{info}</p>}
         {error && !current && <p className="crm-error" role="alert">{error}</p>}
@@ -173,7 +173,7 @@ export default function CrmApp() {
           {([['tous', 'Tous', active.length], ['jour', 'Aujourd’hui', today.length], ...PSTAGES.map((s) => [s.id, s.label, counts[s.id]])] as [Tab, string, number][]).map(([id, label, n]) =>
             <button key={id} role="tab" aria-selected={tab === id} className={`${tab === id ? 'on' : ''}${id === 'cote' ? ' crm-tab-cote' : ''}`} onClick={() => setTab(id)}>{label}<em>{n}</em></button>)}
         </div>}
-        {space === 'clients' ? <ClientTable items={shown} sel={sel} onSel={(id) => { setSel(id); setCreating(false); }} /> : view === 'tableau' ? <div className={`crm-board crm-board-${density}`}>
+        {space === 'clients' ? <ClientTable items={shown} sel={sel} onSel={(id) => { setSel(id); setCreating(false); }} onDone={(id, what) => act(id, { action: 'clientDone', what })} /> : view === 'tableau' ? <div className={`crm-board crm-board-${density}`}>
           {PSTAGES.map((st) => { const items = shown.filter((p) => p.stage === st.id); return <section key={st.id} className={`crm-col crm-col-${st.id}${dragOver === st.id ? ' over' : ''}`} aria-label={st.label}
             onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragOver !== st.id) setDragOver(st.id); }}
             onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(null); }}
@@ -210,7 +210,7 @@ export default function CrmApp() {
 }
 
 function NewProspect({ onClose, onCreated, asClient = false }: { onClose: () => void; onCreated: (p: Prospect) => void; asClient?: boolean }) {
-  const [f, setF] = useState({ company: '', contactName: '', email: '', phone: '', website: '', city: '', trade: '' });
+  const [f, setF] = useState({ company: '', contactName: '', email: '', phone: '', website: '', address: '', city: '', trade: '', siret: '' });
   const [err, setErr] = useState('');
   return <form className="crm-fiche" onSubmit={async (e) => { e.preventDefault(); try {
     let p = (await api<{ prospect: Prospect }>('/api/crm/prospects', { method: 'POST', body: JSON.stringify(f) })).prospect;
@@ -219,7 +219,7 @@ function NewProspect({ onClose, onCreated, asClient = false }: { onClose: () => 
   } catch (x) { setErr((x as Error).message); } }}>
     <button type="button" className="crm-back" onClick={onClose}><ArrowLeft size={16} />Retour</button>
     <p className="crm-eye">{asClient ? 'NOUVEAU CLIENT' : 'NOUVEAU PROSPECT'}</p>
-    <div className="crm-fields">{([['company', 'Entreprise'], ['contactName', 'Contact (prénom nom)'], ['email', 'E-mail'], ['phone', 'Téléphone'], ['website', 'Site'], ['city', 'Ville'], ['trade', 'Métier']] as [keyof typeof f, string][]).map(([k, l]) =>
+    <div className="crm-fields">{([['company', 'Entreprise'], ['contactName', 'Contact (prénom nom)'], ['email', 'E-mail'], ['phone', 'Téléphone'], ['website', 'Site internet'], ['address', 'Adresse'], ['city', 'Ville'], ['trade', 'Métier'], ['siret', 'SIRET']] as [keyof typeof f, string][]).map(([k, l]) =>
       <label key={k}>{l}<input value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></label>)}</div>
     {err && <p className="crm-error" role="alert">{err}</p>}
     <button className="crm-btn" type="submit">Créer la fiche</button>
@@ -346,17 +346,18 @@ function Fiche({ p, busy, error, act, onBack, onDeleted, onUpdated }: { p: Prosp
 /* ===================== Espace Clients ===================== */
 const fdate = (v: string) => (v ? new Date(`${v}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' }) : '');
 
-function ClientTable({ items, sel, onSel }: { items: Prospect[]; sel: string | null; onSel: (id: string) => void }) {
+function ClientTable({ items, sel, onSel, onDone }: { items: Prospect[]; sel: string | null; onSel: (id: string) => void; onDone: (id: string, what: string) => void }) {
   if (!items.length) return <p className="crm-empty">Aucun client pour l’instant. Ajoutez vos clients avec « Nouveau client », ou passez un prospect en « Client » quand il signe.</p>;
   return <div className="crm-rows crm-clients">
     <div className="crm-row crm-row-head" aria-hidden="true"><span>Client</span><span>Mise en ligne</span><span>Maintenance</span><span>Hébergement</span><span>Prochain rappel</span></div>
-    {items.map((p) => { const c = p.client; const a = clientActions(p)[0]; const due = a && new Date(a.due).getTime() <= Date.now(); return <button type="button" key={p.id} className={`crm-row${p.id === sel ? ' sel' : ''}`} onClick={() => onSel(p.id)}>
+    {items.map((p) => { const c = p.client; const a = clientActions(p)[0]; const due = a && new Date(a.due).getTime() <= Date.now(); return <div role="button" tabIndex={0} key={p.id} className={`crm-row${p.id === sel ? ' sel' : ''}`} onClick={() => onSel(p.id)} onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onSel(p.id); } }}>
       <span className="crm-co"><b>{p.company || hostOf(p.website) || 'Sans nom'}</b><small>{[hostOf(p.website), c?.project].filter(Boolean).join(' · ') || 'à compléter'}</small></span>
       <span className="crm-next">{c?.launchDate ? fdate(c.launchDate) : '—'}</span>
       <span>{c?.maintenance ? <i className="crm-src crm-src-audit">Oui · {c.maintenanceAmount || 'mensuelle'}</i> : <i className="crm-src">Non</i>}</span>
       <span className="crm-next">{c?.hostedBy === 'moi' ? `Par moi${c.host ? ` · ${c.host}` : ''}` : c?.hostedBy === 'client' ? `Par le client${c.host ? ` · ${c.host}` : ''}` : '—'}</span>
-      <span className={due ? 'crm-due' : 'crm-next'}>{a ? `${a.label.split(' : ')[0].split(' (')[0]} · ${frDate(a.due)}` : '—'}</span>
-    </button>; })}
+      <span className={`crm-remind-cell ${due ? 'crm-due' : 'crm-next'}`}>{a ? `${a.label.split(' : ')[0].split(' (')[0]} · ${frDate(a.due)}` : '—'}
+        {a && due && <button type="button" className="crm-done-btn" title={a.done} onClick={(e) => { e.stopPropagation(); onDone(p.id, a.what); }}><Check size={14} />Fait</button>}</span>
+    </div>; })}
   </div>;
 }
 

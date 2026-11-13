@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!authorised(request)) return deny();
   const d = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-  const p: Prospect = { ...emptyProspect(newId()), company: s(d.company), contactName: s(d.contactName), email: s(d.email, 254), phone: s(d.phone, 40), website: s(d.website, 300), city: s(d.city, 80), trade: s(d.trade, 80) };
+  const p: Prospect = { ...emptyProspect(newId()), company: s(d.company), contactName: s(d.contactName), email: s(d.email, 254), phone: s(d.phone, 40), website: s(d.website, 300), address: s(d.address, 200), city: s(d.city, 80), trade: s(d.trade, 80), siret: s(d.siret, 20) };
   if (!p.company && !p.email && !p.website) return NextResponse.json({ error: 'Indiquez au moins une entreprise, un e-mail ou un site.' }, { status: 400 });
   p.history.push(event('Fiche créée à la main'));
   return NextResponse.json({ prospect: await saveProspect(p) });
