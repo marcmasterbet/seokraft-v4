@@ -27,3 +27,13 @@ console.log(errors.map((e) => `  · ${e}`).join('\n'));
 for (const re of [/Hiérarchie des titres.*Rien à faire/, /seul un lien e-mail/, /aucune preuve/, /tronqué|caractères/, /CLS sur ordinateur.*pas signalé/, /CLS sur ordinateur.*priorités/, /WhatsApp/])
   assert.ok(errors.some((e) => re.test(e)), `Incohérence non détectée : ${re}`);
 console.log(`✓ Le bulletin d’origine est bloqué (${errors.length} incohérences détectées).`);
+
+/* Description : propreurs.fr (13/11/2026) bloqué à tort. L'accueil a une description, une autre page non. */
+const descOk = ck('google', 'Description dans les résultats Google', 'ok', '152 caractères.', 'Bonne description.');
+const base: any = { ...old, checks: [descOk], priorities: [], constats: [], positives: [], channels: [], speed: undefined, speedDesktop: undefined };
+const pages = (sub: boolean) => [{ label: 'Accueil', path: '/', title: 'A', description: true, h1: 'A', words: 400 }, { label: 'Services', path: '/services', title: 'S', description: sub, h1: 'S', words: 300 }];
+const descErr = (b: any) => validateBulletin(b).filter((e) => /description/.test(e));
+assert.equal(descErr({ ...base, pagesDetail: pages(false), essentiel: 'La page Services n’a pas de description dans Google.' }).length, 0, 'Autre page sans description : ne doit pas bloquer');
+assert.equal(descErr({ ...base, pagesDetail: pages(true), essentiel: 'Plusieurs images sans description.' }).length, 0, 'Images sans description : ne doit pas bloquer');
+assert.equal(descErr({ ...base, pagesDetail: pages(true), essentiel: 'Votre site n’a pas de description dans Google.' }).length, 1, 'Vraie contradiction : doit bloquer');
+console.log('✓ Règle « description » : autre page et images acceptées, vraie contradiction bloquée.');

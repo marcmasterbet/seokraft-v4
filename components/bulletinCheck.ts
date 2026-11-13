@@ -55,7 +55,17 @@ export function validateBulletin(b: Bulletin): string[] {
     https: byId('Connexion sécurisée (cadenas)')?.status === 'ok',
     description: byId('Description dans les résultats Google')?.status === 'ok',
   };
-  for (const k of CONTRADICTIONS) if (okIds[k.check] && k.re.test(aiText)) errors.push(`Le texte ${k.label}.`);
+  /* « Pas de description » n'est une erreur que si la phrase parle bien de la description Google
+     et que TOUTES les pages analysées en ont une (sinon l'IA parle d'une autre page, ou des images). */
+  const sentences = aiText.split(/(?<=[.!?…])\s+|\n/);
+  const allPagesDesc = (b.pagesDetail ?? []).every((p) => p.description);
+  for (const k of CONTRADICTIONS) {
+    if (!okIds[k.check]) continue;
+    const hit = k.check === 'description'
+      ? allPagesDesc && sentences.some((t) => k.re.test(t) && !/image|photo|visuel|\balt\b|bouton|lien/i.test(t))
+      : k.re.test(aiText);
+    if (hit) errors.push(`Le texte ${k.label}.`);
+  }
 
   /* 5. Titre cité en entier, avec sa vraie longueur. */
   const title = byId('Titre de la page pour Google');
