@@ -7,13 +7,44 @@ import type { Bulletin, Speed } from './auditTypes';
 const NOTHING = /rien à faire/i;
 
 /* Phrases de la synthèse ou de l'IA qui contredisent une vérification réussie. */
-const CONTRADICTIONS: { re: RegExp; check: string; label: string }[] = [
-  { re: /\b(aucun|pas d['’]|sans)\s*(avis|témoignage)/i, check: 'reviews', label: 'dit qu’il n’y a pas d’avis, alors que des avis sont visibles' },
-  { re: /\b(aucun|pas de|sans)\s*(numéro|téléphone)\b/i, check: 'phone', label: 'dit qu’il n’y a pas de téléphone, alors qu’un numéro cliquable est présent' },
-  { re: /\b(aucun|pas de|sans)\s*formulaire/i, check: 'form', label: 'dit qu’il n’y a pas de formulaire, alors qu’un formulaire est présent' },
-  { re: /non sécurisé|pas de cadenas|sans https/i, check: 'https', label: 'dit que le site n’est pas sécurisé, alors qu’il est en HTTPS' },
-  { re: /\b(aucune|pas de|sans)\s*description\b/i, check: 'description', label: 'dit qu’il n’y a pas de description, alors qu’elle existe' },
+/* Phrases de l'IA qui contredisent une vérification réussie. On juge phrase par phrase, et on ignore
+   les phrases qui parlent d'autre chose (« formulaire non sécurisé », « pas de téléphone en haut de page »…). */
+const CONTRADICTIONS: { re: RegExp; except: RegExp; check: string; label: string }[] = [
+  { re: /\b(aucun|pas d['’]|sans)\s*(avis|témoignage)/i, except: /google|fiche|étoile|note/i, check: 'reviews', label: 'dit qu’il n’y a pas d’avis, alors que des avis sont visibles' },
+  { re: /\b(aucun|pas de|sans)\s*(numéro|téléphone)\b/i, except: /haut|en-tête|menu|première vue|dès l|cliquable|bouton|whatsapp|page|accueil/i, check: 'phone', label: 'dit qu’il n’y a pas de téléphone, alors qu’un numéro cliquable est présent' },
+  { re: /\b(aucun|pas de|sans)\s*formulaire/i, except: /accueil|page|devis en ligne|réservation|haut/i, check: 'form', label: 'dit qu’il n’y a pas de formulaire, alors qu’un formulaire est présent' },
+  { re: /non sécurisé|pas sécurisé|pas de cadenas|sans https/i, except: /formulaire|donnée|serveur|protection|en-tête|cookie|mot de passe|paiement|wordpress|extension|logiciel|version|mixte|ressource|script|faille|rgpd|confidentialit/i, check: 'https', label: 'dit que le site n’est pas sécurisé, alors qu’il est en HTTPS' },
+  { re: /\b(aucune|pas de|sans)\s*description\b/i, except: /image|photo|visuel|\balt\b|bouton|lien|pages?\s+(de|des|du)|autres? pages?|services?|contact/i, check: 'description', label: 'dit qu’il n’y a pas de description, alors qu’elle existe' },
 ];
+const splitSentences = (t: string) => t.split(/(?<=[.!?…])\s+|\n/).map((x) => x.trim()).filter(Boolean);
+function okMap(b: Bulletin): Record<string, boolean> {
+  const by = (label: string) => (b.checks ?? []).find((c) => c.label === label);
+  const form = by('Formulaire ou e-mail de contact');
+  return {
+    reviews: by('Avis clients visibles')?.status === 'ok',
+    phone: by('Téléphone visible et cliquable')?.status === 'ok',
+    form: form?.status === 'ok',
+    https: by('Connexion sécurisée (cadenas)')?.status === 'ok',
+    description: by('Description dans les résultats Google')?.status === 'ok' && (b.pagesDetail ?? []).every((p) => p.description),
+  };
+}
+/* La phrase contredit-elle une vérification réussie ? Renvoie la règle en cause. */
+function contradiction(b: Bulletin, sentence: string, ok = okMap(b)) {
+  return CONTRADICTIONS.find((k) => ok[k.check] && k.re.test(sentence) && !k.except.test(sentence));
+}
+/* Plutôt que bloquer tout le bulletin, on retire les phrases fautives de l'IA (et la priorité si son titre est faux).
+   Renvoie les phrases retirées, pour prévenir Marc. */
+export function scrubContradictions(b: Bulletin): string[] {
+  const ok = okMap(b); const removed: string[] = [];
+  const clean = (t: string) => splitSentences(t).filter((x) => { const bad = contradiction(b, x, ok); if (bad) removed.push(x); return !bad; }).join(' ');
+  b.essentiel = clean(b.essentiel);
+  if (b.impression) b.impression = clean(b.impression);
+  b.constats = b.constats.filter((c) => { const bad = contradiction(b, c.reponse, ok); if (bad) removed.push(`${c.question} ${c.reponse}`); return !bad; });
+  b.priorities = b.priorities.filter((p) => { const bad = contradiction(b, p.title, ok); if (bad) removed.push(p.title); return !bad; }).map((p) => ({ ...p, text: clean(p.text) }));
+  b.positives = b.positives.filter((x) => { const bad = contradiction(b, x, ok); if (bad) removed.push(x); return !bad; });
+  return removed;
+}
+
 /* Moyens de contact que l'IA ne doit citer que s'ils ont été détectés. */
 const CHANNEL_WORDS: [RegExp, string][] = [[/whatsapp/i, 'WhatsApp'], [/calendly/i, 'Calendly'], [/messenger/i, 'Messenger']];
 
@@ -47,25 +78,9 @@ export function validateBulletin(b: Bulletin): string[] {
   const reviewsOk = byId('Avis clients visibles')?.status === 'ok';
   if (proof && reviewsOk && /aucune preuve/i.test(proof.detail) && !/en dehors de vos avis/i.test(proof.detail)) errors.push('« Preuves de sérieux » dit « aucune preuve » alors que des avis clients sont visibles.');
 
-  /* Synthèse, questions et priorités contre les vérifications réussies. */
-  const okIds: Record<string, boolean> = {
-    reviews: reviewsOk,
-    phone: byId('Téléphone visible et cliquable')?.status === 'ok',
-    form: form?.status === 'ok',
-    https: byId('Connexion sécurisée (cadenas)')?.status === 'ok',
-    description: byId('Description dans les résultats Google')?.status === 'ok',
-  };
-  /* « Pas de description » n'est une erreur que si la phrase parle bien de la description Google
-     et que TOUTES les pages analysées en ont une (sinon l'IA parle d'une autre page, ou des images). */
-  const sentences = aiText.split(/(?<=[.!?…])\s+|\n/);
-  const allPagesDesc = (b.pagesDetail ?? []).every((p) => p.description);
-  for (const k of CONTRADICTIONS) {
-    if (!okIds[k.check]) continue;
-    const hit = k.check === 'description'
-      ? allPagesDesc && sentences.some((t) => k.re.test(t) && !/image|photo|visuel|\balt\b|bouton|lien/i.test(t))
-      : k.re.test(aiText);
-    if (hit) errors.push(`Le texte ${k.label}.`);
-  }
+  /* Synthèse, questions et priorités contre les vérifications réussies (phrase par phrase). */
+  const ok = okMap(b);
+  for (const k of new Set(splitSentences(aiText).map((t) => contradiction(b, t, ok)).filter(Boolean))) errors.push(`Le texte ${k!.label}.`);
 
   /* 5. Titre cité en entier, avec sa vraie longueur. */
   const title = byId('Titre de la page pour Google');

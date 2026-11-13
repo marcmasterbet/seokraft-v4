@@ -1388,3 +1388,8 @@ html:has(.crm) .sk-cookie-overlay{display:none!important}
 /* 5 notes : 3 cartes en haut, 2 en bas */
 @media(min-width:561px){.bv-notes.is-five{grid-template-columns:repeat(6,minmax(0,1fr))}.bv-notes.is-five>.bv-note{grid-column:span 2}.bv-notes.is-five>.bv-note:nth-child(n+4){grid-column:span 3}}
 @media print{.bv-notes.is-five{grid-template-columns:repeat(5,1fr)}.bv-notes.is-five>.bv-note,.bv-notes.is-five>.bv-note:nth-child(n+4){grid-column:auto}}
+
+/* Questions du client : vert = oui, orange = en partie / à revoir, rouge = non */
+.bv-questions li.is-ok{border-left:4px solid var(--olive)}
+.bv-questions li.is-warn{border-left:4px solid #c08a2b}.bv-questions li.is-warn .bv-a{background:#f7ecd6;color:#7a5512}.bv-questions li.is-warn .bv-num{background:#f7ecd6;color:#9a6b17}
+.bv-questions li.is-bad{border-left:4px solid var(--bad);background:#fbf3f1}.bv-questions li.is-bad .bv-a{background:#f6dcd6;color:#8f2f22}.bv-questions li.is-bad .bv-num{background:#f6dcd6;color:var(--bad)}

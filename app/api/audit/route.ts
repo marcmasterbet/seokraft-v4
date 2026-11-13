@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       } else try {
         /* Une panne passagère (serveur occupé) relance l'audit une fois, 5 secondes plus tard. */
         const run = await createBulletin(url).catch(async (e) => { if (!isTransient(e)) throw e; await new Promise((ok) => setTimeout(ok, 5000)); return createBulletin(url); });
-        const { bulletin: b, aiError, speedError } = run;
+        const { bulletin: b, aiError, speedError, scrubbed } = run;
         subject = `SEOKRAFT — Audit gratuit : ${b.host} — ${fmt20(b.global)}/20`;
         report = [
           `NOTE DU SITE : ${fmt20(b.global)}/20 — ${b.verdict}`,
@@ -119,6 +119,7 @@ export async function POST(request: Request) {
           `• Pages analysées : ${(b.pages ?? []).map((p) => p.label).join(', ') || 'accueil'}`,
           b.cap ? `• ${b.cap}` : '',
           b.ai ? '• Audit SEO et apparence réalisés par l’IA : à relire avant envoi.' : `⚠ IA INDISPONIBLE (${aiError}) : la note Référencement et contenu n’est PAS évaluée. Corrige puis relance depuis l’outil avant d’envoyer.`,
+          scrubbed.length ? `• Phrase(s) de l’IA retirée(s) car fausse(s) : ${scrubbed.map((x) => `« ${x} »`).join(' ; ')}` : '',
           speedError ? '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.' : '',
           '',
           '1) RELIRE LE BULLETIN (en ligne, téléchargeable en PDF) :',

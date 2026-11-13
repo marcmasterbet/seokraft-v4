@@ -3,10 +3,10 @@ import { isIP } from 'node:net';
 import tls from 'node:tls';
 import { load, type CheerioAPI } from 'cheerio';
 import { randomBytes, createHash } from 'node:crypto';
-import { validateBulletin } from '../components/bulletinCheck';
+import { validateBulletin, scrubContradictions } from '../components/bulletinCheck';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { buildBulletin, type AuditResult, type Bulletin, type Check, type Speed, type TextReview, type Level } from '../components/auditTypes';
+import { buildBulletin, type AuditResult, type Bulletin, type Check, type Speed, type TextReview, type Level, type Status } from '../components/auditTypes';
 
 /* Moteur d'audit partagé : outil privé (/outil-audit) et demandes publiques (/audit-gratuit). Code serveur uniquement. */
 const UA = 'Mozilla/5.0 (compatible; SEOKRAFT-Audit/1.0; +https://www.seokraft.fr)';
@@ -834,7 +834,7 @@ Réponds avec ce JSON exactement (réponse courte, sans retour à la ligne dans 
   "score": nombre de 0 à 20 (demi-points autorisés),
   "essentiel": "3 phrases franches : ce que vaut le site pour être trouvé et choisi, ce que cela lui fait perdre, la priorité n°1",
   "impression": "${shots ? '2 phrases sur la première impression visuelle d’après les captures : moderne ou daté, soigné ou amateur, lisible sur téléphone' : ''}",
-  "constats": [ exactement 6 objets { "question": "question courte", "reponse": "constat franc en moins de 14 mots, avec un exemple du site" } pour : le titre Google dit-il le métier et la ville ; chaque service a-t-il sa page ; les titres de page sont-ils clairs ; les pages sont-elles reliées entre elles ; comprend-on le métier en 5 secondes ; sait-on comment contacter ],
+  "constats": [ exactement 6 objets { "question": "question courte", "reponse": "constat franc en moins de 14 mots, avec un exemple du site", "statut": "oui" si tout va bien, "partiel" si c'est en partie vrai, incertain ou à revoir, "non" si c'est un problème } pour : le titre Google dit-il le métier et la ville ; chaque service a-t-il sa page ; les titres de page sont-ils clairs ; les pages sont-elles reliées entre elles ; comprend-on le métier en 5 secondes ; sait-on comment contacter ],
   "priorities": [ 3 objets { "level": "critique" | "important" | "planifier", "title": "titre court compréhensible par un non-spécialiste", "text": "2 phrases courtes, 280 caractères maximum : le problème (avec un exemple du site) et ce qu'il faut faire" } ],
   "positives": [ 0 à 2 points forts RÉELS et significatifs. Tableau vide si rien ne mérite d'être salué. ]
 }`;
@@ -893,12 +893,13 @@ export async function reviewTexts(r: AuditResult, shots: string[] = []): Promise
         return end > n * 0.4 ? cut.slice(0, end + 1) : cut.slice(0, cut.lastIndexOf(' ')) + '…';
       };
       const levels: Level[] = ['critique', 'important', 'planifier'];
+      const STATUT: Record<string, Status> = { oui: 'ok', partiel: 'warn', non: 'bad' };
       const arr = (v: unknown) => (Array.isArray(v) ? v : []);
       return { error: '', review: {
         score: Math.max(0, Math.min(20, Number(json.score) || 0)),
         essentiel: str(json.essentiel, 1000),
         impression: images.length ? str(json.impression, 600) : '',
-        constats: arr(json.constats).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160) })).filter((x: { question: string }) => x.question),
+        constats: arr(json.constats).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160), ...(STATUT[String(x.statut).toLowerCase()] ? { statut: STATUT[String(x.statut).toLowerCase()] } : {}) })).filter((x: { question: string }) => x.question),
         priorities: arr(json.priorities).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 700) })).filter((x: { title: string }) => x.title),
         positives: arr(json.positives).slice(0, 3).map((x: unknown) => str(x, 200)).filter(Boolean),
       } };
@@ -942,7 +943,7 @@ export async function loadBulletin(id: string): Promise<Bulletin | null> {
 }
 
 /* Audit complet : technique, puis mesures Google (téléphone + ordinateur, avec captures), puis lecture par l'IA avec les captures. */
-export type AuditRun = { bulletin: Bulletin; aiError: string; speedError: boolean };
+export type AuditRun = { bulletin: Bulletin; aiError: string; speedError: boolean; scrubbed: string[] };
 export async function createBulletin(url: string): Promise<AuditRun> {
   const result = await runAudit(url);
   const [speed, desktop] = await Promise.all([pageSpeedServer(result.url, 'mobile'), pageSpeedServer(result.url, 'desktop')]);
@@ -952,13 +953,19 @@ export async function createBulletin(url: string): Promise<AuditRun> {
   if (desktop?.screenshot) b.desktopScreenshot = desktop.screenshot;
   if (b.speedDesktop) b.speedDesktop = { ...b.speedDesktop, screenshot: undefined };
   /* Contrôle de cohérence : un bulletin incohérent n'est jamais publié. */
-  const problems = validateBulletin(b);
+  let problems = validateBulletin(b);
+  let scrubbed: string[] = [];
+  /* Une phrase de l'IA contredit une vérification : on la retire au lieu de bloquer tout le bulletin. */
+  if (problems.length && problems.every((p) => p.startsWith('Le texte '))) {
+    scrubbed = scrubContradictions(b);
+    problems = validateBulletin(b);
+  }
   if (problems.length) {
     console.error('Bulletin bloqué', b.host, problems);
     throw new AuditError(`Bulletin bloqué avant publication (${problems.length} incohérence${problems.length > 1 ? 's' : ''}) : ${problems.join(' | ')}`);
   }
   await saveBulletin(b);
-  return { bulletin: b, aiError: error, speedError: !speed || speed.performance === null };
+  return { bulletin: b, aiError: error, speedError: !speed || speed.performance === null, scrubbed };
 }
 
 /* ===================== Quotas des audits publics ===================== */

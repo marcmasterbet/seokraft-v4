@@ -156,7 +156,7 @@ export type TextReview = {
   score: number;                 // note du message et des textes sur 20
   essentiel: string;             // synthèse en 3 ou 4 phrases
   impression: string;            // première impression visuelle (d'après les captures)
-  constats: { question: string; reponse: string }[];
+  constats: Constat[];
   priorities: Priority[];
   positives: string[];
 };
@@ -177,7 +177,7 @@ export type Bulletin = {
   impression?: string;
   priorities: Priority[];
   positives: string[];
-  constats: { question: string; reponse: string }[];
+  constats: Constat[];
   speed: Speed | null;
   speedDesktop?: Speed | null;
   ai: boolean;                   // analyse des textes réalisée par l'IA
@@ -187,6 +187,19 @@ export type Bulletin = {
   checks?: BulletinCheck[];      // tous les points vérifiés (annexe)
   channels?: string[];           // moyens de contact détectés (liste unique, partagée par toutes les sections)
 };
+
+export type Constat = { question: string; reponse: string; statut?: Status };
+/* Couleur d'une réponse : celle donnée par l'IA, sinon déduite du texte (anciens bulletins).
+   Non → rouge ; oui mais / en partie / incertain → orange ; oui → vert. */
+export function constatStatus(c: Constat): Status {
+  const r = c.reponse.trim();
+  /* Le texte prime en cas de désaccord : une réponse « Non… » est toujours rouge, un « Oui, mais… » jamais vert. */
+  if (/^(non|aucun|aucune|pas|rien|jamais)\b/i.test(r)) return 'bad';
+  const partial = /\bmais\b|\bsauf\b|en partie|partiellement|;|\bpeu\b|manque|\bsans\b|\bpas\b|aucun/i.test(r);
+  if (c.statut) return c.statut === 'ok' && partial ? 'warn' : c.statut;
+  if (/^oui\b/i.test(r)) return partial ? 'warn' : 'ok';
+  return 'warn';
+}
 
 export const NOTE_LABELS: { id: NoteId; label: string; hint: string }[] = [
   { id: 'vitesse', label: 'Vitesse et téléphone', hint: 'Le site s’affiche-t-il vite, sur téléphone comme sur ordinateur ?' },
@@ -234,6 +247,16 @@ const LEVEL_OF = (c: Check): Level => (c.status === 'bad' && (IMPACT[c.id] ?? 1)
 
 /* Barème exigeant : la note baisse vite dès que des points manquent (courbe), et certains défauts plafonnent la note. */
 const curve = (p: number) => Math.pow(Math.max(0, Math.min(1, p)), 1.5);
+
+/* Sujets d'un titre de priorité, pour repérer les doublons. */
+const TOPICS: [string, RegExp][] = [
+  ['ville', /\bville\b|localit/i], ['titre', /^(?!.*(autres pages|pages de service|des pages)).*(titre google|titre de la page)/i], ['titres-pages', /titres?.*(autres pages|pages de service|des pages)/i], ['h1', /titre principal|\bh1\b/i],
+  ['description', /description|résumé de votre site/i], ['avis', /\bavis\b|témoignage/i], ['telephone', /numéro|téléphone (visible|cliquable|absent|n[’']est)/i],
+  ['contact', /bouton|devis|prendre contact|formulaire/i], ['mentions', /mentions légales/i], ['images', /images?.*(lourde|poids)|(lourde|poids).*images?/i],
+  ['vitesse-tel', /(lent|vitesse|affich|charg).*(téléphone|mobile)/i], ['vitesse-pc', /(lent|vitesse|affich|charg).*ordinateur/i],
+  ['cadenas', /non sécurisé|cadenas|https/i], ['bouge', /bouge/i],
+];
+const topicsOf = (title: string) => TOPICS.filter(([, re]) => re.test(title)).map(([k]) => k);
 
 /* Assemble le bulletin à partir de l'analyse technique, de la vitesse Google et de l'analyse des textes par l'IA. */
 export function buildBulletin(id: string, result: AuditResult, speed: Speed | null, review: TextReview | null, desktop: Speed | null = null): Bulletin {
@@ -296,7 +319,16 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
     .map((c) => ({ level: capIds.has(c.id) ? 'critique' as Level : LEVEL_OF(c), title: problemTitle(c), text: `${c.detail} ${c.advice}` }));
   const order: Record<Level, number> = { critique: 0, important: 1, planifier: 2 };
   /* Le regard de l'IA (concret, tiré du site) passe d'abord, puis les constats techniques, du plus grave au moins grave. */
-  let priorities = [...(review?.priorities ?? []), ...tech].sort((a, b) => order[a.level] - order[b.level]).slice(0, 8);
+  /* Un même problème ne doit apparaître qu'une fois, même s'il vient de l'IA et de plusieurs vérifications
+     (ex. « Titre Google sans métier ni ville » + « Votre ville n'apparaît pas » + « Le titre Google ne dit ni votre métier ni votre ville »). */
+  const covered = new Set<string>();
+  const unique = <T extends { title: string }>(list: T[]) => list.filter((p) => {
+    const t = topicsOf(p.title);
+    if (t.length && t.every((x) => covered.has(x))) return false;
+    t.forEach((x) => covered.add(x));
+    return true;
+  });
+  let priorities = unique([...(review?.priorities ?? []), ...tech].sort((a, b) => order[a.level] - order[b.level])).slice(0, 8);
   /* Un défaut « Mauvais » de stabilité doit toujours figurer dans les priorités. */
   for (const c of checks.filter((x) => /^psi-cls/.test(x.id) && x.status === 'bad')) {
     const t = problemTitle(c);

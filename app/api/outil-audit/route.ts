@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       });
       crmId = p.id;
     } catch (e) { console.error('CRM (outil)', e instanceof Error ? e.message : e); }
-    return NextResponse.json({ ...run.bulletin, aiError: run.aiError, speedError: run.speedError, crmId });
+    return NextResponse.json({ ...run.bulletin, aiError: run.aiError, speedError: run.speedError, scrubbed: run.scrubbed, crmId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Erreur';
     console.error('Outil audit', msg);

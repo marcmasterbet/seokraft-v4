@@ -1,7 +1,7 @@
 /* Test du contrôle de cohérence : le bulletin réel du 11/11/2026, tel qu'il avait été publié, doit être bloqué.
    Usage : node tests/regression/validator.test.ts */
 import assert from 'node:assert/strict';
-import { validateBulletin } from '../../components/bulletinCheck.ts';
+import { validateBulletin, scrubContradictions } from '../../components/bulletinCheck.ts';
 
 const TITLE = 'Conciergerie digitale – Développez vos revenus Airbnb & Booking sans les contraintes de la gestion quotidienne';
 const ck = (group: string, label: string, status: string, detail: string, advice: string) => ({ group, label, status, detail, advice });
@@ -37,3 +37,19 @@ assert.equal(descErr({ ...base, pagesDetail: pages(false), essentiel: 'La page S
 assert.equal(descErr({ ...base, pagesDetail: pages(true), essentiel: 'Plusieurs images sans description.' }).length, 0, 'Images sans description : ne doit pas bloquer');
 assert.equal(descErr({ ...base, pagesDetail: pages(true), essentiel: 'Votre site n’a pas de description dans Google.' }).length, 1, 'Vraie contradiction : doit bloquer');
 console.log('✓ Règle « description » : autre page et images acceptées, vraie contradiction bloquée.');
+
+/* HTTPS : elite-conciergerie-33.com (13/11/2026) bloqué à tort. */
+{
+  const https = ck('securite', 'Connexion sécurisée (cadenas)', 'ok', 'Cadenas présent.', 'Rien à faire.');
+  const mk = (essentiel: string): any => ({ ...base, checks: [https], pagesDetail: [], essentiel, priorities: [{ level: 'important', title: 'Formulaire non sécurisé', text: 'Le formulaire envoie les données sans protection.' }] });
+  const hErr = (b: any) => validateBulletin(b).filter((e) => /HTTPS/.test(e));
+  assert.equal(hErr(mk('Les données du formulaire ne sont pas sécurisées.')).length, 0, 'Formulaire non sécurisé : ne doit pas bloquer');
+  assert.equal(hErr(mk('Le serveur n’est pas sécurisé : protections manquantes.')).length, 0, 'Serveur : ne doit pas bloquer');
+  const wrong = mk('Bon site. Votre site n’est pas sécurisé. Contact clair.');
+  assert.equal(hErr(wrong).length, 1, 'Vraie contradiction détectée');
+  const removed = scrubContradictions(wrong);
+  assert.deepEqual(removed, ['Votre site n’est pas sécurisé.']);
+  assert.equal(wrong.essentiel, 'Bon site. Contact clair.');
+  assert.equal(hErr(wrong).length, 0, 'Après nettoyage : plus de contradiction');
+  console.log('✓ Règle « HTTPS » : formulaire/serveur acceptés, phrase fausse retirée au lieu de bloquer.');
+}

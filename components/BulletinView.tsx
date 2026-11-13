@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck, Scale } from 'lucide-react';
 import PrintButton from './PrintButton';
 import Score20 from './Score20';
-import { NOTE_LABELS, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
+import { NOTE_LABELS, constatStatus, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
 
 /* Bulletin d'audit SEOKRAFT : page en ligne (téléphone d'abord) et PDF via l'impression. */
 const ICONS: Record<NoteId | 'technique', typeof Monitor> = { vitesse: Gauge, securite: ShieldCheck, legal: Scale, technique: Monitor, google: Search, textes: PenLine, contact: MessageCircle };
@@ -101,7 +101,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
 
     {b.constats.length > 0 && <section className="bv-sec">
       <h2>Ce que se demande un client</h2>
-      <ol className="bv-questions">{b.constats.map((c, i) => <li key={i}><span className="bv-num">{i + 1}</span><div><p className="bv-q">{c.question}</p><p className="bv-a">{c.reponse}</p></div></li>)}</ol>
+      <ol className="bv-questions">{b.constats.map((c, i) => <li key={i} className={`is-${constatStatus(c)}`}><span className="bv-num">{i + 1}</span><div><p className="bv-q">{c.question}</p><p className="bv-a">{c.reponse}</p></div></li>)}</ol>
     </section>}
 
     <section className="bv-sec">
