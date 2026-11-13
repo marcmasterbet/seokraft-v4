@@ -236,7 +236,7 @@ const PROBLEM: Record<string, string | [string, string]> = {
   form: ['Pas de moyen simple de vous écrire', 'Pas de formulaire pour vous écrire en un clic'], reviews: 'Aucun avis client pour rassurer', proof: 'Rien ne prouve votre sérieux',
   'title-local': ['Votre ville n’apparaît pas pour Google', 'Aucune ville clairement indiquée'], title: ['Le titre Google ne dit ni votre métier ni votre ville', 'Le titre Google est à retravailler'],
   words: ['Trop peu de texte pour que Google vous trouve', 'Le texte est un peu léger pour Google'], legal: 'Mentions légales absentes (obligation légale)', privacy: 'Politique de confidentialité absente (RGPD)',
-  'vuln-lib': 'Des composants anciens avec des failles connues', 'old-cms': 'Un logiciel de site pas à jour, avec des failles connues', headers: 'Le site est peu protégé contre le piratage',
+  'vuln-lib': 'Des composants anciens avec des failles connues', 'old-cms': 'Un logiciel de site pas à jour, avec des failles connues', headers: 'Les réglages de sécurité recommandés ne sont pas activés',
   'form-http': 'Les messages de vos clients circulent sans protection', fresh: 'Une date ancienne donne l’impression d’un site abandonné', broken: 'Des liens mènent à des pages d’erreur',
   'site-size': 'Trop peu de pages pour être trouvé sur Google', maillage: ['Les pages ne sont pas reliées entre elles', 'Les pages sont peu reliées entre elles'], hierarchy: 'Les titres de la page sont mal organisés', description: 'Google n’a pas de résumé de votre site', h1: 'La page n’a pas de titre principal', mixed: 'Le cadenas de sécurité peut disparaître',
   redirect: 'La version non sécurisée du site reste ouverte', 'pages-seo': 'Vos autres pages sont mal présentées dans Google', address: 'On ne sait pas où vous êtes', schema: 'Google ne dispose pas de votre fiche d’identité',
@@ -336,7 +336,7 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
   }
 
   /* Points forts : seulement ceux qui comptent pour un client, jamais des évidences techniques. */
-  const GOOD: Record<string, string> = { reviews: 'Des avis clients sont visibles.', proof: 'Le site montre des preuves de sérieux.', 'title-local': 'La ville est bien ciblée pour Google.', cta: 'Un bouton invite à prendre contact dès l’arrivée.', phone: 'Le téléphone est visible et cliquable.', 'psi-perf': 'Le site est rapide sur téléphone.', headers: 'Le serveur est bien protégé.' };
+  const GOOD: Record<string, string> = { reviews: 'Des avis clients sont visibles.', proof: 'Le site montre des preuves de sérieux.', 'title-local': 'La ville est bien ciblée pour Google.', cta: 'Un bouton invite à prendre contact dès l’arrivée.', phone: 'Le téléphone est visible et cliquable.', 'psi-perf': 'Le site est rapide sur téléphone.', headers: 'Les réglages de sécurité de l’hébergement sont en place.' };
   const okTech = global >= 10 ? checks.filter((c) => c.status === 'ok' && GOOD[c.id]).map((c) => GOOD[c.id]) : [];
   const positives = [...(review?.positives ?? []), ...okTech].slice(0, global >= 13 ? 5 : 3);
 
@@ -355,28 +355,123 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
 }
 
 /* Mail à envoyer au prospect (Marc le relit puis l'envoie lui-même). */
+/* Prénom utilisable dans « Bonjour X » : jamais une adresse e-mail ni un nom de domaine. */
+export function cleanFirstName(v = '') {
+  const t = v.trim();
+  if (!t || /[@\d]|\.(fr|com|net|org)\b|https?:/i.test(t) || t.length > 40) return '';
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/* Argument commercial : réglages de sécurité absents → « je m'en occupe ». */
+const securityLine = (b: Bulletin) => (b.checks ?? []).some((c) => /^(Réglages de sécurité de l’hébergement|Protections du serveur contre le piratage)$/.test(c.label) && c.status !== 'ok')
+  ? 'Autre point : votre site n’a pas les réglages de sécurité recommandés sur son hébergement. Vous ne pouvez pas les activer vous-même, mais moi je peux m’en charger en quelques minutes.' : '';
+
+/* Les 3 ou 4 points du mail : ceux qui rapportent des clients, dits comme un bénéfice.
+   Classés par impact commercial ; les points techniques ou juridiques restent dans le bulletin. */
+const MAIL_POINTS: [string, RegExp, string][] = [
+  ['telephone', /numéro|téléphone (visible|cliquable|absent|n[’']est)/i, 'Afficher votre numéro bien en vue et cliquable, pour que les clients vous appellent directement'],
+  ['ville', /\bville\b|métier|localit/i, 'Faire apparaître votre métier et votre ville dans Google, pour être trouvé par les clients près de chez vous'],
+  ['contact', /bouton|devis|prendre contact|formulaire/i, 'Ajouter un bouton « Demander un devis » visible dès l’arrivée sur le site'],
+  ['avis', /\bavis\b|témoignage/i, 'Mettre en avant vos avis clients, ce qui rassure avant d’appeler'],
+  ['services', /page par service|chaque service|pages? de service|vos services/i, 'Créer une page pour chacun de vos services, pour être trouvé sur chaque recherche'],
+  ['cadenas', /non sécurisé|cadenas|https/i, 'Sécuriser le site avec le cadenas, sans quoi les navigateurs affichent « Non sécurisé »'],
+  ['vitesse', /(lent|vitesse|affich|charg).*(téléphone|mobile)|images?.*lourd/i, 'Accélérer le site sur téléphone, là où la plupart de vos clients vous cherchent'],
+  ['photos', /photo|réalisation/i, 'Montrer vos réalisations en photos, pour donner confiance'],
+  ['texte', /peu de texte|trop peu|textes? (trop|court)|étoffer/i, 'Étoffer les textes pour que Google comprenne bien ce que vous proposez'],
+  ['google', /description|titres?/i, 'Soigner ce qui s’affiche dans Google pour chaque page, pour donner envie de cliquer'],
+];
+const MAIL_SKIP = /mentions légales|confidentialit|rgpd|cookie|réglages de sécurité|protections? du serveur|informations techniques|composants|logiciel|bouge|cls|serveur/i;
+export function mailPoints(b: Bulletin, max = 4): string[] {
+  const picked = new Map<string, number>();
+  for (const p of b.priorities) {
+    if (MAIL_SKIP.test(p.title)) continue;
+    const i = MAIL_POINTS.findIndex(([, re]) => re.test(p.title));
+    if (i >= 0 && !picked.has(MAIL_POINTS[i][0])) picked.set(MAIL_POINTS[i][0], i);
+  }
+  return [...picked.values()].sort((a, b) => a - b).slice(0, max).map((i) => MAIL_POINTS[i][2]);
+}
+
+const SIGN = ['Marc Bretzner', 'SEOKRAFT, création de sites internet à Strasbourg', '06 72 20 91 53', 'https://www.seokraft.fr'];
+const tidy = (lines: string[]) => lines.filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n');
+
+/* Mail quand le prospect a demandé l'audit (formulaire du site). */
 export function buildBulletinMail(b: Bulletin, firstName = '') {
-  const top = b.priorities.slice(0, 3);
-  return [
+  const name = cleanFirstName(firstName);
+  const top = mailPoints(b);
+  return tidy([
     `Objet : La note de votre site : ${fmt20(b.global)}/20`,
     '',
-    `Bonjour${firstName ? ' ' + firstName : ''},`,
+    `Bonjour${name ? ' ' + name : ''},`,
     '',
     `Merci pour votre demande. J’ai analysé ${b.host} : votre site obtient ${fmt20(b.global)}/20 (${b.verdict.toLowerCase()}).`,
     '',
-    top.length ? 'Par où commencer :' : '',
-    ...top.map((p, i) => `${i + 1}. ${p.title}`),
+    top.length ? 'Les points qui vous apporteront le plus de clients :' : '',
+    ...top.map((p, i) => `${i + 1}. ${p}`),
     '',
-    'Votre bulletin complet, à consulter sur téléphone ou à télécharger en PDF :',
+    securityLine(b),
+    '',
+    'Votre audit complet, à consulter sur téléphone ou à télécharger en PDF :',
     `https://www.seokraft.fr/bulletin/${b.id}`,
+    '',
+    b.global >= 12 ? 'Votre site a déjà de bonnes bases. Avec quelques améliorations bien ciblées, je peux vous aider à en faire un vrai outil pour recevoir plus de demandes de clients, et ce serait un plaisir de vous accompagner.'
+      : 'Rien d’insurmontable : avec les bonnes améliorations, je peux vous aider à en faire un vrai outil pour recevoir plus de demandes de clients, et ce serait un plaisir de vous accompagner.',
     '',
     'Si vous voulez qu’on regarde ensemble par quoi commencer, je vous propose un appel de 20 minutes, gratuit et sans engagement : https://www.seokraft.fr/rendez-vous',
     '',
+    'Vous pouvez aussi simplement répondre à cet e-mail si vous avez une question : je vous réponds rapidement.',
+    '',
     'Belle journée,',
     '',
-    'Marc Bretzner',
-    'SEOKRAFT, création de sites internet à Strasbourg',
-    '06 72 20 91 53',
-    'https://www.seokraft.fr',
-  ].filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n');
+    ...SIGN,
+  ]);
+}
+
+/* Le problème principal, dit en une phrase pour « Un point m’a frappé : … ». */
+const STRIKING: [string, RegExp, string][] = [
+  ['ville', /\bville\b|métier|localit/i, 'le titre qui s’affiche dans Google ne dit ni votre métier ni votre ville'],
+  ['telephone', /numéro|téléphone (visible|cliquable|absent|n[’']est)/i, 'votre numéro de téléphone n’apparaît pas clairement sur le site'],
+  ['contact', /bouton|devis|prendre contact|formulaire/i, 'aucun bouton n’invite à vous contacter ou à demander un devis dès l’arrivée sur le site'],
+  ['avis', /\bavis\b|témoignage/i, 'aucun avis client n’est visible sur le site'],
+  ['services', /page par service|chaque service|pages? de service|vos services/i, 'vos services n’ont pas chacun leur page, ce qui vous rend moins visible sur Google'],
+  ['cadenas', /non sécurisé|cadenas|https/i, 'votre site s’affiche comme « Non sécurisé » dans les navigateurs'],
+  ['vitesse', /(lent|vitesse|affich|charg).*(téléphone|mobile)|images?.*lourd/i, 'votre site met du temps à s’afficher sur téléphone'],
+  ['texte', /peu de texte|trop peu|textes? (trop|court)|étoffer/i, 'le site contient trop peu de texte pour que Google comprenne bien ce que vous proposez'],
+  ['photos', /photo|réalisation/i, 'le site montre peu de vos réalisations en photos'],
+  ['google', /description|titres?/i, 'vos pages sont mal présentées dans les résultats Google'],
+];
+export function strikingPoint(b: Bulletin): string {
+  let best = -1;
+  for (const p of b.priorities) {
+    if (MAIL_SKIP.test(p.title)) continue;
+    const i = STRIKING.findIndex(([, re]) => re.test(p.title));
+    if (i >= 0 && (best < 0 || i < best)) best = i;
+  }
+  if (best >= 0) return STRIKING[best][2];
+  const first = b.priorities.find((p) => !MAIL_SKIP.test(p.title)) ?? b.priorities[0];
+  return first ? first.title.charAt(0).toLowerCase() + first.title.slice(1) : 'plusieurs points freinent votre visibilité sur Google';
+}
+
+/* Mail de prospection (le prospect n'a rien demandé) : modèle de Marc, mot pour mot. Pas de note, pas de prix. */
+export function buildProspectMail(b: Bulletin, firstName = '') {
+  const name = cleanFirstName(firstName);
+  return [
+    `Objet : Votre site ${b.host}`,
+    '',
+    `Bonjour${name ? ' ' + name : ''},`,
+    'Je suis Marc Bretzner, développeur web indépendant basé à Fegersheim.',
+    `En regardant les entreprises autour de moi, je suis tombé sur votre site ${b.host} et j’ai pris le temps d’en faire l’audit, offert et sans engagement.`,
+    `Un point m’a frappé : ${strikingPoint(b)}.`,
+    'Dans l’audit complet, vous trouverez aussi d’autres pistes pour améliorer votre site, à consulter ou à télécharger en PDF :',
+    `https://www.seokraft.fr/bulletin/${b.id}`,
+    'Si l’un de ces points vous intéresse, je serai ravi de vous accompagner.',
+    'Voulez-vous qu’on en parle ?',
+    'Il suffit de répondre à ce mail ou de réserver un appel téléphonique gratuit et sans engagement.',
+    'https://www.seokraft.fr/rendez-vous',
+    'Cordialement,',
+    'Marc Bretzner EI Bretzner Marc - SEOKRAFT',
+    '✉️ contact@seokraft.fr',
+    '🌐 Site internet : https://seokraft.fr',
+    '♦️ LinkedIn : www.linkedin.com/in/marc-bretzner-développeur-web',
+    'Si vous ne souhaitez plus recevoir de message de ma part, répondez simplement STOP à cet e-mail.',
+  ].join('\n');
 }

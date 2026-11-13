@@ -65,16 +65,16 @@ function AuditForm({ id }: { id: string }) {
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="honey" aria-hidden="true" />
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="lp-btn" type="submit" disabled={busy}>{busy ? 'Envoi…' : 'Lancer mon audit gratuit'} <ArrowRight size={18} aria-hidden="true" /></button>
-      <p className="lp-small">Pas de téléphone, pas de compte à créer. Votre e-mail sert uniquement à vous envoyer votre bulletin. <a href="/politique-de-confidentialite">Confidentialité</a></p>
+      <p className="lp-small">Pas de téléphone, pas de compte à créer. Votre e-mail sert uniquement à vous envoyer votre audit. <a href="/politique-de-confidentialite">Confidentialité</a></p>
     </form>}
   </div>;
 }
 
 const FAQ: [string, string][] = [
-  ['C’est vraiment gratuit ?', 'Oui. Aucun paiement, aucun engagement. Le bulletin vous appartient : vous pouvez corriger les points vous-même, les confier à quelqu’un d’autre ou me demander de l’aide.'],
-  ['Qui fait l’audit ?', 'Des outils analysent votre page d’accueil, dont la mesure officielle de Google, et l’intelligence artificielle aide à lire vos textes. Puis je relis chaque bulletin moi-même avant de vous l’envoyer.'],
+  ['C’est vraiment gratuit ?', 'Oui. Aucun paiement, aucun engagement. L’audit vous appartient : vous pouvez corriger les points vous-même, les confier à quelqu’un d’autre ou me demander de l’aide.'],
+  ['Qui fait l’audit ?', 'Des outils analysent votre page d’accueil, dont la mesure officielle de Google, et l’intelligence artificielle aide à lire vos textes. Puis je relis chaque audit moi-même avant de vous l’envoyer.'],
   ['Mon site va-t-il être modifié ?', 'Non. L’analyse lit votre site comme le ferait un visiteur. Rien n’est modifié, aucun formulaire n’est envoyé.'],
-  ['Que devient mon adresse e-mail ?', 'Elle sert à vous envoyer votre bulletin, puis éventuellement à vous demander s’il vous a été utile. Elle n’est jamais vendue ni cédée, et vous pouvez demander sa suppression à tout moment.'],
+  ['Que devient mon adresse e-mail ?', 'Elle sert à vous envoyer votre audit, puis éventuellement à vous demander s’il vous a été utile. Elle n’est jamais vendue ni cédée, et vous pouvez demander sa suppression à tout moment.'],
   ['Et refaire mon site, ça coûte combien ?', 'Un site vitrine sur mesure commence à 1 990 € TTC, avec une estimation en ligne selon le nombre de pages. Mais rien ne vous oblige à refaire votre site : souvent, quelques corrections suffisent.'],
 ];
 
@@ -91,8 +91,8 @@ export default function AuditLanding() {
           <p className="lp-lead">Tapez l’adresse de votre site : vous recevez par e-mail sa note sur 20 et les points à corriger en premier, expliqués sans jargon.</p>
         </div>
         <div className="lp-hero-form"><AuditForm id="audit-haut" /></div>
-        <ul className="lp-ticks lp-hero-ticks"><li><Check size={18} aria-hidden="true" />Gratuit et sans engagement</li><li><Check size={18} aria-hidden="true" />Expliqué sans mot technique</li><li><Check size={18} aria-hidden="true" />Le bulletin est à vous, quoi que vous décidiez</li></ul>
-        <div className="lp-me lp-hero-me"><div className="lp-me-photo"><Image src="/images/marc-portrait-rond.webp" alt="Marc Bretzner, fondateur de SEOKRAFT" fill sizes="80px" style={{ objectFit: 'cover' }} /></div><p><strong>Marc Bretzner, SEOKRAFT</strong>Développeur web indépendant à Strasbourg, 15 ans de développement. Je relis chaque bulletin avant de vous l’envoyer.</p></div>
+        <ul className="lp-ticks lp-hero-ticks"><li><Check size={18} aria-hidden="true" />Gratuit et sans engagement</li><li><Check size={18} aria-hidden="true" />Expliqué sans mot technique</li><li><Check size={18} aria-hidden="true" />L’audit est à vous, quoi que vous décidiez</li></ul>
+        <div className="lp-me lp-hero-me"><div className="lp-me-photo"><Image src="/images/marc-portrait-rond.webp" alt="Marc Bretzner, fondateur de SEOKRAFT" fill sizes="80px" style={{ objectFit: 'cover' }} /></div><p><strong>Marc Bretzner, SEOKRAFT</strong>Développeur web indépendant à Strasbourg, 15 ans de développement. Je relis chaque audit avant de vous l’envoyer.</p></div>
       </section>
 
       <section className="lp-how">
@@ -102,20 +102,20 @@ export default function AuditLanding() {
           <article><h3>Vous tapez l’adresse de votre site</h3><p>Puis votre prénom et votre e-mail. C’est tout : pas de téléphone, pas de compte à créer.</p></article>
           <article><h3>Votre site est analysé comme un client le voit</h3><p>Votre page d’accueil est lue sur téléphone, mesurée par Google et passée au crible. Rien n’est modifié.</p>
             <ul className="lp-ticks lp-ticks-icons"><li><Smartphone size={18} aria-hidden="true" />Sur téléphone</li><li><Search size={18} aria-hidden="true" />Sur Google</li><li><Phone size={18} aria-hidden="true" />Pour vous joindre</li><li><ShieldCheck size={18} aria-hidden="true" />Ce qui rassure</li></ul></article>
-          <article><h3>Votre bulletin arrive par e-mail</h3><p>Une note sur 20, ce qui va bien, et les points à corriger en premier. Sous 24 heures, après relecture.</p></article>
+          <article><h3>Votre audit arrive par e-mail</h3><p>Une note sur 20, ce qui va bien, et les points à corriger en premier. Sous 24 heures, après relecture.</p></article>
         </div>
       </section>
 
       <section className="lp-sample">
         <div className="lp-sample-copy">
-          <span className="eyebrow">À QUOI RESSEMBLE LE BULLETIN</span>
+          <span className="eyebrow">À QUOI RESSEMBLE L’AUDIT</span>
           <h2>Clair, concret, <em>lisible sur téléphone.</em></h2>
-          <p>Le bulletin se consulte en ligne et se télécharge en PDF. Voici un exemple, réalisé sur un site fictif.</p>
+          <p>L’audit se consulte en ligne et se télécharge en PDF. Voici un exemple, réalisé sur un site fictif.</p>
           <a className="lp-link" href="/bulletin/exemple" target="_blank" rel="noopener noreferrer">Voir l’exemple complet <ArrowUpRight size={17} aria-hidden="true" /></a>
         </div>
-        <div className="lp-sample-card" aria-label="Extrait d’un bulletin d’exemple">
+        <div className="lp-sample-card" aria-label="Extrait d’un exemple d’audit">
           <span className="lp-stamp">Exemple fictif</span>
-          <span className="lp-kicker">BULLETIN DU SITE</span>
+          <span className="lp-kicker">AUDIT DU SITE</span>
           <p className="lp-sample-host">menuiserie-exemple.fr</p>
           <div className="lp-sample-score"><Score20 value="11" size="small" /><p>Peut mieux faire, surtout sur téléphone</p></div>
           <ol>

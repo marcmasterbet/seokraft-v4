@@ -396,9 +396,13 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     [!!H('referrer-policy'), 'confidentialité des liens sortants'],
   ] as [boolean, string][];
   const sec = protections.filter(([on]) => on).length;
-  add({ id: 'headers', cat: 'securite', label: 'Protections du serveur contre le piratage', weight: 2,
-    status: sec >= 4 ? 'ok' : sec >= 2 ? 'warn' : 'bad', detail: `${sec} protection(s) sur 5 activée(s).${sec < 5 ? ` Manquantes : ${protections.filter(([on]) => !on).map(([, l]) => l).join(', ')}.` : ''}`,
-    advice: sec >= 4 ? 'Rien à faire.' : 'Ces protections de base, gratuites, limitent les risques de piratage et d’usurpation du site. Elles se règlent en une fois sur l’hébergement.' });
+  /* Bonnes pratiques, pas une faille : jamais « Grave » à elles seules. */
+  const missingSec = protections.filter(([on]) => !on).map(([, l]) => l);
+  add({ id: 'headers', cat: 'securite', label: 'Réglages de sécurité de l’hébergement', weight: 1,
+    status: sec >= 4 ? 'ok' : 'warn',
+    detail: sec === 5 ? 'Les 5 réglages de sécurité recommandés sont activés.'
+      : `${sec === 0 ? 'Aucun des 5 réglages' : `${sec} réglage${sec > 1 ? 's' : ''} sur 5`} de sécurité recommandés ${sec <= 1 ? 'n’est activé' : 'sont activés'}. Manquant${missingSec.length > 1 ? 's' : ''} : ${missingSec.join(', ')}.`,
+    advice: sec >= 4 ? 'Rien à faire.' : 'Ce sont des bonnes pratiques simples qui renforcent la protection du site et de vos visiteurs. Elles se règlent une fois pour toutes sur l’hébergement.' });
 
   const leak = [H('server'), H('x-powered-by'), H('x-aspnet-version')].filter((v) => /\d+\.\d+/.test(v));
   add({ id: 'server-version', cat: 'securite', label: 'Informations techniques exposées',

@@ -73,9 +73,9 @@ export function nextAction(p: Prospect): NextAction | null {
     if (p.relances === 1) return { label: `Relance J+7 (${what})`, due: addDays(p.followFrom, 7), kind: 'relance', relanceStep: 7 };
     return { label: 'Sans réponse après 2 relances : appeler ou passer en « Refusé »', due: null, kind: 'info' };
   }
-  if (p.stage === 'audit_demande') return { label: p.bulletinId ? 'Relire le bulletin et l’envoyer' : 'Lancer l’audit depuis l’outil', due: addDays(p.createdAt, 1), kind: 'reponse' };
+  if (p.stage === 'audit_demande') return { label: p.bulletinId ? 'Relire l’audit et l’envoyer' : 'Lancer l’audit depuis l’outil', due: addDays(p.createdAt, 1), kind: 'reponse' };
   if (p.stage === 'a_contacter' && ['contact', 'questionnaire'].includes(p.source)) return { label: 'Répondre à la demande', due: addDays(p.createdAt, 1), kind: 'reponse' };
-  if (p.stage === 'a_contacter') return { label: p.website ? 'Auditer le site et envoyer le bulletin' : 'Appeler (pas de site)', due: null, kind: 'info' };
+  if (p.stage === 'a_contacter') return { label: p.website ? 'Auditer le site et envoyer l’audit' : 'Appeler (pas de site)', due: null, kind: 'info' };
   return null;
 }
 
@@ -98,8 +98,8 @@ export function relanceMail(p: Prospect, step: 3 | 7): { subject: string; body: 
       : { subject: `Votre projet de site${p.company ? ` — ${p.company}` : ''}`, body: `${hello}\n\nUn dernier petit message au sujet de votre projet de site. Je vous propose un échange de 15 minutes pour répondre à vos questions sur le devis :\nhttps://www.seokraft.fr/rendez-vous\n\nEt si le moment n’est pas le bon, aucun souci : dites-le-moi, je ne vous relancerai plus.\n\nBien cordialement,\n\n${SIGNATURE}` };
   }
   return step === 3
-    ? { subject: `Le bulletin de votre site ${host}`, body: `${hello}\n\nJe me permets de revenir vers vous au sujet du bulletin de votre site ${host}${sent ? `, que je vous ai envoyé le ${sent}` : ''}. Avez-vous pu le consulter ?${link ? `\n\n${link}` : ''}\n\nSi vous le souhaitez, je vous présente les points prioritaires en 20 minutes au téléphone :\nhttps://www.seokraft.fr/rendez-vous\n\nBien cordialement,\n\n${SIGNATURE}${cold ? STOP : ''}` }
-    : { subject: `${host} : les points à corriger en priorité`, body: `${hello}\n\nDernier petit message de ma part au sujet de votre site ${host}. Les points relevés dans le bulletin continuent probablement de vous faire perdre des demandes, et la plupart se corrigent rapidement.${link ? `\n\nLe bulletin reste consultable ici :\n${link}` : ''}\n\nJe reste disponible pour en parler 20 minutes, quand cela vous arrange :\nhttps://www.seokraft.fr/rendez-vous\n\nBien cordialement,\n\n${SIGNATURE}${cold ? STOP : ''}` };
+    ? { subject: `L’audit de votre site ${host}`, body: `${hello}\n\nJe me permets de revenir vers vous au sujet de l’audit de votre site ${host}${sent ? `, que je vous ai envoyé le ${sent}` : ''}. Avez-vous pu le consulter ?${link ? `\n\n${link}` : ''}\n\nSi vous le souhaitez, je vous présente les points prioritaires en 20 minutes au téléphone :\nhttps://www.seokraft.fr/rendez-vous\n\nBien cordialement,\n\n${SIGNATURE}${cold ? STOP : ''}` }
+    : { subject: `${host} : les points à corriger en priorité`, body: `${hello}\n\nDernier petit message de ma part au sujet de votre site ${host}. Les points relevés dans l’audit continuent probablement de vous faire perdre des demandes, et la plupart se corrigent rapidement.${link ? `\n\nL’audit reste consultable ici :\n${link}` : ''}\n\nJe reste disponible pour en parler 20 minutes, quand cela vous arrange :\nhttps://www.seokraft.fr/rendez-vous\n\nBien cordialement,\n\n${SIGNATURE}${cold ? STOP : ''}` };
 }
 
 /* Lien personnel du questionnaire de projet (relié automatiquement à la fiche). */

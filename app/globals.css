@@ -1393,3 +1393,5 @@ html:has(.crm) .sk-cookie-overlay{display:none!important}
 .bv-questions li.is-ok{border-left:4px solid var(--olive)}
 .bv-questions li.is-warn{border-left:4px solid #c08a2b}.bv-questions li.is-warn .bv-a{background:#f7ecd6;color:#7a5512}.bv-questions li.is-warn .bv-num{background:#f7ecd6;color:#9a6b17}
 .bv-questions li.is-bad{border-left:4px solid var(--bad);background:#fbf3f1}.bv-questions li.is-bad .bv-a{background:#f6dcd6;color:#8f2f22}.bv-questions li.is-bad .bv-num{background:#f6dcd6;color:var(--bad)}
+
+.at-kind{display:inline-flex;gap:4px;margin:0 auto 0 14px}.at-kind button{border:1px solid #ddd8cc;background:#fff;padding:3px 10px;font-size:13px;cursor:pointer}.at-kind button.on{background:var(--olive);color:#fff;border-color:var(--olive)}

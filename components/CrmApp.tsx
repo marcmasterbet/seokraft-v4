@@ -278,7 +278,7 @@ function Fiche({ p, busy, error, act, onBack, onDeleted, onUpdated }: { p: Prosp
         </dl>
       </div>}
     </> : <form className="crm-fields" onSubmit={async (e) => { e.preventDefault(); await act(p.id, { action: 'update', fields: f }); setEdit(false); }}>
-      {([['company', 'Entreprise'], ['contactName', 'Contact'], ['email', 'E-mail'], ['phone', 'Téléphone'], ['website', 'Site internet'], ['address', 'Adresse'], ['city', 'Ville'], ['trade', 'Métier'], ['siret', 'SIRET'], ['priority', 'Priorité'], ['google', 'Avis Google'], ['distance', 'Distance'], ['bulletinId', 'Identifiant du bulletin'], ['score', 'Note /20']] as [keyof typeof f, string][]).map(([k, l]) =>
+      {([['company', 'Entreprise'], ['contactName', 'Contact'], ['email', 'E-mail'], ['phone', 'Téléphone'], ['website', 'Site internet'], ['address', 'Adresse'], ['city', 'Ville'], ['trade', 'Métier'], ['siret', 'SIRET'], ['priority', 'Priorité'], ['google', 'Avis Google'], ['distance', 'Distance'], ['bulletinId', 'Identifiant de l’audit'], ['score', 'Note /20']] as [keyof typeof f, string][]).map(([k, l]) =>
         <label key={k}>{l}<input value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></label>)}
       <div className="crm-act"><button className="crm-btn" type="submit" disabled={busy}>Enregistrer</button><button className="crm-btn crm-btn-line" type="button" onClick={() => setEdit(false)}>Annuler</button></div>
     </form>}
@@ -318,10 +318,10 @@ function Fiche({ p, busy, error, act, onBack, onDeleted, onUpdated }: { p: Prosp
     </form>
 
     <div className="crm-box"><h3>DOCUMENTS</h3>
-      {p.bulletinId && <div className="crm-doc"><a href={`/bulletin/${p.bulletinId}`} target="_blank" rel="noopener noreferrer">Bulletin d’audit{p.score !== null ? ` · ${fmtScore(p.score)}/20` : ''}</a><span>en ligne · PDF depuis la page</span></div>}
+      {p.bulletinId && <div className="crm-doc"><a href={`/bulletin/${p.bulletinId}`} target="_blank" rel="noopener noreferrer">Audit{p.score !== null ? ` · ${fmtScore(p.score)}/20` : ''}</a><span>en ligne · PDF depuis la page</span></div>}
       {p.docs.map((d) => <div className="crm-doc" key={d.url}><a href={d.url} target="_blank" rel="noopener noreferrer">{d.name}</a><span>{frDate(d.at)} · {Math.round(d.size / 1024)} Ko <button type="button" className="crm-icon" title="Supprimer" onClick={() => act(p.id, { action: 'removeDoc', url: d.url })}><Trash2 size={14} /><span className="sr-only">Supprimer {d.name}</span></button></span></div>)}
       <input ref={fileRef} type="file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden onChange={(e) => { const x = e.target.files?.[0]; if (x) upload(x); e.target.value = ''; }} />
-      <button type="button" className="crm-link" onClick={() => fileRef.current?.click()}>+ Ajouter un PDF (devis, bulletin, contrat…)</button>
+      <button type="button" className="crm-link" onClick={() => fileRef.current?.click()}>+ Ajouter un PDF (devis, audit, contrat…)</button>
       {upErr && <p className="crm-error" role="alert">{upErr}</p>}
     </div>
 

@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       const quota = auto ? await checkAndRecordQuota(url, email) : { ok: false as const, reason: 'manuel' };
       if (!auto) {
         subject += ' — à auditer';
-        report = `À AUDITER : si la demande est sérieuse, lance l’audit en un clic (adresse et prénom déjà remplis) :\n${tool}\n\nLe bulletin se rangera tout seul dans sa fiche du CRM. Tu as 24 h pour le lui envoyer.\nSi c’est un plaisantin, ignore simplement ce mail : rien n’a été dépensé.`;
+        report = `À AUDITER : si la demande est sérieuse, lance l’audit en un clic (adresse et prénom déjà remplis) :\n${tool}\n\nL’audit se rangera tout seul dans sa fiche du CRM. Tu as 24 h pour le lui envoyer.\nSi c’est un plaisantin, ignore simplement ce mail : rien n’a été dépensé.`;
       } else if (!quota.ok) {
         subject += ' — non lancé automatiquement';
         report = `Audit NON lancé automatiquement : ${quota.reason} (protection de ton crédit IA).\nSi la demande est sérieuse, lance-le à la main depuis l’outil : ${tool}`;
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
           scrubbed.length ? `• Phrase(s) de l’IA retirée(s) car fausse(s) : ${scrubbed.map((x) => `« ${x} »`).join(' ; ')}` : '',
           speedError ? '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.' : '',
           '',
-          '1) RELIRE LE BULLETIN (en ligne, téléchargeable en PDF) :',
+          '1) RELIRE L’AUDIT (en ligne, téléchargeable en PDF) :',
           `https://www.seokraft.fr/bulletin/${b.id}`,
           '',
           '2) MAIL À ENVOYER AU PROSPECT (copier-coller) :',
