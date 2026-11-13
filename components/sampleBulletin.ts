@@ -3,7 +3,7 @@ import type { Bulletin } from './auditTypes';
 /* Bulletin fictif, présenté comme exemple sur la landing page (aucune entreprise réelle). */
 export const SAMPLE_BULLETIN: Bulletin = {
   id: 'exemple', version: 2, url: 'https://www.menuiserie-exemple.fr/', host: 'menuiserie-exemple.fr', createdAt: '2026-11-10T09:00:00.000Z',
-  global: 10, notes: { vitesse: 7, securite: 12.5, google: 11, textes: 10 }, cap: 'Note limitée à 10/20 : le site est très lent sur téléphone.', verdict: 'Moyen, des clients vous échappent',
+  global: 10, notes: { vitesse: 7, securite: 12.5, legal: 11.5, google: 11, textes: 10 }, cap: 'Note limitée à 10/20 : le site est très lent sur téléphone.', verdict: 'Moyen, des clients vous échappent',
   impression: 'Le site inspire confiance grâce à de belles photos d’atelier. Mais sur téléphone, le haut de page est occupé par une grande image qui met longtemps à apparaître, et aucun bouton n’est visible avant de faire défiler.',
   essentiel: 'Le site présente un vrai savoir-faire et de belles photos de réalisations. Mais sur téléphone, il met plus de 7 secondes à s’afficher, et le numéro n’est pas cliquable : beaucoup de visiteurs partent avant de vous contacter. Priorité : rendre le site rapide sur mobile et le contact évident dès l’arrivée.',
   priorities: [
@@ -38,7 +38,10 @@ export const SAMPLE_BULLETIN: Bulletin = {
     { group: 'securite', label: 'Protections du serveur contre le piratage', status: 'warn', detail: '2 protection(s) sur 5 activée(s).', advice: 'Ces protections de base, gratuites, limitent les risques de piratage et d’usurpation du site. Elles se règlent en une fois sur l’hébergement.' },
     { group: 'securite', label: 'Connexion sécurisée (cadenas)', status: 'ok', detail: 'Le site est servi en HTTPS.', advice: '' },
     { group: 'securite', label: 'Certificat de sécurité', status: 'ok', detail: 'Valide encore 64 jour(s).', advice: '' },
-    { group: 'securite', label: 'Mentions légales', status: 'ok', detail: 'Un lien vers les mentions légales est présent.', advice: '' },
+    { group: 'legal', label: 'Mentions légales', status: 'ok', detail: 'Un lien vers les mentions légales est présent.', advice: '' },
+    { group: 'legal', label: 'Contenu des mentions légales', status: 'warn', detail: 'Le numéro d’immatriculation est indiqué « en cours ». Nous n’avons pas trouvé : l’hébergeur du site.', advice: 'Les mentions légales doivent indiquer le nom de l’entreprise, son numéro SIRET ou RCS, son adresse et l’hébergeur du site.' },
+    { group: 'legal', label: 'Politique de confidentialité (RGPD)', status: 'ok', detail: 'Présente.', advice: '' },
+    { group: 'legal', label: 'Information sous le formulaire', status: 'warn', detail: 'Le formulaire ne dit pas ce que deviennent les données envoyées.', advice: 'Ajouter une phrase sous le formulaire (« vos données servent uniquement à vous répondre ») avec un lien vers la politique de confidentialité.' },
     { group: 'google', label: 'Description dans les résultats Google', status: 'bad', detail: 'Aucune description n’est définie.', advice: 'Rédiger une description de 140 à 160 caractères qui donne envie de cliquer : c’est votre « vitrine » dans Google.' },
     { group: 'google', label: 'Nombre de pages du site', status: 'warn', detail: '3 page(s) trouvée(s) en plus de l’accueil.', advice: 'Une page par service permet d’apparaître sur beaucoup plus de recherches Google.' },
     { group: 'google', label: 'Ville ciblée sur Google', status: 'ok', detail: 'La ville (Molsheim) apparaît dans le titre ou le grand titre.', advice: '' },

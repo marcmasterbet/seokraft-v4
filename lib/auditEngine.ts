@@ -126,6 +126,8 @@ type Extra = {
   internalPages: number; broken: string[];
   images: { count: number; heavy: number; biggestKb: number; totalKb: number } | null;
   certDays: number | null;
+  legalText?: string | null;     // texte de la page de mentions légales, si on l'a trouvée et lue
+  legalFound?: 'lien' | 'plan' | 'adresse' | 'texte' | null; // où on les a trouvées
 };
 
 const listFr = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs[xs.length - 1]}`);
@@ -436,23 +438,65 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     status: weakCookies ? 'warn' : 'ok', detail: weakCookies ? `${weakCookies} cookie(s) sur ${setCookie.length} sans protection complète.` : 'Les cookies du site sont protégés.',
     advice: weakCookies ? 'Activer les options de protection des cookies (Secure, HttpOnly) pour éviter les vols de session.' : 'Rien à faire.' });
 
-  const legal = /mentions[\s-]+l[ée]gales|legal|impressum/i.test(siteLinkTexts) || siteHrefs.some((h) => /mentions|legal/i.test(h));
-  add({ id: 'legal', cat: 'securite', label: 'Mentions légales', weight: 2,
-    status: legal ? 'ok' : 'bad', detail: legal ? 'Un lien vers les mentions légales est présent.' : 'Aucun lien vers des mentions légales.',
-    advice: legal ? 'Rien à faire.' : 'Obligatoire en France pour un site professionnel : identité, adresse, hébergeur. Risque d’amende.' });
+  const legalLink = /mentions|l[ée]gal|impressum/i.test(siteLinkTexts) || siteHrefs.some((h) => /mentions|legal|impressum/i.test(h));
+  const found = extra.legalFound !== undefined ? extra.legalFound : legalLink ? 'lien' : null;
+  const legal = !!found;
+  const LEGAL_DETAIL = { lien: 'Un lien vers les mentions légales est présent.', texte: 'Les mentions légales figurent directement sur les pages (en bas de page).',
+    plan: 'La page de mentions légales existe, mais aucun lien visible n’y mène.', adresse: 'La page de mentions légales existe, mais aucun lien visible n’y mène.' } as const;
+  add({ id: 'legal', cat: 'legal', label: 'Mentions légales', weight: 2,
+    status: !found ? 'bad' : found === 'plan' || found === 'adresse' ? 'warn' : 'ok',
+    detail: found ? LEGAL_DETAIL[found] : 'Nous n’avons trouvé de mentions légales ni dans les liens du site, ni à leurs adresses habituelles, ni en bas de page.',
+    advice: !found ? 'Obligatoire en France pour un site professionnel : identité, adresse, hébergeur. Risque d’amende.'
+      : found === 'plan' || found === 'adresse' ? 'Ajouter un lien « Mentions légales » en bas de chaque page : elles doivent être accessibles facilement.' : 'Rien à faire.' });
 
-  const privacy = /confidentialit|donn[ée]es personnelles|rgpd|privacy/i.test(siteLinkTexts) || siteHrefs.some((h) => /confidential|privacy|rgpd|donnees/i.test(h));
-  add({ id: 'privacy', cat: 'securite', label: 'Politique de confidentialité (RGPD)', weight: 2,
+  const privacy = /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e/i.test(siteLinkTexts) || siteHrefs.some((h) => /confidential|privacy|rgpd|donnees/i.test(h));
+  add({ id: 'privacy', cat: 'legal', label: 'Politique de confidentialité (RGPD)', weight: 2,
     status: privacy ? 'ok' : 'bad', detail: privacy ? 'Présente.' : `Introuvable ${where}.`,
     advice: privacy ? 'Rien à faire.' : 'Obligatoire dès qu’un formulaire ou des statistiques collectent des données (RGPD).' });
 
   const html = page.html;
   const trackers = /googletagmanager|google-analytics|gtag\(|fbq\(|connect\.facebook\.net|hotjar|clarity\.ms/i.test(html);
   const cmp = /tarteaucitron|axeptio|cookiebot|didomi|onetrust|cookie-consent|cookieconsent|complianz|cookie_notice|cookieyes|iubenda|klaro|sk-cookie|cookie-banner|cookie-law/i.test(html);
-  if (trackers) add({ id: 'cookies', cat: 'securite', label: 'Consentement aux cookies',
+  if (trackers) add({ id: 'cookies', cat: 'legal', label: 'Consentement aux cookies',
     status: cmp ? 'ok' : 'warn',
     detail: cmp ? 'Des outils de suivi sont utilisés, avec un gestionnaire de consentement détecté.' : 'Des outils de suivi sont utilisés, sans gestionnaire de consentement détecté.',
     advice: cmp ? 'Vérifier que rien ne se charge avant l’accord du visiteur.' : 'Les statistiques et pixels publicitaires exigent l’accord préalable du visiteur (CNIL). À vérifier en priorité.' });
+
+  /* Contenu des mentions légales : identité, adresse, hébergeur. Prudence : on dit ce qu'on a vu, pas un verdict juridique. */
+  if (legal && extra.legalText != null) {
+    const t = extra.legalText;
+    const pending = /en cours d['’]?\s*(immatriculation|d['’]immatriculation|de cr[ée]ation)/i.test(t);
+    const id = /\b\d{3}\s?\d{3}\s?\d{3}(\s?\d{5})?\b/.test(t) || /\b(siret|siren|rcs|rm|r\.c\.s)\b/i.test(t);
+    const addr = /\b(0[1-9]|[1-8]\d|9[0-8])\d{3}\b/.test(t);
+    const hostInfo = /h[ée]berg|hosting|vercel|ovh|o2switch|ionos|hostinger|wix|squarespace|netlify|amazon web|google cloud|infomaniak|planethoster|lws|gandi/i.test(t);
+    const missing = [!id && !pending && 'le numéro SIRET ou RCS', !addr && 'l’adresse', !hostInfo && 'l’hébergeur du site'].filter(Boolean) as string[];
+    add({ id: 'legal-content', cat: 'legal', label: 'Contenu des mentions légales', weight: 2,
+      status: missing.length === 0 && !pending ? 'ok' : 'warn',
+      detail: missing.length === 0 && !pending ? 'L’identité de l’entreprise, son adresse et l’hébergeur sont indiqués.'
+        : [pending && 'Le numéro d’immatriculation est indiqué « en cours ».', missing.length && `Nous n’avons pas trouvé : ${missing.join(', ')}.`].filter(Boolean).join(' '),
+      advice: missing.length === 0 && !pending ? 'Rien à faire.'
+        : pending && !missing.length ? 'Penser à remplacer « en cours » par le numéro SIRET dès réception.'
+        : 'Les mentions légales doivent indiquer le nom de l’entreprise, son numéro SIRET ou RCS, son adresse et l’hébergeur du site.' });
+  }
+
+  /* Formulaire : le visiteur doit savoir ce que deviennent ses données. */
+  const forms = all.flatMap((d) => d('form').toArray().map((f) => d(f)).filter((f) => f.find('input[type="email"], textarea, input[name*="mail" i]').length > 0));
+  if (forms.length) {
+    const informed = forms.some((f) => /donn[ée]es|rgpd|confidentialit|consent|j['’]accepte|privacy|cnil/i.test(f.text() + ' ' + f.parent().text().slice(0, 1500)));
+    add({ id: 'form-info', cat: 'legal', label: 'Information sous le formulaire', weight: 1,
+      status: informed ? 'ok' : 'warn',
+      detail: informed ? 'Le formulaire indique l’usage des données envoyées.' : 'Le formulaire ne dit pas ce que deviennent les données envoyées.',
+      advice: informed ? 'Rien à faire.' : 'Ajouter une phrase sous le formulaire (« vos données servent uniquement à vous répondre ») avec un lien vers la politique de confidentialité.' });
+  }
+
+  /* Vente en ligne : conditions générales de vente obligatoires. */
+  const shop = /woocommerce|shopify|add-to-cart|ajouter au panier|snipcart|prestashop/i.test(html);
+  if (shop) {
+    const cgv = /conditions g[ée]n[ée]rales de vente|\bcgv\b/i.test(siteLinkTexts) || siteHrefs.some((h) => /cgv|conditions-generales/i.test(h));
+    add({ id: 'cgv', cat: 'legal', label: 'Conditions générales de vente', weight: 2,
+      status: cgv ? 'ok' : 'bad', detail: cgv ? 'Présentes.' : `Le site vend en ligne, mais nous n’avons pas trouvé de conditions générales de vente ${where}.`,
+      advice: cgv ? 'Rien à faire.' : 'Obligatoires pour vendre en ligne : prix, livraison, droit de rétractation, garanties.' });
+  }
 
   /* --- Prise de contact --- */
   const tel = siteHrefs.some((h) => h.startsWith('tel:'));
@@ -653,6 +697,41 @@ export async function runAudit(input: string): Promise<AuditResult> {
     page.url.startsWith('https://') ? certDays(host) : Promise.resolve(null),
   ]);
   const subs = sub.pages;
+  /* Mentions légales : on les cherche partout avant de conclure qu'elles manquent.
+     1. un lien sur les pages lues (texte ou adresse) ; 2. le plan du site (sitemap) ;
+     3. les adresses habituelles (/mentions-legales…) ; 4. le texte même des pages (SIRET + hébergeur en bas de page). */
+  const LEGAL_TXT = /mentions|l[ée]gal|impressum|\bcgu\b|conditions g[ée]n[ée]rales d['’]utilisation/i;
+  const LEGAL_URL = /mentions|legal|impressum|\bcgu\b/i;
+  const looksLegal = (t: string) => /mentions l[ée]gales|siret|siren|\brcs\b|h[ée]berg|directeur de (la )?publication|[ée]diteur du site/i.test(t);
+  const pageLinks = [$, $c, ...subs.map((p) => p.$)].flatMap((d) => d('a[href]').map((_, a) => ({ href: d(a).attr('href') || '', t: d(a).text() })).get());
+  let legalFound: 'lien' | 'plan' | 'adresse' | 'texte' | null = null;
+  let legalText: string | null = null;
+  const readLegal = async (href: string) => {
+    try {
+      const u = new URL(href, page.url);
+      if (!/^https?:$/.test(u.protocol) || /\.pdf$/i.test(u.pathname)) return null;
+      const known = subs.find((p) => p.url.split('#')[0] === u.toString().split('#')[0]);
+      if (known) return text(known.$);
+      const r = await exists(u.toString());
+      return r.ok ? text(load(r.text)) : null;
+    } catch { return null; }
+  };
+  const linked = pageLinks.find((l) => LEGAL_TXT.test(l.t) || LEGAL_URL.test(l.href));
+  if (linked) { legalFound = 'lien'; if (!/\.pdf$/i.test(linked.href)) legalText = await readLegal(linked.href); }
+  if (!legalFound) {
+    const inMap = links.find((l) => LEGAL_URL.test(new URL(l.url).pathname));
+    if (inMap) { const t = await readLegal(inMap.url); if (t && looksLegal(t)) { legalFound = 'plan'; legalText = t; } }
+  }
+  if (!legalFound) {
+    for (const path of ['/mentions-legales', '/mentions-legales/', '/mentions-legales.html', '/mentions', '/legal', '/informations-legales']) {
+      const t = await readLegal(origin + path);
+      if (t && looksLegal(t)) { legalFound = 'adresse'; legalText = t; break; }
+    }
+  }
+  if (!legalFound) {
+    const body = [text($c), ...subs.map((p) => text(p.$))].join(' ');
+    if (/\b(siret|siren|rcs)\b/i.test(body) && /h[ée]berg/i.test(body)) { legalFound = 'texte'; legalText = body; }
+  }
   const robotsTxt = robots.ok && /sitemap:/i.test(robots.text) ? true : smap2.ok;
   const analysed: Page = { ...page, html: contentHtml };
   const detail = (d: CheerioAPI, url: string, label: string) => ({
@@ -667,7 +746,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
     host: host.replace(/^www\./, ''),
     fetchedAt: new Date().toISOString(),
     title: $('head > title').first().text().trim() || $c('head > title').first().text().trim(),
-    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert }, subs),
+    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound }, subs),
     pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
     pagesDetail: [detail($c, page.url, 'Accueil'), ...subs.map((p) => detail(p.$, p.url, p.label))],
     content: {

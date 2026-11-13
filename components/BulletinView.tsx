@@ -1,11 +1,11 @@
 import Image from 'next/image';
-import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck, Scale } from 'lucide-react';
 import PrintButton from './PrintButton';
 import Score20 from './Score20';
 import { NOTE_LABELS, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
 
 /* Bulletin d'audit SEOKRAFT : page en ligne (téléphone d'abord) et PDF via l'impression. */
-const ICONS: Record<NoteId | 'technique', typeof Monitor> = { vitesse: Gauge, securite: ShieldCheck, technique: Monitor, google: Search, textes: PenLine, contact: MessageCircle };
+const ICONS: Record<NoteId | 'technique', typeof Monitor> = { vitesse: Gauge, securite: ShieldCheck, legal: Scale, technique: Monitor, google: Search, textes: PenLine, contact: MessageCircle };
 const LEGACY = { id: 'technique' as const, label: 'Technique du site', hint: 'Vitesse, téléphone, sécurité, conformité' };
 
 /* Couleur d'une note : rouge si elle fait perdre des clients, orange si moyenne, vert si bonne. */
@@ -41,10 +41,14 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
   const date = new Date(b.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const s = b.speed;
   const sd = b.speedDesktop ?? null;
-  const labels = b.notes.vitesse === undefined ? [LEGACY, ...NOTE_LABELS.filter((n) => n.id !== 'vitesse' && n.id !== 'securite')] : NOTE_LABELS;
+  /* Anciens bulletins : pas de note « Obligations légales » (elle était comprise dans « Sécurité et RGPD »). */
+  const labels = b.notes.vitesse === undefined ? [LEGACY, ...NOTE_LABELS.filter((n) => !['vitesse', 'securite', 'legal'].includes(n.id))]
+    : b.notes.legal === undefined ? NOTE_LABELS.filter((n) => n.id !== 'legal').map((n) => n.id === 'securite' ? { ...n, label: 'Sécurité et RGPD', hint: 'Vos visiteurs et leurs données sont-ils protégés ? Le site est-il en règle ?' } : n)
+    : NOTE_LABELS;
   const checks = b.checks ?? [];
   const group = (g: NoteId) => checks.filter((c) => c.group === g);
   const security = group('securite');
+  const legalChecks = group('legal');
   const speedChecks = group('vitesse');
   const grave = b.priorities.filter((p) => p.level === 'critique').length;
   return <main className="bv">
@@ -71,7 +75,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
 
     <section className="bv-sec">
       <h2>Vos notes</h2>
-      <div className="bv-notes">{labels.map(({ id, label, hint }) => { const Icon = ICONS[id]; const v = (b.notes as Record<string, number | null | undefined>)[id] ?? null; return <div className={`bv-note ${tone(v)}`} key={id}>
+      <div className={`bv-notes${labels.length === 5 ? ' is-five' : ''}`}>{labels.map(({ id, label, hint }) => { const Icon = ICONS[id]; const v = (b.notes as Record<string, number | null | undefined>)[id] ?? null; return <div className={`bv-note ${tone(v)}`} key={id}>
         <p className="bv-note-head"><Icon size={18} aria-hidden="true" />{label}</p>
         <p className="bv-note-val"><b>{fmt20(v)}</b>/20</p>
         <div className="bv-bar" aria-hidden="true"><i style={{ width: `${((v ?? 0) / 20) * 100}%` }} /></div>
@@ -110,9 +114,15 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
     </section>
 
     {security.length > 0 && <section className="bv-sec">
-      <h2>Sécurité et conformité</h2>
+      <h2>{b.notes.legal === undefined ? 'Sécurité et conformité' : 'Sécurité'}</h2>
       <p className="bv-muted bv-intro">Ce que tout visiteur peut constater de l’extérieur. Aucun test intrusif n’a été réalisé.</p>
       <CheckList items={security} />
+    </section>}
+
+    {legalChecks.length > 0 && <section className="bv-sec">
+      <h2>Obligations légales</h2>
+      <p className="bv-muted bv-intro">Ce que nous avons pu vérifier sur les pages publiques du site. Ce n’est pas un avis juridique.</p>
+      <CheckList items={legalChecks} />
     </section>}
 
     {b.pagesDetail && b.pagesDetail.length > 0 && <section className="bv-sec">

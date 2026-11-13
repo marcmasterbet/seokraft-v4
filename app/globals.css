@@ -1384,3 +1384,7 @@ html:has(.crm) .sk-cookie-overlay{display:none!important}
 .crm-done-btn{display:inline-flex;align-items:center;gap:4px;background:var(--olive);color:#fff;border:0;font:700 12px 'DM Sans',sans-serif;padding:5px 10px;cursor:pointer;white-space:nowrap}
 .crm-done-btn:hover{background:#3c4530}
 .crm-clients .crm-row{cursor:pointer}
+
+/* 5 notes : 3 cartes en haut, 2 en bas */
+@media(min-width:561px){.bv-notes.is-five{grid-template-columns:repeat(6,minmax(0,1fr))}.bv-notes.is-five>.bv-note{grid-column:span 2}.bv-notes.is-five>.bv-note:nth-child(n+4){grid-column:span 3}}
+@media print{.bv-notes.is-five{grid-template-columns:repeat(5,1fr)}.bv-notes.is-five>.bv-note,.bv-notes.is-five>.bv-note:nth-child(n+4){grid-column:auto}}

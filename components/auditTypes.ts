@@ -1,6 +1,6 @@
 /* Types partagés entre l'analyse serveur (/api/outil-audit) et l'outil (/outil-audit). */
 export type Status = 'ok' | 'warn' | 'bad';
-export type Category = 'google' | 'contenu' | 'mobile' | 'securite' | 'contact';
+export type Category = 'google' | 'contenu' | 'mobile' | 'securite' | 'legal' | 'contact';
 
 export type Check = {
   id: string;
@@ -38,7 +38,8 @@ export const CATEGORIES: { id: Category; label: string }[] = [
   { id: 'google', label: 'Présence sur Google' },
   { id: 'contenu', label: 'Contenu et clarté' },
   { id: 'mobile', label: 'Mobile et vitesse' },
-  { id: 'securite', label: 'Sécurité et conformité' },
+  { id: 'securite', label: 'Sécurité' },
+  { id: 'legal', label: 'Obligations légales' },
   { id: 'contact', label: 'Prise de contact' },
 ];
 
@@ -109,7 +110,7 @@ const IMPACT: Record<string, number> = {
   viewport: 10, 'psi-perf': 9, https: 9, indexable: 9, outdated: 9, cert: 9, robots: 8, phone: 8, cta: 8, 'title-local': 8, 'old-cms': 8, 'vuln-lib': 8,
   form: 7, title: 7, words: 7, reviews: 7, 'psi-perf-d': 7, images: 7, 'form-http': 7, 'server-version': 6,
   legal: 6, privacy: 6, 'pages-seo': 6, 'psi-lcp': 6, description: 6, address: 6, broken: 6, mixed: 6, 'psi-lcp-d': 5, proof: 5,
-  h1: 5, 'psi-cls': 7, 'psi-cls-d': 6, maillage: 5, hierarchy: 4, schema: 5, cookies: 5, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
+  h1: 5, 'psi-cls': 7, 'psi-cls-d': 6, maillage: 5, hierarchy: 4, schema: 5, cookies: 6, 'legal-content': 5, 'form-info': 4, cgv: 7, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
   alt: 3, 'psi-a11y': 3, sitemap: 3, structure: 3, 'cookie-flags': 3, weight: 2, og: 2, favicon: 0, lang: 0,
 };
 const rankOf = (c: Check) => (c.status === 'bad' ? 2 : c.status === 'warn' ? 1 : 0) * 100 + (IMPACT[c.id] ?? 1) * 10 + (c.weight ?? 1);
@@ -159,7 +160,7 @@ export type TextReview = {
   priorities: Priority[];
   positives: string[];
 };
-export type NoteId = 'vitesse' | 'securite' | 'google' | 'textes' | 'contact';
+export type NoteId = 'vitesse' | 'securite' | 'legal' | 'google' | 'textes' | 'contact';
 export type BulletinCheck = { group: NoteId; label: string; status: Status; detail: string; advice: string };
 export type PageDetail = { label: string; path: string; title: string; description: boolean; h1: string; words: number };
 export type Bulletin = {
@@ -169,7 +170,7 @@ export type Bulletin = {
   host: string;
   createdAt: string;
   global: number;                // sur 20, au demi-point
-  notes: { vitesse?: number; securite?: number; technique?: number; google: number; textes: number | null; contact?: number };
+  notes: { vitesse?: number; securite?: number; legal?: number; technique?: number; google: number; textes: number | null; contact?: number };
   cap?: string;                  // raison pour laquelle la note est plafonnée
   verdict: string;
   essentiel: string;
@@ -189,12 +190,13 @@ export type Bulletin = {
 
 export const NOTE_LABELS: { id: NoteId; label: string; hint: string }[] = [
   { id: 'vitesse', label: 'Vitesse et téléphone', hint: 'Le site s’affiche-t-il vite, sur téléphone comme sur ordinateur ?' },
-  { id: 'securite', label: 'Sécurité et RGPD', hint: 'Vos visiteurs et leurs données sont-ils protégés ? Le site est-il en règle ?' },
+  { id: 'securite', label: 'Sécurité', hint: 'Le site et les données de vos visiteurs sont-ils protégés ?' },
+  { id: 'legal', label: 'Obligations légales', hint: 'Mentions légales, RGPD, cookies : ce que nous avons pu vérifier' },
   { id: 'google', label: 'Visibilité sur Google', hint: 'Ce que Google comprend et affiche de vous' },
   { id: 'textes', label: 'Aspect général', hint: 'Contenu, image du site et facilité à vous contacter' },
 ];
 /* Les points de contact (bouton, téléphone, avis, preuves) font partie de l'aspect général : plus de note « Contact » à part. */
-const GROUP_OF: Record<Category, NoteId> = { mobile: 'vitesse', securite: 'securite', google: 'google', contenu: 'textes', contact: 'textes' };
+const GROUP_OF: Record<Category, NoteId> = { mobile: 'vitesse', securite: 'securite', legal: 'legal', google: 'google', contenu: 'textes', contact: 'textes' };
 
 export const LEVEL_LABEL: Record<Level, string> = { critique: 'Prioritaire', important: 'Important', planifier: 'À planifier' };
 
@@ -243,39 +245,55 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
     return total ? list.reduce((s, c) => s + (c.weight ?? 1) * POINTS[c.status], 0) / total : 0.5;
   };
   /* Un site fait avec un outil clé en main ne peut pas avoir une bonne note technique. */
-  const vitesse = half(Math.min(st('builder') === 'bad' ? 10 : 20, 20 * curve(pct(['mobile']))));
-  const securite = half(20 * curve(pct(['securite'])));
-  const google = half(20 * curve(speed?.seo != null ? 0.85 * pct(['google']) + 0.15 * (speed.seo / 100) : pct(['google'])));
+  let vitesse = half(Math.min(st('builder') === 'bad' ? 10 : 20, 20 * curve(pct(['mobile']))));
+  let securite = half(20 * curve(pct(['securite'])));
+  let legal = half(20 * curve(pct(['legal'])));
+  let google = half(20 * curve(speed?.seo != null ? 0.85 * pct(['google']) + 0.15 * (speed.seo / 100) : pct(['google'])));
   /* Aspect général : le regard de l'IA (contenu, image, message) et les vérifications de contenu et de contact. */
   const checksAspect = 20 * curve(pct(['contenu', 'contact']));
-  const textes = half(review ? 0.6 * Math.max(0, Math.min(20, review.score)) + 0.4 * checksAspect : checksAspect);
-  const parts: [number, number][] = [[vitesse, 1], [securite, 1], [google, 1], [textes, 1.5]];
-  let global = half(parts.reduce((s, [v, w]) => s + v * w, 0) / parts.reduce((s, [, w]) => s + w, 0));
+  let textes = half(review ? 0.6 * Math.max(0, Math.min(20, review.score)) + 0.4 * checksAspect : checksAspect);
 
   /* Plafonds : un défaut grave empêche une bonne note, quoi que fasse le reste du site. */
-  const caps: [boolean, number, string][] = [
-    [st('indexable') === 'bad' || st('robots') === 'bad', 6, 'le site est invisible sur Google'],
-    [st('cert') === 'bad', 6, 'le certificat de sécurité est expiré'],
-    [st('form-http') === 'bad', 9, 'les formulaires envoient les données des clients sans protection'],
-    [st('old-cms') === 'bad' || st('vuln-lib') === 'bad', 10, 'le site utilise des logiciels anciens avec des failles connues'],
-    [st('builder') === 'bad', 12, 'le site est construit avec un outil « clé en main » limité'],
-    [st('viewport') === 'bad', 8, 'le site n’est pas adapté aux téléphones'],
-    [st('phone') === 'bad' && st('form') === 'bad' && st('cta') === 'bad', 11, 'aucun moyen simple de contacter l’entreprise'],
-    [st('outdated') === 'bad', 9, 'le site repose sur une technologie dépassée'],
-    [st('https') === 'bad', 9, 'le site n’est pas sécurisé'],
-    [speed?.performance != null && speed.performance < 30, 10, 'le site est très lent sur téléphone'],
-    [st('cta') === 'bad', 11, 'aucun bouton n’invite à prendre contact'],
-    [review !== null && review.score <= 8, 11, 'le message ne donne pas envie de choisir l’entreprise'],
-    [st('words') === 'bad', 11, 'le site contient trop peu de texte pour Google'],
-    [st('legal') === 'bad', 12, 'les mentions légales, obligatoires, sont absentes'],
-    [st('title-local') === 'bad', 13, 'le site ne cible pas sa ville sur Google'],
-    [st('reviews') === 'bad' || st('reviews') === 'warn', 15, 'aucun avis client visible'],
+  const caps: [boolean, number, string, 'vitesse' | 'securite' | 'legal' | 'google' | 'textes', string[]][] = [
+    [st('indexable') === 'bad' || st('robots') === 'bad', 6, 'le site est invisible sur Google', 'google', ['indexable', 'robots']],
+    [st('cert') === 'bad', 6, 'le certificat de sécurité est expiré', 'securite', ['cert']],
+    [st('form-http') === 'bad', 9, 'les formulaires envoient les données des clients sans protection', 'securite', ['form-http']],
+    [st('old-cms') === 'bad' || st('vuln-lib') === 'bad', 10, 'le site utilise des logiciels anciens avec des failles connues', 'securite', ['old-cms', 'vuln-lib']],
+    [st('builder') === 'bad', 12, 'le site est construit avec un outil « clé en main » limité', 'vitesse', ['builder']],
+    [st('viewport') === 'bad', 8, 'le site n’est pas adapté aux téléphones', 'vitesse', ['viewport']],
+    [st('phone') === 'bad' && st('form') === 'bad' && st('cta') === 'bad', 11, 'aucun moyen simple de contacter l’entreprise', 'textes', ['phone', 'form', 'cta']],
+    [st('outdated') === 'bad', 9, 'le site repose sur une technologie dépassée', 'vitesse', ['outdated']],
+    [st('https') === 'bad', 9, 'le site n’est pas sécurisé', 'securite', ['https']],
+    [speed?.performance != null && speed.performance < 30, 10, 'le site est très lent sur téléphone', 'vitesse', ['psi-perf']],
+    [st('cta') === 'bad', 11, 'aucun bouton n’invite à prendre contact', 'textes', ['cta']],
+    [review !== null && review.score <= 8, 11, 'le message ne donne pas envie de choisir l’entreprise', 'textes', []],
+    [st('words') === 'bad', 11, 'le site contient trop peu de texte pour Google', 'google', ['words']],
+    [st('legal') === 'bad', 12, 'les mentions légales, obligatoires, sont absentes', 'legal', ['legal']],
+    [st('cgv') === 'bad', 12, 'le site vend en ligne sans conditions générales de vente', 'legal', ['cgv']],
+    [st('title-local') === 'bad', 13, 'le site ne cible pas sa ville sur Google', 'google', ['title-local']],
+    [st('reviews') === 'bad' || st('reviews') === 'warn', 15, 'aucun avis client visible', 'textes', ['reviews']],
   ];
-  const hit = caps.filter(([on, max]) => on && global > max).sort((a, b) => a[1] - b[1])[0];
+  /* Un défaut grave fait aussi baisser la note qui le concerne : le prospect voit d'où vient la baisse
+     (ex. mentions légales absentes → « Sécurité et RGPD » au plus 9/20, en rouge). */
+  const active = caps.filter(([on]) => on);
+  for (const [, max, , note] of active) {
+    const lim = Math.max(0, max - 3);
+    if (note === 'vitesse') vitesse = Math.min(vitesse, lim);
+    if (note === 'securite') securite = Math.min(securite, lim);
+    if (note === 'legal') legal = Math.min(legal, lim);
+    if (note === 'google') google = Math.min(google, lim);
+    if (note === 'textes') textes = Math.min(textes, lim);
+  }
+  const capIds = new Set(active.flatMap(([, , , , ids]) => ids));
+  const parts: [number, number][] = [[vitesse, 1], [securite, 1], [legal, 1], [google, 1], [textes, 1.5]];
+  let global = half(parts.reduce((s, [v, w]) => s + v * w, 0) / parts.reduce((s, [, w]) => s + w, 0));
+  const hit = active.filter(([, max]) => global > max).sort((a, b) => a[1] - b[1])[0];
   const cap = hit ? `Note limitée à ${fmt20(hit[1])}/20 : ${hit[2]}.` : undefined;
   if (hit) global = hit[1];
 
-  const tech = keyIssues(checks, 10).map((c) => ({ level: LEVEL_OF(c), title: problemTitle(c), text: `${c.detail} ${c.advice}` }));
+  const capChecks = checks.filter((c) => capIds.has(c.id) && c.status !== 'ok');
+  const tech = [...capChecks, ...keyIssues(checks, 10).filter((c) => !capIds.has(c.id))]
+    .map((c) => ({ level: capIds.has(c.id) ? 'critique' as Level : LEVEL_OF(c), title: problemTitle(c), text: `${c.detail} ${c.advice}` }));
   const order: Record<Level, number> = { critique: 0, important: 1, planifier: 2 };
   /* Le regard de l'IA (concret, tiré du site) passe d'abord, puis les constats techniques, du plus grave au moins grave. */
   let priorities = [...(review?.priorities ?? []), ...tech].sort((a, b) => order[a.level] - order[b.level]).slice(0, 8);
@@ -299,7 +317,7 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
     .map((c) => ({ group: GROUP_OF[c.cat], label: c.label, status: c.status, detail: c.detail, advice: c.status === 'ok' ? '' : c.advice }))
     .sort((a, b) => rankSt[a.status] - rankSt[b.status]);
 
-  return { id, version: 2, url: result.url, host: result.host, createdAt: new Date().toISOString(), global, notes: { vitesse, securite, google, textes }, cap,
+  return { id, version: 2, url: result.url, host: result.host, createdAt: new Date().toISOString(), global, notes: { vitesse, securite, legal, google, textes }, cap,
     verdict: verdict20(global), essentiel, impression: review?.impression || undefined, priorities, positives, constats: review?.constats ?? [], speed, speedDesktop: desktop, ai: !!review,
     pages: result.pages, pagesDetail: result.pagesDetail, checks: all, channels: result.content?.channels ?? [] };
 }
