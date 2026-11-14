@@ -120,7 +120,7 @@ export async function POST(request: Request) {
           b.cap ? `• ${b.cap}` : '',
           b.ai ? '• Audit SEO et apparence réalisés par l’IA : à relire avant envoi.' : `⚠ IA INDISPONIBLE (${aiError}) : la note Référencement et contenu n’est PAS évaluée. Corrige puis relance depuis l’outil avant d’envoyer.`,
           scrubbed.length ? `• Phrase(s) de l’IA retirée(s) car fausse(s) : ${scrubbed.map((x) => `« ${x} »`).join(' ; ')}` : '',
-          speedError ? '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.' : '',
+          speedError ? (process.env.PSI_API_KEY ? '⚠ Google n’a pas répondu à temps pour la mesure de vitesse : la note Vitesse est estimée sans elle. Relance l’audit depuis l’outil dans quelques minutes avant d’envoyer.' : '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.') : '',
           '',
           '1) RELIRE L’AUDIT (en ligne, téléchargeable en PDF) :',
           `https://www.seokraft.fr/bulletin/${b.id}`,

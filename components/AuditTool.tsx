@@ -12,7 +12,7 @@ export default function AuditTool() {
   const [firstName, setFirstName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [b, setB] = useState<(Bulletin & { aiError?: string; speedError?: boolean; scrubbed?: string[]; crmId?: string }) | null>(null);
+  const [b, setB] = useState<(Bulletin & { aiError?: string; speedError?: boolean; speedNoKey?: boolean; scrubbed?: string[]; crmId?: string }) | null>(null);
   const [copied, setCopied] = useState(false);
   const [kind, setKind] = useState<'demande' | 'prospection'>('prospection');
 
@@ -30,7 +30,7 @@ export default function AuditTool() {
       const d = await r.json().catch(() => ({}));
       if (r.status === 401) { setLogged(false); try { sessionStorage.removeItem(KEY_STORE); } catch {} throw new Error('Mot de passe incorrect.'); }
       if (!r.ok) throw new Error(d.error || 'Analyse impossible.');
-      setB(d as Bulletin & { aiError?: string; speedError?: boolean; scrubbed?: string[]; crmId?: string });
+      setB(d as Bulletin & { aiError?: string; speedError?: boolean; speedNoKey?: boolean; scrubbed?: string[]; crmId?: string });
     } catch (err) { setError(err instanceof Error ? err.message : 'Erreur.'); }
     finally { setBusy(false); }
   }
@@ -53,7 +53,7 @@ export default function AuditTool() {
       {busy && <p className="at-busy" role="status">Analyse du site, mesures Google et audit SEO : environ 1 à 2 minutes…</p>}
       {error && <p className="form-error" role="alert">{error}</p>}
       {b && <div className="at-actions">
-        <p className="at-result"><strong>{b.host} : {fmt20(b.global)}/20</strong> — {b.verdict}<br />{NOTE_LABELS.map((n) => `${n.label} ${fmt20(b.notes[n.id] ?? null)}`).join(' · ')}{b.cap && <><br />{b.cap}</>}{!b.ai && <><br /><em className="at-alert">IA indisponible ({b.aiError || 'erreur'}) : référencement non évalué. Corriger puis relancer avant d’envoyer.</em></>}{b.checks?.some((c) => c.label === 'Mentions légales' && c.status === 'bad') && <><br /><em className="at-alert">Mentions légales non trouvées : vérifie le bas de son site avant d’envoyer (si elles existent, ne pas envoyer cet audit et me prévenir).</em></>}{!!b.scrubbed?.length && <><br /><em className="at-alert">Phrase(s) de l’IA retirée(s) car contraire(s) aux vérifications : {b.scrubbed.map((x) => `« ${x} »`).join(' ; ')}. Relis l’audit.</em></>}{b.speedError && <><br /><em className="at-alert">Mesure de vitesse Google indisponible : ajouter PSI_API_KEY dans Vercel.</em></>}</p>
+        <p className="at-result"><strong>{b.host} : {fmt20(b.global)}/20</strong> — {b.verdict}<br />{NOTE_LABELS.map((n) => `${n.label} ${fmt20(b.notes[n.id] ?? null)}`).join(' · ')}{b.cap && <><br />{b.cap}</>}{!b.ai && <><br /><em className="at-alert">IA indisponible ({b.aiError || 'erreur'}) : référencement non évalué. Corriger puis relancer avant d’envoyer.</em></>}{b.checks?.some((c) => c.label === 'Mentions légales' && c.status === 'bad') && <><br /><em className="at-alert">Mentions légales non trouvées : vérifie le bas de son site avant d’envoyer (si elles existent, ne pas envoyer cet audit et me prévenir).</em></>}{!!b.scrubbed?.length && <><br /><em className="at-alert">Phrase(s) de l’IA retirée(s) car contraire(s) aux vérifications : {b.scrubbed.map((x) => `« ${x} »`).join(' ; ')}. Relis l’audit.</em></>}{b.speedError && <><br /><em className="at-alert">{b.speedNoKey ? 'Mesure de vitesse Google indisponible : ajouter PSI_API_KEY dans Vercel.' : 'Google n’a pas répondu à temps pour la mesure de vitesse : la note Vitesse est estimée sans elle. Relance l’audit dans quelques minutes avant de l’envoyer.'}</em></>}</p>
         <a className="button button-olive" href={link} target="_blank" rel="noopener noreferrer">Ouvrir l’audit (relire, télécharger le PDF)</a>{b.crmId && <a className="button button-dark" href={`/crm?p=${b.crmId}`} target="_blank" rel="noopener noreferrer">Voir la fiche dans le CRM</a>}
         <div className="at-mail"><div className="at-mail-head"><strong>Mail au prospect</strong><span className="at-kind"><button type="button" className={kind === 'prospection' ? 'on' : ''} onClick={() => { setKind('prospection'); setCopied(false); }}>Prospection</button><button type="button" className={kind === 'demande' ? 'on' : ''} onClick={() => { setKind('demande'); setCopied(false); }}>Il a demandé l’audit</button></span><button type="button" onClick={() => { navigator.clipboard?.writeText(mail).then(() => setCopied(true)); }}>{copied ? 'Copié ✓' : 'Copier'}</button></div><textarea readOnly rows={18} value={mail} /></div>
       </div>}

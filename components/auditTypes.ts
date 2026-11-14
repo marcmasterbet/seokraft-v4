@@ -107,7 +107,7 @@ export function speedChecks(m: Speed | null): Check[] {
 
 /* Ce qui compte pour un prospect : l'impact sur ses clients et sa visibilité (0 = jamais mis en avant dans le rapport). */
 const IMPACT: Record<string, number> = {
-  viewport: 10, 'psi-perf': 9, https: 9, indexable: 9, outdated: 9, cert: 9, robots: 8, phone: 8, cta: 8, 'title-local': 8, 'old-cms': 8, 'vuln-lib': 8,
+  viewport: 10, 'psi-perf': 9, https: 9, indexable: 9, outdated: 9, cert: 9, robots: 8, phone: 8, cta: 8, 'title-local': 8, 'old-cms': 8, 'vuln-lib': 5,
   form: 7, title: 7, words: 7, reviews: 7, 'psi-perf-d': 7, images: 7, 'form-http': 7, 'server-version': 6,
   legal: 6, privacy: 6, 'pages-seo': 6, 'psi-lcp': 6, description: 6, address: 6, broken: 6, mixed: 6, 'psi-lcp-d': 5, proof: 5,
   h1: 5, 'psi-cls': 7, 'psi-cls-d': 6, maillage: 5, hierarchy: 4, schema: 5, cookies: 6, 'legal-content': 5, 'form-info': 4, cgv: 7, 'site-size': 5, fresh: 5, ttfb: 5, headers: 5, 'psi-bp': 4, redirect: 4, 'email-pro': 4, photos: 4,
@@ -286,7 +286,7 @@ export function buildBulletin(id: string, result: AuditResult, speed: Speed | nu
     [st('indexable') === 'bad' || st('robots') === 'bad', 6, 'le site est invisible sur Google', 'google', ['indexable', 'robots']],
     [st('cert') === 'bad', 6, 'le certificat de sécurité est expiré', 'securite', ['cert']],
     [st('form-http') === 'bad', 9, 'les formulaires envoient les données des clients sans protection', 'securite', ['form-http']],
-    [st('old-cms') === 'bad' || st('vuln-lib') === 'bad', 10, 'le site utilise des logiciels anciens avec des failles connues', 'securite', ['old-cms', 'vuln-lib']],
+    [st('old-cms') === 'bad', 12, 'le site tourne sur une version ancienne de son outil de gestion, avec des failles connues', 'securite', ['old-cms']],
     [st('builder') === 'bad', 12, 'le site est construit avec un outil « clé en main » limité', 'vitesse', ['builder']],
     [st('viewport') === 'bad', 8, 'le site n’est pas adapté aux téléphones', 'vitesse', ['viewport']],
     [st('phone') === 'bad' && st('form') === 'bad' && st('cta') === 'bad', 11, 'aucun moyen simple de contacter l’entreprise', 'textes', ['phone', 'form', 'cta']],

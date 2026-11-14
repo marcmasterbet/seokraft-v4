@@ -412,7 +412,7 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     advice: leak.length ? 'Afficher les versions aide les pirates à cibler les failles connues. À masquer dans la configuration de l’hébergement.' : 'Rien à faire.' });
 
   const gen = $('meta[name="generator"]').attr('content') || '';
-  const wp = gen.match(/WordPress\s+(\d+)\.(\d+)/i) || html0.match(/wp-(?:includes|content)[^"']*\?ver=(\d+)\.(\d+)/i);
+  const wp = gen.match(/WordPress\s+(\d+)\.(\d+)/i) || html0.match(/wp-includes\/(?:js|css)\/[^"']*\?ver=(\d+)\.(\d+)/i);
   const joomla = /Joomla!?\s*(1\.|2\.|3\.)/i.test(gen);
   const oldWp = wp ? Number(wp[1]) < 6 || (Number(wp[1]) === 6 && Number(wp[2]) < 4) : false;
   if (wp || joomla) {
@@ -426,9 +426,9 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
   const jq = html0.match(/jquery[.-]?(\d)\.(\d+)(?:\.\d+)?(?:\.min)?\.js/i) || html0.match(/jquery(?:\.min)?\.js\?ver=(\d)\.(\d+)/i);
   const oldJq = jq ? Number(jq[1]) < 3 || (Number(jq[1]) === 3 && Number(jq[2]) < 5) : false;
   if (jq) add({ id: 'vuln-lib', cat: 'securite', label: 'Composants du site à jour', weight: 2,
-    status: oldJq ? 'bad' : 'ok',
-    detail: oldJq ? `Le site utilise jQuery ${jq[1]}.${jq[2]}, une version avec des failles de sécurité connues.` : `jQuery ${jq[1]}.${jq[2]} : version récente.`,
-    advice: oldJq ? 'Mettre à jour cette bibliothèque : les failles des anciennes versions sont publiques et exploitées.' : 'Rien à faire.' });
+    status: oldJq ? 'warn' : 'ok',
+    detail: oldJq ? `Le site utilise jQuery ${jq[1]}.${jq[2]}, une ancienne version d’un composant courant, avec des failles connues.` : `jQuery ${jq[1]}.${jq[2]} : version récente.`,
+    advice: oldJq ? 'Mettre à jour ce composant lors du prochain entretien du site : c’est rapide et cela supprime un risque inutile.' : 'Rien à faire.' });
 
   const httpForm = all.some((d) => d('form[action^="http:"]').length > 0) || (!https && all.some((d) => d('form input[type="password"], form input[type="email"], form textarea').length > 0));
   add({ id: 'form-http', cat: 'securite', label: 'Formulaires protégés', weight: 2,
@@ -795,8 +795,11 @@ export async function pageSpeedServer(url: string, strategy: 'mobile' | 'desktop
   if (key) p.set('key', key);
   try {
     const PSI = process.env.PSI_BASE_URL || 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
-    let r = await fetch(`${PSI}?${p}`, { signal: AbortSignal.timeout(50000) });
-    if (!r.ok && r.status !== 400) { await new Promise((ok) => setTimeout(ok, 1500)); r = await fetch(`${PSI}?${p}`, { signal: AbortSignal.timeout(40000) }); }
+    /* Google met parfois plus d'une minute : 70 s, puis une seconde tentative de 50 s (erreur ou délai dépassé). */
+    const call = (ms: number) => fetch(`${PSI}?${p}`, { signal: AbortSignal.timeout(ms) }).catch((e) => { console.error('PageSpeed', strategy, String(e).slice(0, 120)); return null; });
+    let r = await call(70000);
+    if (!r || (!r.ok && r.status !== 400)) { await new Promise((ok) => setTimeout(ok, 1500)); r = await call(50000); }
+    if (!r) return null;
     if (!r.ok) { console.error('PageSpeed', strategy, r.status, (await r.text()).slice(0, 200)); return null; }
     const d = await r.json();
     const cat = d.lighthouseResult?.categories || {};
