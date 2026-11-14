@@ -128,6 +128,7 @@ type Extra = {
   certDays: number | null;
   legalText?: string | null;     // texte de la page de mentions légales, si on l'a trouvée et lue
   legalFound?: 'lien' | 'plan' | 'adresse' | 'texte' | null; // où on les a trouvées
+  privacyFound?: boolean;
 };
 
 const listFr = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs[xs.length - 1]}`);
@@ -453,9 +454,9 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     advice: !found ? 'Obligatoire en France pour un site professionnel : identité, adresse, hébergeur. Risque d’amende.'
       : found === 'plan' || found === 'adresse' ? 'Ajouter un lien « Mentions légales » en bas de chaque page : elles doivent être accessibles facilement.' : 'Rien à faire.' });
 
-  const privacy = /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e/i.test(siteLinkTexts) || siteHrefs.some((h) => /confidential|privacy|rgpd|donnees/i.test(h));
+  const privacy = extra.privacyFound || /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e/i.test(siteLinkTexts) || siteHrefs.some((h) => /confidential|privacy|rgpd|donnees/i.test(h));
   add({ id: 'privacy', cat: 'legal', label: 'Politique de confidentialité (RGPD)', weight: 2,
-    status: privacy ? 'ok' : 'bad', detail: privacy ? 'Présente.' : `Introuvable ${where}.`,
+    status: privacy ? 'ok' : 'bad', detail: privacy ? 'Présente.' : 'Nous ne l’avons trouvée ni dans les liens du site, ni dans les mentions légales, ni à ses adresses habituelles.',
     advice: privacy ? 'Rien à faire.' : 'Obligatoire dès qu’un formulaire ou des statistiques collectent des données (RGPD).' });
 
   const html = page.html;
@@ -736,6 +737,21 @@ export async function runAudit(input: string): Promise<AuditResult> {
     const body = [text($c), ...subs.map((p) => text(p.$))].join(' ');
     if (/\b(siret|siren|rcs)\b/i.test(body) && /h[ée]berg/i.test(body)) { legalFound = 'texte'; legalText = body; }
   }
+  /* Politique de confidentialité : souvent dans la même page que les mentions légales, ou sous un autre nom. */
+  const PRIV_TXT = /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e|cookies/i;
+  const PRIV_URL = /confidential|privacy|rgpd|donnees|vie-privee|cookies/i;
+  const looksPriv = (t: string) => /donn[ée]es personnelles|rgpd|r[èe]glement g[ée]n[ée]ral|cnil|politique de confidentialit|droit d['’]acc[èe]s/i.test(t);
+  let privacyFound = pageLinks.some((l) => PRIV_TXT.test(l.t) || PRIV_URL.test(l.href)) || (legalText != null && looksPriv(legalText));
+  if (!privacyFound) {
+    const inMap = links.find((l) => PRIV_URL.test(new URL(l.url).pathname));
+    if (inMap) { const t = await readLegal(inMap.url); privacyFound = !!t && looksPriv(t); }
+  }
+  if (!privacyFound) {
+    for (const path of ['/politique-de-confidentialite', '/politique-de-confidentialite/', '/confidentialite', '/rgpd', '/privacy-policy', '/donnees-personnelles']) {
+      const t = await readLegal(origin + path);
+      if (t && looksPriv(t)) { privacyFound = true; break; }
+    }
+  }
   const robotsTxt = robots.ok && /sitemap:/i.test(robots.text) ? true : smap2.ok;
   const analysed: Page = { ...page, html: contentHtml };
   const detail = (d: CheerioAPI, url: string, label: string) => ({
@@ -750,7 +766,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
     host: host.replace(/^www\./, ''),
     fetchedAt: new Date().toISOString(),
     title: $('head > title').first().text().trim() || $c('head > title').first().text().trim(),
-    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound }, subs),
+    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound, privacyFound }, subs),
     pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
     pagesDetail: [detail($c, page.url, 'Accueil'), ...subs.map((p) => detail(p.$, p.url, p.label))],
     content: {

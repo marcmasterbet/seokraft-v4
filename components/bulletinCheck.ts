@@ -14,6 +14,7 @@ const CONTRADICTIONS: { re: RegExp; except: RegExp; check: string; label: string
   { re: /\b(aucun|pas de|sans)\s*(numéro|téléphone)\b/i, except: /haut|en-tête|menu|première vue|dès l|cliquable|bouton|whatsapp|page|accueil/i, check: 'phone', label: 'dit qu’il n’y a pas de téléphone, alors qu’un numéro cliquable est présent' },
   { re: /\b(aucun|pas de|sans)\s*formulaire/i, except: /accueil|page|devis en ligne|réservation|haut/i, check: 'form', label: 'dit qu’il n’y a pas de formulaire, alors qu’un formulaire est présent' },
   { re: /non sécurisé|pas sécurisé|pas de cadenas|sans https/i, except: /formulaire|donnée|serveur|protection|en-tête|cookie|mot de passe|paiement|wordpress|extension|logiciel|version|mixte|ressource|script|faille|rgpd|confidentialit/i, check: 'https', label: 'dit que le site n’est pas sécurisé, alors qu’il est en HTTPS' },
+  { re: /ralenti|(site|page)s? (est |sont )?(trop )?lente?s?\b|met(tent)? (trop de|du) temps à (s’|s')?(afficher|charger)|chargement (trop )?lent/i, except: /ordinateur|connexion faible|pourrait|risque/i, check: 'fast', label: 'dit que le site est lent, alors que Google le mesure rapide' },
   { re: /\b(aucune|pas de|sans)\s*description\b/i, except: /image|photo|visuel|\balt\b|bouton|lien|pages?\s+(de|des|du)|autres? pages?|services?|contact/i, check: 'description', label: 'dit qu’il n’y a pas de description, alors qu’elle existe' },
 ];
 const splitSentences = (t: string) => t.split(/(?<=[.!?…])\s+|\n/).map((x) => x.trim()).filter(Boolean);
@@ -25,6 +26,7 @@ function okMap(b: Bulletin): Record<string, boolean> {
     phone: by('Téléphone visible et cliquable')?.status === 'ok',
     form: form?.status === 'ok',
     https: by('Connexion sécurisée (cadenas)')?.status === 'ok',
+    fast: (b.speed?.performance ?? 0) >= 90,
     description: by('Description dans les résultats Google')?.status === 'ok' && (b.pagesDetail ?? []).every((p) => p.description),
   };
 }

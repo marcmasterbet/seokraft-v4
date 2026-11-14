@@ -260,7 +260,12 @@ const topicsOf = (title: string) => TOPICS.filter(([, re]) => re.test(title)).ma
 
 /* Assemble le bulletin à partir de l'analyse technique, de la vitesse Google et de l'analyse des textes par l'IA. */
 export function buildBulletin(id: string, result: AuditResult, speed: Speed | null, review: TextReview | null, desktop: Speed | null = null): Bulletin {
-  const checks = [...result.checks, ...speedChecks(speed), ...speedChecks(desktop)];
+  /* Images lourdes mais site mesuré rapide par Google : ce n'est pas grave, on ne dit pas « ralentit fortement ». */
+  const fast = speed?.performance != null && speed.performance >= 90;
+  const base = result.checks.map((c) => c.id === 'images' && c.status !== 'ok' && fast
+    ? { ...c, status: 'warn' as Status, weight: 1, advice: `Le site reste rapide aujourd’hui (${speed!.performance}/100 sur téléphone), mais compresser ces images le rendrait encore plus léger, surtout avec une connexion mobile faible.` }
+    : c);
+  const checks = [...base, ...speedChecks(speed), ...speedChecks(desktop)];
   const st = (cid: string) => checks.find((c) => c.id === cid)?.status;
   const pct = (cats: Category[]) => {
     const list = checks.filter((c) => cats.includes(c.cat));
