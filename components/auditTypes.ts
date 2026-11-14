@@ -468,7 +468,7 @@ export function buildProspectMail(b: Bulletin, firstName = '') {
     `Un point m’a frappé : ${strikingPoint(b)}.`,
     'Dans l’audit complet, vous trouverez aussi d’autres pistes pour améliorer votre site, à consulter ou à télécharger en PDF :',
     `https://www.seokraft.fr/bulletin/${b.id}`,
-    'Si l’un de ces points vous intéresse, je serai ravi de vous accompagner.',
+    'Je peux vous aider à corriger ces points, pour que votre site vous apporte davantage de clients.',
     'Voulez-vous qu’on en parle ?',
     'Il suffit de répondre à ce mail ou de réserver un appel téléphonique gratuit et sans engagement.',
     'https://www.seokraft.fr/rendez-vous',

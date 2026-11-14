@@ -14,6 +14,7 @@ export default function AuditTool() {
   const [error, setError] = useState('');
   const [b, setB] = useState<(Bulletin & { aiError?: string; speedError?: boolean; scrubbed?: string[]; crmId?: string }) | null>(null);
   const [copied, setCopied] = useState(false);
+  const [kind, setKind] = useState<'demande' | 'prospection'>('prospection');
 
   useEffect(() => {
     try { const k = sessionStorage.getItem(KEY_STORE); if (k) { setKey(k); setLogged(true); } } catch {}
@@ -39,7 +40,6 @@ export default function AuditTool() {
   if (!logged) return <main className="at at-login"><form onSubmit={login}><h1>Outil d’audit<span>.</span></h1><p>Accès réservé.</p><label>Mot de passe<input type="password" value={key} onChange={(e) => setKey(e.target.value)} required autoComplete="current-password" /></label><button className="button button-olive" type="submit">Entrer</button></form></main>;
 
   const link = b ? `/bulletin/${b.id}` : '';
-  const [kind, setKind] = useState<'demande' | 'prospection'>('prospection');
   const mail = b ? (kind === 'prospection' ? buildProspectMail : buildBulletinMail)(b, firstName) : '';
   return <main className="at">
     <section className="at-panel">
