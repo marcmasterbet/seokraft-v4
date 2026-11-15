@@ -10,6 +10,8 @@ import { buildBulletin, type AuditResult, type Bulletin, type Check, type Speed,
 
 /* Moteur d'audit partagé : outil privé (/outil-audit) et demandes publiques (/audit-gratuit). Code serveur uniquement. */
 const UA = 'Mozilla/5.0 (compatible; SEOKRAFT-Audit/1.0; +https://www.seokraft.fr)';
+/* Langue française demandée explicitement : sans elle, certains sites (Odoo…) renvoient vers une version anglaise qui n'existe pas (erreur 404). */
+const LANG = 'fr-FR,fr;q=0.9,en;q=0.5';
 const MAX_BYTES = 3_000_000;
 
 /* ---------- Accès : outil privé de Marc ---------- */
@@ -73,7 +75,7 @@ async function fetchPage(start: string, maxHops = 5): Promise<Page> {
   for (let i = 0; i <= maxHops; i++) {
     await assertPublic(current);
     const target = current;
-    const res = await withRetry(() => fetch(target, { redirect: 'manual', headers: { 'User-Agent': UA, Accept: 'text/html,*/*' }, signal: AbortSignal.timeout(12000) }));
+    const res = await withRetry(() => fetch(target, { redirect: 'manual', headers: { 'User-Agent': UA, Accept: 'text/html,*/*', 'Accept-Language': LANG }, signal: AbortSignal.timeout(12000) }));
     if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
       hops.push(current.toString());
       current = new URL(res.headers.get('location')!, current);
@@ -102,7 +104,7 @@ async function exists(url: string) {
   try {
     const u = new URL(url);
     await assertPublic(u);
-    const r = await fetch(u, { headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
+    const r = await fetch(u, { headers: { 'User-Agent': UA, 'Accept-Language': LANG }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
     const text = r.ok ? (await r.text()).slice(0, 200000) : '';
     return { ok: r.ok, text };
   } catch {
@@ -630,7 +632,7 @@ async function imageWeights($: CheerioAPI, base: string) {
     try {
       const u = new URL(src, base);
       await assertPublic(u);
-      const r = await fetch(u, { method: 'HEAD', headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(6000) });
+      const r = await fetch(u, { method: 'HEAD', headers: { 'User-Agent': UA, 'Accept-Language': LANG }, redirect: 'follow', signal: AbortSignal.timeout(6000) });
       const n = Number(r.headers.get('content-length') || 0);
       return r.ok && n > 0 ? Math.round(n / 1024) : null;
     } catch { return null; }
@@ -666,7 +668,11 @@ export async function runAudit(input: string): Promise<AuditResult> {
     if (raw.startsWith('https://')) page = await fetchPage(raw.replace(/^https:/, 'http:'));
     else throw e;
   }
-  if (page.status >= 400) throw new AuditError(`Le site répond avec une erreur ${page.status}`);
+  /* Erreur après une redirection (souvent vers une langue absente) : on retente l'accueil du site en français. */
+  if (page.status >= 400 && page.hops.length) {
+    try { const home = await fetchPage(new URL('/fr', new URL(raw).origin).toString()); if (home.status < 400) page = home; } catch { /* on garde l'erreur d'origine */ }
+  }
+  if (page.status >= 400) throw new AuditError(`Le site répond avec une erreur ${page.status}${page.url.replace(/\/$/, '') !== raw.replace(/\/$/, '') ? ` (après redirection vers ${page.url})` : ''}`);
   let $ = load(page.html);
   /* Site en cadres (frames) : le vrai contenu est dans le cadre principal. */
   const frameSrc = $('frame[src], iframe[src]').map((_, f) => $(f).attr('src') || '').get().find((src) => {
@@ -695,7 +701,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
       try {
         const u = new URL(page.url.replace(/^https:/, 'http:'));
         await assertPublic(u);
-        const r = await fetch(u, { redirect: 'manual', headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) });
+        const r = await fetch(u, { redirect: 'manual', headers: { 'User-Agent': UA, 'Accept-Language': LANG }, signal: AbortSignal.timeout(8000) });
         return r.status >= 300 && r.status < 400 && (r.headers.get('location') || '').startsWith('https://');
       } catch { return null; }
     })(),
