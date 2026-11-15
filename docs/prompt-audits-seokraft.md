@@ -37,12 +37,11 @@ Avant d’écrire, **ouvre le site toi-même** : l’accueil, puis les pages imp
 
 ---
 
-## 4. Les 5 notes
+## 4. Les 4 notes
 
 | Note (clé JSON) | Ce qu’elle vérifie | Poids |
 |---|---|---|
-| **Prêt pour Google** (`visibilite`) | Le site s’ouvre sans erreur, avec un cadenas valide ; Google a le droit de lire les pages (pas de « noindex », robots.txt qui ne bloque pas) ; fichier robots.txt présent ; plan du site (sitemap) présent et à jour ; une seule adresse (redirections http→https et avec/sans www, adresse canonique) ; contenu lisible sans JavaScript ; langue déclarée ; pas de pages en erreur. | **×3** |
-| **Référencement des pages** (`structure`) | Titre Google unique par page, avec le service et la ville ; descriptions ; H1 / H2 / H3 ; une page par service (et par zone pour une activité locale) ; quantité de texte ; maillage interne (pages reliées entre elles par des liens parlants, pas de page isolée) ; liens cassés ou vides ; adresses de pages lisibles ; images décrites ; données structurées (fiche d’identité de l’entreprise). | **×3** |
+| **Référencement** (`referencement`) | Deux parties, notées chacune comme une note (voir le calcul). **Accès pour Google :** le site s’ouvre sans erreur, avec un cadenas valide ; Google a le droit de lire les pages (pas de « noindex », robots.txt qui ne bloque pas) ; fichier robots.txt présent ; plan du site (sitemap) présent et à jour ; une seule adresse (redirections http→https et avec/sans www, adresse canonique) ; contenu lisible sans JavaScript ; langue déclarée ; pas de pages en erreur. **Préparation des pages :** titre Google unique par page, avec le service et la ville ; descriptions ; H1 / H2 / H3 ; une page par service (et par zone pour une activité locale) ; quantité de texte ; maillage interne (pages reliées entre elles par des liens parlants, pas de page isolée) ; liens cassés ou vides ; adresses de pages lisibles ; images décrites ; données structurées (fiche d’identité de l’entreprise). | **×6** |
 | **Textes et message** (`message`) | Message clair en 5 secondes en haut de l’accueil (qui, quoi, où, pourquoi vous) ; concret plutôt que vague (« solution innovante », « l’excellence ») ; bénéfices pour le client ; preuves dans le texte (années, chiffres, réalisations, certifications) ; **appel à l’action** sur chaque page (numéro cliquable, bouton devis, réservation) ; lisibilité (paragraphes courts, intertitres) ; fautes. | **×2** |
 | **Vitesse et mobile** (`vitesse`) | Scores Google mesurés sur téléphone et ordinateur ; affichage sur téléphone. | ×1 |
 | **Sécurité et conformité** (`securite`) | Cadenas, redirection vers la version sécurisée, certificat, logiciels à jour, réglages de l’hébergement ; mentions légales (présence et contenu), confidentialité, cookies, information sous le formulaire, CGV si vente en ligne. | ×1 |
@@ -79,9 +78,11 @@ Détermine aussi la famille du site (service local, hébergement / conciergerie,
 
 **Chaque note part de 20** et perd les points ci-dessus (minimum 0). Les points réussis ne rapportent rien. Une note qui contient au moins un problème grave ne dépasse pas 9.
 
+**Référencement :** calcule séparément « Accès pour Google » et « Préparation des pages », chacune partant de 20 avec les points ci-dessus ; la note Référencement est la moyenne des deux, arrondie au demi-point. Si l’une des deux parties contient un problème grave, la note Référencement ne dépasse pas 9.
+
 Vitesse et mobile : partir des mesures Google sur téléphone. 90 et plus = 20 ; 50 à 89 = de 12 à 18 ; moins de 50 = problème important ; moins de 25 = grave. Puis retirer les éventuels problèmes d’affichage sur téléphone.
 
-**Note globale** = (visibilite × 3 + structure × 3 + message × 2 + vitesse + securite) ÷ 10, arrondie au demi-point.
+**Note globale** = (referencement × 6 + message × 2 + vitesse + securite) ÷ 10, arrondie au demi-point.
 
 **Puis les plafonds (on garde le plus bas) :**
 
@@ -89,9 +90,9 @@ Vitesse et mobile : partir des mesures Google sur téléphone. 90 et plus = 20 ;
 |---|---|
 | Site qui ne s’ouvre pas ou erreur de sécurité | **3** |
 | Site bloqué pour Google (noindex, robots.txt) | **6** |
-| 1 problème grave en Prêt pour Google, Référencement ou Message | 12 |
+| 1 problème grave en Référencement ou Message | 12 |
 | 3 problèmes graves ou plus dans ces notes | 9 |
-| **Toujours** | **la plus basse des notes Prêt pour Google et Référencement + 4** |
+| **Toujours** | **la note Référencement + 4** |
 
 Un problème grave en Sécurité et conformité (mentions légales absentes, par exemple) bloque sa propre note à 9 et reste en tête des priorités, mais ne plafonne pas la note globale.
 
@@ -112,11 +113,11 @@ Un problème grave en Sécurité et conformité (mentions légales absentes, par
 ### A. Pour Marc (court)
 - Famille retenue.
 - Points « à vérifier », s’il y en a.
-- Le calcul : pour chaque note, les problèmes retenus avec leur niveau, puis la note ; la moyenne ; le plafond appliqué.
+- Le calcul : pour chaque note (et les deux parties du Référencement), les problèmes retenus avec leur niveau, puis la note ; la moyenne ; le plafond appliqué.
 - **Offre conseillée**, avec une phrase de justification, selon ces règles :
-  - **Refonte** : Prêt pour Google ou Référencement à 9 ou moins à cause de la construction même du site (une seule page, outil qui ne permet pas de corriger, site inachevé ou cassé), ou Textes et message à 9 ou moins ;
+  - **Refonte** : Référencement à 9 ou moins à cause de la construction même du site (une seule page, outil qui ne permet pas de corriger, site inachevé ou cassé), ou Textes et message à 9 ou moins ;
   - **Optimisation sans refonte** : le site est sain mais ses pages sont mal préparées (titres, descriptions, pages par service ou par ville manquantes) ;
-  - **Stratégie de référencement** (contenus, pages par ville, liens d’autres sites) : site bien construit (Prêt pour Google et Référencement à 14 ou plus) qui manque simplement de visites.
+  - **Stratégie de référencement** (contenus, pages par ville, liens d’autres sites) : site bien construit (Référencement à 14 ou plus) qui manque simplement de visites.
 - 2 ou 3 lignes commerciales : l’outil utilisé pour le site et ce qui manque pour bien se placer (site récent, peu de pages, concurrence…).
 - **Ne jamais noircir le site pour vendre** : un site bien construit a une bonne note, et l’argument devient alors la stratégie de référencement.
 
@@ -129,7 +130,7 @@ Un problème grave en Sécurité et conformité (mentions légales absentes, par
   "famille": "service-local | hebergement | agence | boutique | commerce",
   "global": 11,
   "verdict": "Moyen, des clients vous échappent",
-  "notes": { "visibilite": 14, "structure": 8, "message": 9, "vitesse": 18, "securite": 9 },
+  "notes": { "referencement": 11, "message": 9, "vitesse": 18, "securite": 9 },
   "essentiel": "3 ou 4 phrases : ce que fait l’entreprise, pourquoi le site amène peu de visites et peu de clients (ce qui empêche Google de le mettre en avant, ce qui fait partir les visiteurs), ce qui va bien, par quoi commencer.",
   "impression": "",
   "positives": ["3 à 5 points forts réels et concrets du site"],
@@ -140,7 +141,7 @@ Un problème grave en Sécurité et conformité (mentions légales absentes, par
     { "question": "Question sur le site", "reponse": "Réponse franche en moins de 20 mots, avec un exemple du site.", "statut": "oui | partiel | non" }
   ],
   "checks": [
-    { "group": "visibilite | structure | message | vitesse | securite", "label": "Ce qui est vérifié", "status": "ok | warn | bad", "detail": "Constat", "advice": "Ce qu’il faut faire, ou « Rien à faire. »" }
+    { "group": "referencement | message | vitesse | securite", "label": "Ce qui est vérifié", "status": "ok | warn | bad", "detail": "Constat", "advice": "Ce qu’il faut faire, ou « Rien à faire. »" }
   ]
 }
 ```
@@ -160,7 +161,7 @@ Règles du JSON :
 Relis et corrige si l’une de ces réponses est « non » :
 - Chaque affirmation est-elle vérifiée sur le site ou dans les mesures ?
 - Les points techniques (robots.txt, plan du site, noindex, adresse unique, certificat) sont-ils vérifiés ?
-- Les plafonds sont-ils appliqués, dont « plus basse des notes Prêt pour Google et Référencement + 4 » ?
+- Les plafonds sont-ils appliqués, dont « note Référencement + 4 » ?
 - Chaque problème grave bloque-t-il sa note à 9 au plus ?
 - Aucun lien vide compté comme présent ? Aucun numéro affiché déclaré absent ?
 - Aucune contradiction avec les mesures ? Chaque problème une seule fois ?

@@ -160,7 +160,7 @@ export type TextReview = {
   priorities: Priority[];
   positives: string[];
 };
-export type NoteId = 'vitesse' | 'securite' | 'legal' | 'google' | 'textes' | 'contact' | 'visibilite' | 'structure' | 'message';
+export type NoteId = 'vitesse' | 'securite' | 'legal' | 'google' | 'textes' | 'contact' | 'visibilite' | 'structure' | 'message' | 'referencement';
 export type BulletinCheck = { group: NoteId; label: string; status: Status; detail: string; advice: string };
 export type PageDetail = { label: string; path: string; title: string; description: boolean; h1: string; words: number };
 export type Bulletin = {
@@ -170,7 +170,7 @@ export type Bulletin = {
   host: string;
   createdAt: string;
   global: number;                // sur 20, au demi-point
-  notes: { vitesse?: number; securite?: number; legal?: number; technique?: number; google?: number; textes?: number | null; contact?: number; visibilite?: number; structure?: number; message?: number };
+  notes: { vitesse?: number; securite?: number; legal?: number; technique?: number; google?: number; textes?: number | null; contact?: number; visibilite?: number; structure?: number; referencement?: number; message?: number };
   cap?: string;                  // raison pour laquelle la note est plafonnée
   verdict: string;
   essentiel: string;
@@ -224,7 +224,12 @@ export const NOTE_LABELS_SEO: { id: NoteId; label: string; hint: string }[] = [
   { id: 'vitesse', label: 'Vitesse et mobile', hint: 'Le site s’affiche-t-il vite, surtout sur téléphone ?' },
   { id: 'securite', label: 'Sécurité et conformité', hint: 'Site protégé, mentions légales, RGPD et cookies' },
 ];
-export const noteLabelsFor = (b: Pick<Bulletin, 'notes'>) => (b.notes.visibilite !== undefined ? NOTE_LABELS_SEO : NOTE_LABELS);
+/* Grille actuelle : 4 notes, « Référencement » regroupe ce qui empêche Google de voir le site et la préparation des pages. */
+export const NOTE_LABELS_SEO4: { id: NoteId; label: string; hint: string }[] = [
+  { id: 'referencement', label: 'Référencement', hint: 'Google peut-il trouver, lire et comprendre vos pages ?' },
+  ...NOTE_LABELS_SEO.slice(2),
+];
+export const noteLabelsFor = (b: Pick<Bulletin, 'notes'>) => (b.notes.referencement !== undefined ? NOTE_LABELS_SEO4 : b.notes.visibilite !== undefined ? NOTE_LABELS_SEO : NOTE_LABELS);
 
 export function verdict20(n: number) {
   if (n >= 18) return 'Excellent, votre site fait très bien son travail';

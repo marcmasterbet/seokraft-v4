@@ -77,8 +77,8 @@ export async function measureSite(input: string): Promise<{ measures: Measures; 
 
 /* ---------- Étape 2 : importer le résultat du projet ---------- */
 /* Notes « référencement d'abord » : la visibilité sur Google pèse le plus. */
-const NOTE_IDS = ['visibilite', 'structure', 'message', 'vitesse', 'securite'] as const;
-const WEIGHTS: Record<(typeof NOTE_IDS)[number], number> = { visibilite: 3, structure: 3, message: 2, vitesse: 1, securite: 1 };
+const NOTE_IDS = ['referencement', 'message', 'vitesse', 'securite'] as const;
+const WEIGHTS: Record<(typeof NOTE_IDS)[number], number> = { referencement: 6, message: 2, vitesse: 1, securite: 1 };
 const LEVELS: Level[] = ['critique', 'important', 'planifier'];
 const STATUT: Record<string, Status> = { oui: 'ok', partiel: 'warn', non: 'bad', ok: 'ok', warn: 'warn', bad: 'bad' };
 const str = (v: unknown, max = 1200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -99,7 +99,12 @@ export async function importAudit(raw: string, given?: Measures): Promise<Import
   let url = '';
   try { url = new URL(str(d.url, 300)).toString(); } catch { errors.push('Adresse du site manquante ou invalide (champ "url").'); }
 
-  const notesIn = (d.notes ?? {}) as Record<string, unknown>;
+  const notesIn = { ...((d.notes ?? {}) as Record<string, unknown>) };
+  /* Ancienne grille à 5 notes (projet pas encore mis à jour) : « Prêt pour Google » et « Référencement des pages » fusionnent. */
+  if (notesIn.referencement === undefined && isHalf(notesIn.visibilite) && isHalf(notesIn.structure)) {
+    notesIn.referencement = half(((notesIn.visibilite as number) + (notesIn.structure as number)) / 2);
+    warnings.push('Audit rendu avec l’ancienne grille à 5 notes : « Prêt pour Google » et « Référencement des pages » ont été fusionnés. Mets à jour les instructions du projet Claude.');
+  }
   const notes = {} as Record<(typeof NOTE_IDS)[number], number>;
   for (const k of NOTE_IDS) { if (isHalf(notesIn[k])) notes[k] = notesIn[k] as number; else errors.push(`Note « ${k} » manquante ou invalide (nombre de 0 à 20, au demi-point).`); }
 
@@ -115,7 +120,7 @@ export async function importAudit(raw: string, given?: Measures): Promise<Import
     let expected = half(NOTE_IDS.reduce((s, k) => s + notes[k] * WEIGHTS[k], 0) / NOTE_IDS.reduce((s, k) => s + WEIGHTS[k], 0));
     /* Jamais plus de 4 points au-dessus de la plus basse des deux notes de référencement :
        un site mal construit pour Google ne peut pas avoir une bonne note. (Les autres plafonds sont appliqués par le projet.) */
-    expected = Math.min(expected, Math.min(notes.visibilite, notes.structure) + 4);
+    expected = Math.min(expected, notes.referencement + 4);
     /* Une note plus basse que le calcul est acceptée (plafond « introuvable sur Google ») ; plus haute, elle est corrigée. */
     if (!isHalf(global)) { global = expected; warnings.push(`Note globale absente : calculée à ${String(expected).replace('.', ',')}/20.`); }
     else if (global > expected + 0.5) { warnings.push(`Note globale corrigée : ${String(global).replace('.', ',')} → ${String(expected).replace('.', ',')}/20 (calcul et plafonds du barème).`); global = expected; }
@@ -126,6 +131,7 @@ export async function importAudit(raw: string, given?: Measures): Promise<Import
     .filter((c) => str(c.question) && str(c.reponse))
     .map((c) => ({ question: str(c.question, 160), reponse: str(c.reponse, 220), ...(STATUT[String(c.statut).toLowerCase()] ? { statut: STATUT[String(c.statut).toLowerCase()] } : {}) })).slice(0, 8);
   const checks = (Array.isArray(d.checks) ? d.checks : []).map((c) => c as Record<string, unknown>)
+    .map((c) => ({ ...c, group: ['visibilite', 'structure'].includes(String(c.group)) ? 'referencement' : c.group }) as Record<string, unknown>)
     .filter((c) => (NOTE_IDS as readonly string[]).includes(String(c.group)) && STATUT[String(c.status)] && str(c.label))
     .map((c) => ({ group: c.group as NoteId, label: str(c.label, 140), status: STATUT[String(c.status)], detail: str(c.detail, 500), advice: str(c.advice, 500) }));
   const positives = (Array.isArray(d.positives) ? d.positives : []).map((x) => str(x, 240)).filter(Boolean).slice(0, 6);
