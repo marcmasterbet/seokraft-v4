@@ -17,7 +17,10 @@ const AUTO_NOTE = `
 Tu ne peux pas ouvrir le site toi-même. L’outil de Marc l’a lu pour toi : le dossier ci-dessous contient, pour l’accueil et les pages importantes, les titres, chaque lien et bouton avec sa VRAIE destination (« ne mène nulle part » = lien vide, compte comme absent sauf s’il ouvre un sous-menu), le bas de page, le début des textes, les numéros écrits et les restes de modèle repérés.
 - Ce dossier remplace ta visite du site : tu t’appuies uniquement sur lui et sur les mesures. Tu n’inventes rien.
 - Ce que le dossier ne permet pas de trancher va dans les points « à vérifier » de « Pour Marc » et ne retire aucun point.
-- Rends d’abord « Pour Marc », puis le bloc \`\`\`json. Rien après le bloc JSON.`;
+- ORDRE ET LONGUEUR (obligatoire, la réponse est payée au mot) :
+  1. D’ABORD le bloc \`\`\`json, complet. Textes courts : « detail » et « advice » en une phrase chacun ; 15 « checks » au maximum, en gardant les plus utiles ; 3 à 5 priorités.
+  2. ENSUITE « Pour Marc », 15 lignes au maximum : famille ; à vérifier ; le calcul en une ligne par note (problèmes retenus et leur niveau → note), puis moyenne et plafond ; offre conseillée avec sa justification ; 2 lignes commerciales.
+  Rien d’autre, pas d’introduction ni de conclusion.`;
 
 /* Prix en dollars par million de jetons (Sonnet 5.5 : 2 $ en entrée, 10 $ en sortie). Modifiables dans Vercel si les prix changent. */
 const PRICE_IN = Number(process.env.AUDIT_PRICE_IN) || 2;
@@ -41,7 +44,7 @@ async function ask(system: string, user: string) {
   const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'}/v1/messages`, {
     method: 'POST',
     headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model, max_tokens: 9000, system, messages: [{ role: 'user', content: user }] }),
+    body: JSON.stringify({ model, max_tokens: 16000, system, messages: [{ role: 'user', content: user }] }),
     signal: AbortSignal.timeout(150000),
   });
   if (!res.ok) {
@@ -66,13 +69,15 @@ export async function runAutoAudit(url: string): Promise<AutoAudit> {
     const why = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'délai dépassé' : e instanceof Error ? e.message : 'erreur';
     throw new AutoAuditError(`IA indisponible (${why})`, text, result.url);
   }
-  const at = out.text.search(/```(?:json)?\s*\{/i);
-  const forMarc = (at > 0 ? out.text.slice(0, at) : '').replace(/^#+\s*/gm, '').replace(/\*\*/g, '').trim().slice(0, 5000);
+  /* « Pour Marc » est rendu après le bloc JSON (avant, si l'IA a gardé l'ordre du projet). */
+  const fence = /```(?:json)?\s*\{[\s\S]*?```/i.exec(out.text);
+  const rest = fence ? (out.text.slice(fence.index + fence[0].length).trim() || out.text.slice(0, fence.index)) : '';
+  const forMarc = rest.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').trim().slice(0, 5000);
   try {
     const { bulletin, warnings } = await importAudit(out.text, measures);
     return { bulletin, warnings, forMarc, usage: out.usage, speedError: !measures.speed || measures.speed.performance === null };
   } catch (e) {
-    const cut = out.stop === 'max_tokens' ? ' (réponse coupée, trop longue)' : '';
-    throw new AutoAuditError(`${e instanceof Error ? e.message : 'réponse illisible'}${cut}`, text, result.url, out.usage);
+    const why = out.stop === 'max_tokens' ? 'la réponse de l’IA a été coupée car trop longue' : e instanceof Error ? e.message.replace(/^Le texte collé n’est pas un audit valide.*$/, 'la réponse de l’IA ne contient pas d’audit lisible') : 'réponse illisible';
+    throw new AutoAuditError(`Audit non publié : ${why}`, text, result.url, out.usage);
   }
 }

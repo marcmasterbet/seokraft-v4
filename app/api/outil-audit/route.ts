@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ...run.bulletin, warnings: run.warnings, forMarc: run.forMarc, cost: fmtCost(run.usage), speedError: run.speedError, speedNoKey: !process.env.PSI_API_KEY && !process.env.NEXT_PUBLIC_PSI_KEY, crmId });
   } catch (err) {
     /* L'IA a échoué : on rend les mesures pour finir l'audit avec le projet Claude. */
-    if (err instanceof AutoAuditError) return NextResponse.json({ error: `${err.message}. Les mesures sont prêtes : copie-les dans le projet Claude « Audits SEOKRAFT », puis publie sa réponse (onglet « Avec le projet Claude », étape 2).`, measures: err.measuresText, url: err.url, cost: err.usage ? fmtCost(err.usage) : '' }, { status: 422 });
+    if (err instanceof AutoAuditError) return NextResponse.json({ error: `${err.message}.${err.usage ? ` Coût de cet essai : ${fmtCost(err.usage)}.` : ''} Les mesures sont prêtes : copie-les dans le projet Claude « Audits SEOKRAFT », puis publie sa réponse (onglet « Avec le projet Claude », étape 2).`, measures: err.measuresText, url: err.url, cost: err.usage ? fmtCost(err.usage) : '' }, { status: 422 });
     const msg = err instanceof Error ? err.message : 'Erreur';
     console.error('Outil audit', msg);
     return NextResponse.json({ error: err instanceof AuditError || /autoris|pris en charge|Port/.test(msg) ? msg : 'Impossible d’analyser ce site (adresse introuvable ou site injoignable).' }, { status: 422 });
