@@ -1,11 +1,12 @@
 import { spamReason } from '../../../lib/spamFilter';
 import { upsertProspect, event, advance } from '../../../lib/crmStore';
 import { NextResponse, after } from 'next/server';
-import { createBulletin, checkAndRecordQuota, isTransient } from '../../../lib/auditEngine';
-import { NOTE_LABELS, buildBulletinMail, fmt20 } from '../../../components/auditTypes';
+import { checkAndRecordQuota, isTransient } from '../../../lib/auditEngine';
+import { runAutoAudit, AutoAuditError, fmtCost } from '../../../lib/auditAuto';
+import { noteLabelsFor, buildBulletinMail, fmt20 } from '../../../components/auditTypes';
 
 export const runtime = 'nodejs';
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 const emailPattern = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
 
@@ -110,29 +111,35 @@ export async function POST(request: Request) {
         report = `Audit NON lancé automatiquement : ${quota.reason} (protection de ton crédit IA).\nSi la demande est sérieuse, lance-le à la main depuis l’outil : ${tool}`;
       } else try {
         /* Une panne passagère (serveur occupé) relance l'audit une fois, 5 secondes plus tard. */
-        const run = await createBulletin(url).catch(async (e) => { if (!isTransient(e)) throw e; await new Promise((ok) => setTimeout(ok, 5000)); return createBulletin(url); });
-        const { bulletin: b, aiError, speedError, scrubbed } = run;
+        const run = await runAutoAudit(url).catch(async (e) => { if (!isTransient(e)) throw e; await new Promise((ok) => setTimeout(ok, 5000)); return runAutoAudit(url); });
+        const { bulletin: b, warnings, forMarc, usage, speedError } = run;
         subject = `SEOKRAFT — Audit gratuit : ${b.host} — ${fmt20(b.global)}/20`;
         report = [
           `NOTE DU SITE : ${fmt20(b.global)}/20 — ${b.verdict}`,
-          ...NOTE_LABELS.map((n) => `• ${n.label} : ${fmt20(b.notes[n.id] ?? null)}/20`),
+          ...noteLabelsFor(b).map((n) => `• ${n.label} : ${fmt20(b.notes[n.id] ?? null)}/20`),
           `• Pages analysées : ${(b.pages ?? []).map((p) => p.label).join(', ') || 'accueil'}`,
-          b.cap ? `• ${b.cap}` : '',
-          b.ai ? '• Audit SEO et apparence réalisés par l’IA : à relire avant envoi.' : `⚠ IA INDISPONIBLE (${aiError}) : la note Référencement et contenu n’est PAS évaluée. Corrige puis relance depuis l’outil avant d’envoyer.`,
-          scrubbed.length ? `• Phrase(s) de l’IA retirée(s) car fausse(s) : ${scrubbed.map((x) => `« ${x} »`).join(' ; ')}` : '',
-          speedError ? (process.env.PSI_API_KEY ? '⚠ Google n’a pas répondu à temps pour la mesure de vitesse : la note Vitesse est estimée sans elle. Relance l’audit depuis l’outil dans quelques minutes avant d’envoyer.' : '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.') : '',
+          `• Coût de l’audit : ${fmtCost(usage)}`,
+          ...warnings.map((w) => `⚠ ${w}`),
+          speedError ? (process.env.PSI_API_KEY ? '⚠ Google n’a pas répondu à temps pour la mesure de vitesse : relance l’audit depuis l’outil dans quelques minutes avant d’envoyer.' : '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.') : '',
+          '',
+          'POUR TOI (ne pas transmettre) :',
+          '────────────────────────',
+          forMarc || '(l’IA n’a pas rendu cette partie)',
+          '────────────────────────',
           '',
           '1) RELIRE L’AUDIT (en ligne, téléchargeable en PDF) :',
           `https://www.seokraft.fr/bulletin/${b.id}`,
           '',
-          '2) MAIL À ENVOYER AU PROSPECT (copier-coller) :',
+          '2) MAIL À ENVOYER AU PROSPECT (copier-coller, rien n’est parti tout seul) :',
           `À : ${email}`,
           '────────────────────────',
           buildBulletinMail(b, firstName),
           '────────────────────────',
         ].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
       } catch (e) {
-        report = `L’analyse automatique n’a pas abouti (${e instanceof Error ? e.message : 'erreur'}).\nLancez-la à la main depuis l’outil : ${tool}`;
+        report = e instanceof AutoAuditError
+          ? `L’audit automatique n’a pas abouti (${e.message}).${e.usage ? `\nCoût déjà dépensé : ${fmtCost(e.usage)}.` : ''}\nLes mesures sont prêtes : colle le texte ci-dessous dans le projet Claude « Audits SEOKRAFT », puis publie sa réponse depuis l’outil (onglet « Avec le projet Claude », étape 2) : ${tool}\n\n────────────────────────\nAudit de ${e.url}\n\n${e.measuresText}\n────────────────────────`
+          : `L’analyse automatique n’a pas abouti (${e instanceof Error ? e.message : 'erreur'}).\nLancez-la à la main depuis l’outil : ${tool}`;
         subject += ' — analyse à relancer';
       }
       /* Rangement dans le CRM (sans jamais bloquer le mail à Marc). */

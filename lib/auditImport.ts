@@ -5,7 +5,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { runAudit, pageSpeedServer, saveBulletin, siteKey, AuditError } from './auditEngine';
-import { half, verdict20, type Bulletin, type Speed, type Status, type Level, type NoteId, type PageDetail } from '../components/auditTypes';
+import { half, verdict20, type AuditResult, type Bulletin, type Speed, type Status, type Level, type NoteId, type PageDetail } from '../components/auditTypes';
 
 export type Measures = {
   url: string; host: string; at: string;
@@ -45,7 +45,7 @@ const speedLine = (label: string, s: Speed | null) => s && s.performance !== nul
   : `- ${label} : mesure Google indisponible (relancer « Mesurer » dans quelques minutes)`;
 
 /* Étape 1 : mesurer, ranger les mesures, rendre le texte à coller dans le projet. */
-export async function measureSite(input: string): Promise<{ measures: Measures; text: string }> {
+export async function measureSite(input: string): Promise<{ measures: Measures; text: string; result: AuditResult }> {
   const result = await runAudit(input);
   const [speed, desktop] = await Promise.all([pageSpeedServer(result.url, 'mobile'), pageSpeedServer(result.url, 'desktop')]);
   const measures: Measures = {
@@ -67,15 +67,18 @@ export async function measureSite(input: string): Promise<{ measures: Measures; 
     'PAGES LUES :',
     ...(result.pagesDetail ?? []).map((p) => `- ${p.label} (${p.path}) : titre Google « ${p.title || '—'} » · description ${p.description ? 'présente' : 'absente'} · grand titre « ${p.h1 || '—'} » · ${p.words} mots`),
     '',
+    `ADRESSE DU SITE : ${result.host}${/\.(odoo|wixsite|jimdofree|webnode|e-monsite|site123|webflow|godaddysites|wordpress|blogspot|carrd|mystrikingly|zyrosite|ueniweb|over-blog)\.|\.business\.site$/i.test(result.host) ? ' (adresse d’une plateforme gratuite : information seulement, ne retire aucun point)' : ''}`,
+    '',
     'VÉRIFICATIONS AUTOMATIQUES (indices : à confirmer en ouvrant le site, l’outil peut se tromper) :',
     ...auto.map((c) => `- [${ICON[c.status]}] ${c.label} : ${c.detail}`),
   ].join('\n');
-  return { measures, text };
+  return { measures, text, result };
 }
 
 /* ---------- Étape 2 : importer le résultat du projet ---------- */
-const NOTE_IDS = ['vitesse', 'securite', 'legal', 'google', 'textes'] as const;
-const WEIGHTS: Record<(typeof NOTE_IDS)[number], number> = { vitesse: 1, securite: 1, legal: 1, google: 1, textes: 1.5 };
+/* Notes « référencement d'abord » : la visibilité sur Google pèse le plus. */
+const NOTE_IDS = ['visibilite', 'structure', 'message', 'vitesse', 'securite'] as const;
+const WEIGHTS: Record<(typeof NOTE_IDS)[number], number> = { visibilite: 3, structure: 3, message: 2, vitesse: 1, securite: 1 };
 const LEVELS: Level[] = ['critique', 'important', 'planifier'];
 const STATUT: Record<string, Status> = { oui: 'ok', partiel: 'warn', non: 'bad', ok: 'ok', warn: 'warn', bad: 'bad' };
 const str = (v: unknown, max = 1200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -89,7 +92,7 @@ function extractJson(raw: string): unknown {
 }
 
 export type ImportResult = { bulletin: Bulletin; warnings: string[] };
-export async function importAudit(raw: string): Promise<ImportResult> {
+export async function importAudit(raw: string, given?: Measures): Promise<ImportResult> {
   const d = extractJson(raw) as Record<string, unknown>;
   const errors: string[] = []; const warnings: string[] = [];
   if (d.format !== 'seokraft-audit-1') errors.push('Format inconnu (attendu : "seokraft-audit-1").');
@@ -105,16 +108,18 @@ export async function importAudit(raw: string): Promise<ImportResult> {
     .map((p) => ({ level: p.level as Level, title: str(p.title, 140), text: str(p.text, 700) }))
     .sort((a, b) => LEVELS.indexOf(a.level) - LEVELS.indexOf(b.level)).slice(0, 6);
   if (!priorities.length) errors.push('Aucune priorité valide (champ "priorities").');
-  const graves = priorities.filter((p) => p.level === 'critique').length;
 
-  /* Contrôle du calcul : moyenne pondérée, puis plafonds selon le nombre de problèmes graves. */
+  /* Contrôle du calcul : moyenne pondérée, puis plafond lié aux notes de référencement. */
   let global = typeof d.global === 'number' ? d.global : NaN;
   if (!errors.length) {
     let expected = half(NOTE_IDS.reduce((s, k) => s + notes[k] * WEIGHTS[k], 0) / NOTE_IDS.reduce((s, k) => s + WEIGHTS[k], 0));
-    if (graves >= 1) expected = Math.min(expected, 12);
-    if (graves >= 3) expected = Math.min(expected, 9);
+    /* Jamais plus de 4 points au-dessus de la plus basse des deux notes de référencement :
+       un site mal construit pour Google ne peut pas avoir une bonne note. (Les autres plafonds sont appliqués par le projet.) */
+    expected = Math.min(expected, Math.min(notes.visibilite, notes.structure) + 4);
+    /* Une note plus basse que le calcul est acceptée (plafond « introuvable sur Google ») ; plus haute, elle est corrigée. */
     if (!isHalf(global)) { global = expected; warnings.push(`Note globale absente : calculée à ${String(expected).replace('.', ',')}/20.`); }
-    else if (Math.abs(global - expected) > 0.5) { warnings.push(`Note globale corrigée : ${String(global).replace('.', ',')} → ${String(expected).replace('.', ',')}/20 (calcul et plafonds du barème).`); global = expected; }
+    else if (global > expected + 0.5) { warnings.push(`Note globale corrigée : ${String(global).replace('.', ',')} → ${String(expected).replace('.', ',')}/20 (calcul et plafonds du barème).`); global = expected; }
+    else if (global < expected - 0.5) warnings.push(`Note globale ${String(global).replace('.', ',')}/20, sous le calcul (${String(expected).replace('.', ',')}) : plafond du barème appliqué (site qui ne s’ouvre pas : 3 ; bloqué pour Google : 6 ; problèmes graves : 12 ou 9), vérifier que c’est bien le cas.`);
   }
 
   const constats = (Array.isArray(d.constats) ? d.constats : []).map((c) => c as Record<string, unknown>)
@@ -130,14 +135,14 @@ export async function importAudit(raw: string): Promise<ImportResult> {
   if (errors.length) throw new AuditError(`Audit non publié : ${errors.join(' ')}`);
 
   const host = new URL(url).hostname.replace(/^www\./, '');
-  const m = await loadMeasures(host);
+  const m = given && siteKey(given.host) === siteKey(host) ? given : await loadMeasures(host);
   if (!m) warnings.push('Aucune mesure trouvée pour ce site : l’audit est publié sans la partie vitesse. Lancez « Mesurer » avant d’importer.');
   else if (Date.now() - Date.parse(m.at) > 7 * 86400000) warnings.push('Les mesures de ce site datent de plus de 7 jours.');
 
   /* Cohérence avec la vitesse mesurée par Google. */
   const perf = m?.speed?.performance;
   if (typeof perf === 'number') {
-    if (perf >= 90 && notes.vitesse < 14) warnings.push(`Vitesse notée ${notes.vitesse}/20 alors que Google mesure ${perf}/100 sur téléphone : vérifier.`);
+    if (perf >= 90 && notes.vitesse < 12) warnings.push(`Vitesse notée ${notes.vitesse}/20 alors que Google mesure ${perf}/100 sur téléphone : vérifier.`);
     if (perf < 50 && notes.vitesse > 12) warnings.push(`Vitesse notée ${notes.vitesse}/20 alors que Google mesure seulement ${perf}/100 sur téléphone : vérifier.`);
   }
   const b: Bulletin = {

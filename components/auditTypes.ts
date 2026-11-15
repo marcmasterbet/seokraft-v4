@@ -19,7 +19,7 @@ export type AuditResult = {
   title: string;
   checks: Check[];
   /* Contenu lisible de la page, transmis à l'analyse des textes (jamais stocké). */
-  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string; siteMap?: string; channels?: string[] };
+  content?: { description: string; h1: string; h2: string[]; ctas: string[]; text: string; outline?: string; siteMap?: string; channels?: string[]; dossier?: string };
   pages?: { url: string; label: string }[];   // pages lues (accueil en premier)
   pagesDetail?: { label: string; path: string; title: string; description: boolean; h1: string; words: number }[];
 };
@@ -160,7 +160,7 @@ export type TextReview = {
   priorities: Priority[];
   positives: string[];
 };
-export type NoteId = 'vitesse' | 'securite' | 'legal' | 'google' | 'textes' | 'contact';
+export type NoteId = 'vitesse' | 'securite' | 'legal' | 'google' | 'textes' | 'contact' | 'visibilite' | 'structure' | 'message';
 export type BulletinCheck = { group: NoteId; label: string; status: Status; detail: string; advice: string };
 export type PageDetail = { label: string; path: string; title: string; description: boolean; h1: string; words: number };
 export type Bulletin = {
@@ -170,7 +170,7 @@ export type Bulletin = {
   host: string;
   createdAt: string;
   global: number;                // sur 20, au demi-point
-  notes: { vitesse?: number; securite?: number; legal?: number; technique?: number; google: number; textes: number | null; contact?: number };
+  notes: { vitesse?: number; securite?: number; legal?: number; technique?: number; google?: number; textes?: number | null; contact?: number; visibilite?: number; structure?: number; message?: number };
   cap?: string;                  // raison pour laquelle la note est plafonnée
   verdict: string;
   essentiel: string;
@@ -215,6 +215,16 @@ export const LEVEL_LABEL: Record<Level, string> = { critique: 'Prioritaire', imp
 
 export const half = (n: number) => Math.round(n * 2) / 2;
 export const fmt20 = (n: number | null) => (n === null ? '–' : String(half(n)).replace('.', ','));
+
+/* Audits « référencement d'abord » (projet Claude) : 5 notes centrées sur Google. */
+export const NOTE_LABELS_SEO: { id: NoteId; label: string; hint: string }[] = [
+  { id: 'visibilite', label: 'Prêt pour Google', hint: 'Google peut-il voir et lire votre site sans obstacle ?' },
+  { id: 'structure', label: 'Référencement des pages', hint: 'Titres, structure, textes et liens : Google comprend-il vos pages ?' },
+  { id: 'message', label: 'Textes et message', hint: 'Le visiteur comprend-il vite ce que vous faites, et a-t-il envie de vous contacter ?' },
+  { id: 'vitesse', label: 'Vitesse et mobile', hint: 'Le site s’affiche-t-il vite, surtout sur téléphone ?' },
+  { id: 'securite', label: 'Sécurité et conformité', hint: 'Site protégé, mentions légales, RGPD et cookies' },
+];
+export const noteLabelsFor = (b: Pick<Bulletin, 'notes'>) => (b.notes.visibilite !== undefined ? NOTE_LABELS_SEO : NOTE_LABELS);
 
 export function verdict20(n: number) {
   if (n >= 18) return 'Excellent, votre site fait très bien son travail';

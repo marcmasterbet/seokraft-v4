@@ -1,11 +1,11 @@
 import Image from 'next/image';
-import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck, Scale } from 'lucide-react';
+import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck, Scale, FileText } from 'lucide-react';
 import PrintButton from './PrintButton';
 import Score20 from './Score20';
-import { NOTE_LABELS, constatStatus, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
+import { NOTE_LABELS, NOTE_LABELS_SEO, constatStatus, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
 
 /* Bulletin d'audit SEOKRAFT : page en ligne (téléphone d'abord) et PDF via l'impression. */
-const ICONS: Record<NoteId | 'technique', typeof Monitor> = { vitesse: Gauge, securite: ShieldCheck, legal: Scale, technique: Monitor, google: Search, textes: PenLine, contact: MessageCircle };
+const ICONS: Record<NoteId | 'technique', typeof Monitor> = { vitesse: Gauge, securite: ShieldCheck, legal: Scale, technique: Monitor, google: Search, textes: PenLine, contact: MessageCircle, visibilite: Search, structure: FileText, message: PenLine };
 const LEGACY = { id: 'technique' as const, label: 'Technique du site', hint: 'Vitesse, téléphone, sécurité, conformité' };
 
 /* Couleur d'une note : rouge si elle fait perdre des clients, orange si moyenne, vert si bonne. */
@@ -42,7 +42,8 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
   const s = b.speed;
   const sd = b.speedDesktop ?? null;
   /* Anciens bulletins : pas de note « Obligations légales » (elle était comprise dans « Sécurité et RGPD »). */
-  const labels = b.notes.vitesse === undefined ? [LEGACY, ...NOTE_LABELS.filter((n) => !['vitesse', 'securite', 'legal'].includes(n.id))]
+  const seo = b.notes.visibilite !== undefined;
+  const labels = seo ? NOTE_LABELS_SEO : b.notes.vitesse === undefined ? [LEGACY, ...NOTE_LABELS.filter((n) => !['vitesse', 'securite', 'legal'].includes(n.id))]
     : b.notes.legal === undefined ? NOTE_LABELS.filter((n) => n.id !== 'legal').map((n) => n.id === 'securite' ? { ...n, label: 'Sécurité et RGPD', hint: 'Vos visiteurs et leurs données sont-ils protégés ? Le site est-il en règle ?' } : n)
     : NOTE_LABELS;
   const checks = b.checks ?? [];
@@ -114,7 +115,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
     </section>
 
     {security.length > 0 && <section className="bv-sec">
-      <h2>{b.notes.legal === undefined ? 'Sécurité et conformité' : 'Sécurité'}</h2>
+      <h2>{seo || b.notes.legal === undefined ? 'Sécurité et conformité' : 'Sécurité'}</h2>
       <p className="bv-muted bv-intro">Ce que tout visiteur peut constater de l’extérieur. Aucun test intrusif n’a été réalisé.</p>
       <CheckList items={security} />
     </section>}
@@ -145,8 +146,8 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
     {checks.length > 0 && <section className="bv-sec bv-annex">
       <h2>Le détail, point par point</h2>
       <p className="bv-muted bv-intro">Tous les points vérifiés, classés du plus grave au plus anodin.</p>
-      {(['google', 'textes'] as NoteId[]).map((g) => group(g).length > 0 && <div key={g} className="bv-annex-group">
-        <h3>{NOTE_LABELS.find((n) => n.id === g)?.label}</h3>
+      {((seo ? ['visibilite', 'structure', 'message'] : ['google', 'textes']) as NoteId[]).map((g) => group(g).length > 0 && <div key={g} className="bv-annex-group">
+        <h3>{labels.find((n) => n.id === g)?.label}</h3>
         <CheckList items={group(g)} />
       </div>)}
     </section>}
@@ -155,7 +156,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
       <summary>Méthode et limites</summary>
       <p><strong>Périmètre :</strong> {b.pages && b.pages.length > 1 ? <>{b.pages.length} pages publiques de {b.host} : {b.pages.map((p) => p.label.toLowerCase()).join(', ')}</> : <>la page d’accueil publique de {b.host}</>}, telles qu’un visiteur les voit. Rien n’a été modifié sur votre site.</p>
       <p><strong>Méthode :</strong> {checks.length ? `${checks.length} vérifications automatiques` : 'vérifications automatiques'} (Google, vitesse, sécurité, contact), mesures Google PageSpeed sur téléphone et ordinateur{b.ai ? ', et audit du référencement et des captures assisté par intelligence artificielle, relue par Marc avant envoi' : ''}.</p>
-      <p><strong>Limites :</strong> aucun formulaire n’a été envoyé, aucun accès privé n’a été utilisé et aucun test intrusif n’a été mené. Les notes sont indicatives et ne garantissent aucun classement sur Google.</p>
+      <p><strong>Limites :</strong> aucun formulaire n’a été envoyé, aucun accès privé n’a été utilisé et aucun test intrusif n’a été mené. Les notes sont indicatives et ne garantissent aucun classement sur Google.{seo && ' Cet audit porte sur votre site internet, pas sur votre fiche Google ni sur votre réputation en ligne.'}</p>
     </details>
     <footer className="al-foot"><a href="/">seokraft.fr</a><a href="/mentions-legales">Mentions légales</a><a href="/politique-de-confidentialite">Confidentialité</a></footer>
   </main>;

@@ -343,8 +343,8 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     advice: signs.length ? 'Le site repose sur une technique d’une autre époque : il s’affiche mal sur téléphone, il est moins bien compris par Google, et il est plus difficile à sécuriser.' : 'Rien à faire.' });
 
   /* Site fait avec un outil « clé en main » : code lourd, peu de maîtrise de la vitesse et du référencement, site loué et non possédé. */
-  const BUILDERS: [RegExp, string][] = [[/wix\.com|wixstatic|_wix/i, 'Wix'], [/jimdo/i, 'Jimdo'], [/squarespace/i, 'Squarespace'], [/webnode/i, 'Webnode'], [/e-monsite/i, 'e-monsite'], [/sitew\./i, 'SiteW'], [/weebly/i, 'Weebly'], [/sites\.google\.com|googleusercontent\.com\/sites/i, 'Google Sites'], [/godaddy.*(website|builder)|img1\.wsimg\.com/i, 'GoDaddy'], [/site123/i, 'SITE123'], [/hostinger.*builder|zyrosite|zyro\.com/i, 'Hostinger Builder'], [/duda(mobile|\.co)|multiscreensite/i, 'Duda'], [/strikingly/i, 'Strikingly'], [/ionos.*(mywebsite|builder)|mywebsite-editor/i, 'IONOS MyWebsite']];
-  const builder = BUILDERS.find(([re]) => re.test(html0.slice(0, 200000)))?.[1] || (/\.gites\.fr$|\.gites-de-france\.com$|\.e-monsite\.com$|\.wixsite\.com$|\.jimdofree\.com$|\.webnode\.fr$|\.over-blog\.com$/i.test(new URL(page.url).hostname) ? 'une plateforme de sites clé en main' : '');
+  const BUILDERS: [RegExp, string][] = [[/wix\.com|wixstatic|_wix/i, 'Wix'], [/odoo\.com\/app\/website|website\.layout|o_footer_copyright|\bodoo\b/i, 'Odoo'], [/site123|hostinger-builder|zyrosite|godaddysites|business\.site|strikingly|carrd\.co|webflow\.io/i, 'un outil de création en ligne'], [/jimdo/i, 'Jimdo'], [/squarespace/i, 'Squarespace'], [/webnode/i, 'Webnode'], [/e-monsite/i, 'e-monsite'], [/sitew\./i, 'SiteW'], [/weebly/i, 'Weebly'], [/sites\.google\.com|googleusercontent\.com\/sites/i, 'Google Sites'], [/godaddy.*(website|builder)|img1\.wsimg\.com/i, 'GoDaddy'], [/site123/i, 'SITE123'], [/hostinger.*builder|zyrosite|zyro\.com/i, 'Hostinger Builder'], [/duda(mobile|\.co)|multiscreensite/i, 'Duda'], [/strikingly/i, 'Strikingly'], [/ionos.*(mywebsite|builder)|mywebsite-editor/i, 'IONOS MyWebsite']];
+  const builder = BUILDERS.find(([re]) => re.test(html0.slice(0, 200000)))?.[1] || (/\.gites\.fr$|\.gites-de-france\.com$|\.e-monsite\.com$|\.wixsite\.com$|\.jimdofree\.com$|\.webnode\.fr$|\.over-blog\.com$|\.odoo\.com$|\.site123\.me$|\.webflow\.io$|\.godaddysites\.com$|\.business\.site$|\.carrd\.co$|\.wordpress\.com$|\.blogspot\.com$|\.mystrikingly\.com$|\.zyrosite\.com$|\.ueniweb\.com$/i.test(new URL(page.url).hostname) ? 'une plateforme de sites clé en main' : '');
   add({ id: 'builder', cat: 'mobile', label: 'Site sur mesure ou site « clé en main »', weight: 3,
     status: builder ? 'bad' : 'ok',
     detail: builder ? `Le site est réalisé avec ${builder}.` : 'Aucun outil de site « clé en main » détecté.',
@@ -769,6 +769,63 @@ export async function runAudit(input: string): Promise<AuditResult> {
     h1: d('h1').first().text().replace(/\s+/g, ' ').trim().slice(0, 90),
     words: (text(d) || '').split(' ').filter(Boolean).length,
   });
+  /* Dossier détaillé pour l'audit automatique : ce que Marc vérifierait en ouvrant le site lui-même. */
+  const readUrls = new Set([page.url, ...subs.map((p) => p.url)].map((u) => u.split('#')[0].replace(/\/$/, '')));
+  const dest = (href: string) => {
+    const h = href.trim();
+    if (!h || h === '#' || /^#$|^javascript:/i.test(h)) return 'ne mène nulle part';
+    if (h.startsWith('#')) return `ancre ${h.slice(0, 30)} sur la même page`;
+    if (/^tel:/i.test(h)) return `appel ${h.slice(4, 24)}`;
+    if (/^mailto:/i.test(h)) return 'e-mail';
+    try {
+      const u = new URL(h, page.url);
+      if (u.hostname.replace(/^www\./, '') !== host.replace(/^www\./, '')) return `autre site (${u.hostname})`;
+      const k = u.toString().split('#')[0].replace(/\/$/, '');
+      if (u.pathname.replace(/\/$/, '') === homePath && !u.search) return 'retour à l’accueil';
+      return `${u.pathname}${readUrls.has(k) ? ' (page lue)' : sub.broken.some((b) => k.endsWith(b)) ? ' (ERREUR)' : ''}`;
+    } catch { return 'adresse invalide'; }
+  };
+  const pageBlock = (d: CheerioAPI, label: string, url: string) => {
+    const hs = d('h1,h2,h3').map((_, h) => `${h.tagName.toUpperCase()} ${d(h).text().replace(/\s+/g, ' ').trim().slice(0, 90)}`).get().filter((x) => x.length > 3).slice(0, 30);
+    const seen = new Set<string>();
+    const ls = d('a, button').map((_, a) => {
+      const t = (d(a).text() || d(a).attr('aria-label') || d(a).attr('title') || '').replace(/\s+/g, ' ').trim().slice(0, 50);
+      if (!t) return '';
+      const hasMenu = d(a).next('ul, div').length > 0 || d(a).parent().find('ul ul, .sub-menu, .dropdown-menu').length > 0;
+      const tag = a.tagName === 'button' ? (d(a).closest('form').length ? 'envoi du formulaire' : 'bouton sans lien') : dest(d(a).attr('href') || '');
+      const line = `« ${t} » → ${tag}${tag === 'ne mène nulle part' && hasMenu ? ' (ouvre un sous-menu)' : ''}`;
+      if (seen.has(line)) return ''; seen.add(line); return line;
+    }).get().filter(Boolean).slice(0, 45);
+    const canonical = d('link[rel="canonical"]').attr('href') || '';
+    const robotsMeta = d('meta[name="robots"]').attr('content') || '';
+    const footer = d('footer').text().replace(/\s+/g, ' ').trim().slice(0, 500);
+    return [`=== ${label} (${new URL(url).pathname}) ===`,
+      `Titre Google : « ${d('head > title').first().text().replace(/\s+/g, ' ').trim() || 'aucun'} »`,
+      `Description Google : « ${(d('meta[name="description"]').attr('content') || '').trim().slice(0, 200) || 'aucune'} »`,
+      `Adresse officielle (canonical) : ${canonical || 'non indiquée'}${robotsMeta ? ` · consigne robots : ${robotsMeta}` : ''}`,
+      'Titres de la page :', ...(hs.length ? hs.map((x) => `  ${x}`) : ['  (aucun titre)']),
+      'Liens et boutons (texte → destination réelle) :', ...(ls.length ? ls.map((x) => `  ${x}`) : ['  (aucun)']),
+      `Bas de page : ${footer || '(pas de bas de page repéré)'}`,
+      `Texte de la page (début) : « ${text(d).slice(0, label === 'Accueil' ? 2500 : 1000)} »`].join('\n');
+  };
+  const allText = [text($c), ...subs.map((p) => text(p.$))].join(' ');
+  const leftovers = [...new Set((allText.match(/lorem ipsum|dolor sit amet|example\.(?:com|fr)|exemple\.(?:com|fr)|votre texte ici|your text here|hello world|bonjour tout le monde|just another wordpress site|un site utilisant wordpress|ceci est un exemple|sample page|page d['’]exemple|\b(?:01|06) ?00 ?00 ?00 ?00\b|123 rue|xx\.xx\.xx|nom de l['’]entreprise/gi) || []).map((x) => x.toLowerCase()))];
+  const phonesTxt = [...new Set(allText.match(/(?:\+33\s?|0)[1-9](?:[\s.-]?\d{2}){4}/g) || [])].slice(0, 3);
+  const telLinks = [$c, ...subs.map((p) => p.$)].some((d) => d('a[href^="tel:"]').length > 0);
+  const dossier = [
+    `Robots.txt : ${robots.ok ? `présent${/disallow:\s*\/\s*$/im.test(robots.text) ? ' — BLOQUE TOUT LE SITE' : ''}${/sitemap:/i.test(robots.text) ? ', indique le plan du site' : ''}` : 'absent'}`,
+    `Plan du site (sitemap) : ${smap2.ok ? `présent, ${fromMap.length} page(s) listée(s)` : 'introuvable'}`,
+    `Pages trouvées au total (liens + plan du site) : ${links.length + 1}`,
+    `Liens cassés repérés : ${sub.broken.length ? sub.broken.join(', ') : 'aucun parmi les pages lues'}`,
+    `Restes de modèle repérés dans les textes : ${leftovers.length ? leftovers.join(', ') : 'aucun'}`,
+    `Numéros de téléphone écrits dans le texte : ${phonesTxt.join(', ') || 'aucun'} · lien d’appel cliquable : ${telLinks ? 'oui' : 'non'}`,
+    `Mentions légales : ${legalFound ? `trouvées (${legalFound})` : legalDead ? 'un lien existe mais ne mène nulle part' : 'non trouvées'} · confidentialité : ${privacyFound ? 'trouvée' : 'non trouvée'}`,
+    '',
+    'Liste de toutes les pages trouvées :', (links.slice(0, 60).map((l) => `- ${l.label} (${new URL(l.url).pathname})`).join('\n') || '- (aucune autre page)'),
+    '',
+    pageBlock($c, 'Accueil', page.url),
+    ...subs.map((p) => pageBlock(p.$, p.label, p.url)),
+  ].join('\n').slice(0, 30000);
   const result: AuditResult = {
     url: page.url,
     host: host.replace(/^www\./, ''),
@@ -790,6 +847,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
         const links = d('main a[href], article a[href], section a[href], p a[href]').map((_, a) => d(a).text().replace(/\s+/g, ' ').trim().slice(0, 40)).get().filter(Boolean).slice(0, 12);
         return `--- ${label} ---\n${hs.join('\n') || '(aucun titre)'}\nLiens dans le contenu : ${links.join(' | ') || '(aucun)'}`;
       }).join('\n').slice(0, 6000),
+      dossier,
     },
   };
   return result;
