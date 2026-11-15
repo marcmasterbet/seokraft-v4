@@ -129,6 +129,7 @@ type Extra = {
   legalText?: string | null;     // texte de la page de mentions légales, si on l'a trouvée et lue
   legalFound?: 'lien' | 'plan' | 'adresse' | 'texte' | null; // où on les a trouvées
   privacyFound?: boolean;
+  legalDead?: boolean;           // un lien « Mentions légales » existe mais ne mène nulle part
 };
 
 const listFr = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs[xs.length - 1]}`);
@@ -450,11 +451,11 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     plan: 'La page de mentions légales existe, mais aucun lien visible n’y mène.', adresse: 'La page de mentions légales existe, mais aucun lien visible n’y mène.' } as const;
   add({ id: 'legal', cat: 'legal', label: 'Mentions légales', weight: 2,
     status: !found ? 'bad' : found === 'plan' || found === 'adresse' ? 'warn' : 'ok',
-    detail: found ? LEGAL_DETAIL[found] : 'Nous n’avons trouvé de mentions légales ni dans les liens du site, ni à leurs adresses habituelles, ni en bas de page.',
+    detail: found ? LEGAL_DETAIL[found] : extra.legalDead ? 'Le lien « Mentions légales » ne mène nulle part (lien vide ou retour à l’accueil) : les mentions sont en réalité absentes.' : 'Nous n’avons trouvé de mentions légales ni dans les liens du site, ni à leurs adresses habituelles, ni en bas de page.',
     advice: !found ? 'Obligatoire en France pour un site professionnel : identité, adresse, hébergeur. Risque d’amende.'
       : found === 'plan' || found === 'adresse' ? 'Ajouter un lien « Mentions légales » en bas de chaque page : elles doivent être accessibles facilement.' : 'Rien à faire.' });
 
-  const privacy = extra.privacyFound || /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e/i.test(siteLinkTexts) || siteHrefs.some((h) => /confidential|privacy|rgpd|donnees/i.test(h));
+  const privacy = extra.privacyFound !== undefined ? extra.privacyFound : /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e/i.test(siteLinkTexts) || siteHrefs.some((h) => /confidential|privacy|rgpd|donnees/i.test(h));
   add({ id: 'privacy', cat: 'legal', label: 'Politique de confidentialité (RGPD)', weight: 2,
     status: privacy ? 'ok' : 'bad', detail: privacy ? 'Présente.' : 'Nous ne l’avons trouvée ni dans les liens du site, ni dans les mentions légales, ni à ses adresses habituelles.',
     advice: privacy ? 'Rien à faire.' : 'Obligatoire dès qu’un formulaire ou des statistiques collectent des données (RGPD).' });
@@ -721,7 +722,14 @@ export async function runAudit(input: string): Promise<AuditResult> {
       return r.ok ? text(load(r.text)) : null;
     } catch { return null; }
   };
-  const linked = pageLinks.find((l) => LEGAL_TXT.test(l.t) || LEGAL_URL.test(l.href));
+  /* Un lien ne compte que s'il mène quelque part : « # », vide, javascript: ou retour à l'accueil = absent. */
+  const homePath = new URL(page.url).pathname.replace(/\/$/, '');
+  const realLink = (href: string) => {
+    if (!href || /^(#|javascript:|mailto:|tel:)/i.test(href.trim())) return false;
+    try { const u = new URL(href, page.url); return u.host !== new URL(page.url).host || u.pathname.replace(/\/$/, '') !== homePath || /\.pdf$/i.test(u.pathname); } catch { return false; }
+  };
+  const linked = pageLinks.find((l) => (LEGAL_TXT.test(l.t) || LEGAL_URL.test(l.href)) && realLink(l.href));
+  const legalDead = !linked && pageLinks.some((l) => LEGAL_TXT.test(l.t));
   if (linked) { legalFound = 'lien'; if (!/\.pdf$/i.test(linked.href)) legalText = await readLegal(linked.href); }
   if (!legalFound) {
     const inMap = links.find((l) => LEGAL_URL.test(new URL(l.url).pathname));
@@ -741,7 +749,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
   const PRIV_TXT = /confidentialit|donn[ée]es personnelles|protection des donn[ée]es|rgpd|privacy|vie priv[ée]e|cookies/i;
   const PRIV_URL = /confidential|privacy|rgpd|donnees|vie-privee|cookies/i;
   const looksPriv = (t: string) => /donn[ée]es personnelles|rgpd|r[èe]glement g[ée]n[ée]ral|cnil|politique de confidentialit|droit d['’]acc[èe]s/i.test(t);
-  let privacyFound = pageLinks.some((l) => PRIV_TXT.test(l.t) || PRIV_URL.test(l.href)) || (legalText != null && looksPriv(legalText));
+  let privacyFound = pageLinks.some((l) => (PRIV_TXT.test(l.t) || PRIV_URL.test(l.href)) && realLink(l.href)) || (legalText != null && looksPriv(legalText));
   if (!privacyFound) {
     const inMap = links.find((l) => PRIV_URL.test(new URL(l.url).pathname));
     if (inMap) { const t = await readLegal(inMap.url); privacyFound = !!t && looksPriv(t); }
@@ -766,7 +774,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
     host: host.replace(/^www\./, ''),
     fetchedAt: new Date().toISOString(),
     title: $('head > title').first().text().trim() || $c('head > title').first().text().trim(),
-    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound, privacyFound }, subs),
+    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound, legalDead, privacyFound }, subs),
     pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
     pagesDetail: [detail($c, page.url, 'Accueil'), ...subs.map((p) => detail(p.$, p.url, p.label))],
     content: {
