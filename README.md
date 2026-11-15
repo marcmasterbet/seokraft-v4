@@ -49,7 +49,7 @@ Titre contenu dans la colonne texte, photographie rectangulaire séparée, grill
 
 ## V3.2 — Réalisations authentiques
 
-Les trois images dans public/images/projet-*.webp sont des captures transmises par le propriétaire des projets. LOCA DIRECT a été recadré à partir de la capture originale pour supprimer la rangée annotée et la barre de navigation basse. Aucune image de site générée par IA.
+Les images dans public/images/projet-*.webp sont des captures authentiques des sites réalisés (REMUS SYSTEMS, JEFF BOND). Aucune image de site générée par IA.
 
 
 ## V3.5 — Ajustements visuels

@@ -4,7 +4,7 @@ import SiteFooter from '../../components/SiteFooter';
 import Testimonials from '../../components/Testimonials';
 import { WorkSection, Contact } from '../../components/Home';
 
-const description = 'Les sites réalisés par SEOKRAFT, développeur web à Strasbourg : REMUS SYSTEMS et LOCA DIRECT. Le besoin, la réalisation et les points clés de chaque projet.';
+const description = 'Les sites réalisés par SEOKRAFT, développeur web à Strasbourg : REMUS SYSTEMS et JEFF BOND. Le besoin, la réalisation et les points clés de chaque projet.';
 export const metadata: Metadata = {
  title: 'Réalisations : sites internet sur mesure | SEOKRAFT',
  description,

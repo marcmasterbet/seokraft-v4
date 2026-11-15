@@ -85,23 +85,23 @@ export const realisations = {
  title: ["Vous voulez savoir ce que je peux créer ? ", "Regardez ce que j'ai déjà réalisé."] as Title,
  paragraphs: [
   "Chaque projet présenté ici répond à un besoin différent.",
-  "L'un devait rendre accessible une expertise technologique exigeante. L'autre devait organiser la mise en relation de plusieurs catégories d'utilisateurs.",
+  "L'un devait rendre accessible une expertise technologique exigeante. L'autre devait transformer une visite en rendez-vous commercial.",
   "Deux problématiques. Deux réponses adaptées."
  ],
  labels: { need: "LE BESOIN", solution: "LA RÉALISATION", features: "POINTS CLÉS" },
  projects: [
-  { kind: "remus", name: "REMUS SYSTEMS", url: "https://remussystems.fr",
+  { kind: "remus", name: "REMUS SYSTEMS", url: "https://remussystems.fr", image: "/images/projet-remus-systems.webp",
     tag: "Site internet sur mesure · Technologies et innovation",
     need: "Présenter une activité technologique complexe sans perdre le visiteur dans des explications difficiles à comprendre.",
     solution: "Un site vitrine à l'identité visuelle affirmée, avec une organisation claire des expertises et des pages consacrées aux solutions, à l'audit et à la recherche.",
     features: ["Identité visuelle premium.", "Présentation structurée des expertises.", "Navigation adaptée aux smartphones."],
     button: "Découvrir REMUS SYSTEMS" },
-  { kind: "loca", name: "LOCA DIRECT", url: "https://www.loca-direct.fr",
-    tag: "Développement de plateforme web · Location saisonnière",
-    need: "Réunir propriétaires, voyageurs et prestataires au sein d'une même plateforme, avec des usages différents.",
-    solution: "Un environnement web structuré autour de plusieurs profils utilisateurs, de la présentation des biens et de la mise en relation.",
-    features: ["Comptes utilisateurs.", "Présentation des biens.", "Fonctionnalités de mise en relation."],
-    button: "Découvrir LOCA DIRECT" }
+  { kind: "jeff", name: "JEFF BOND", url: "https://www.jeffbond.fr", image: "/images/projet-jeff-bond.webp",
+    tag: "Site vitrine · Prospection commerciale B2B",
+    need: "Convaincre des chefs d'entreprise de confier leur prospection téléphonique à un indépendant, et les amener à réserver un échange.",
+    solution: "Un site d'une page à l'identité visuelle forte, qui pose le problème du prospect, prouve l'expérience par des résultats chiffrés et guide vers la prise de rendez-vous.",
+    features: ["Identité visuelle forte et mémorable.", "Résultats chiffrés mis en avant.", "Appels à l'action et formulaire de contact."],
+    button: "Découvrir JEFF BOND" }
  ],
  accent: "Un projet web réussi ne se résume pas à son apparence. Il doit répondre à un besoin concret."
 };
