@@ -812,7 +812,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
       'Titres de la page :', ...(hs.length ? hs.map((x) => `  ${x}`) : ['  (aucun titre)']),
       'Liens et boutons (texte → destination réelle) :', ...(ls.length ? ls.map((x) => `  ${x}`) : ['  (aucun)']),
       `Bas de page : ${footer || '(pas de bas de page repéré)'}`,
-      `Texte de la page (début) : « ${text(d).slice(0, label === 'Accueil' ? 2500 : 1000)} »`].join('\n');
+      `Texte de la page (début) : « ${text(d).slice(0, label === 'Accueil' ? 1800 : 600)} »`].join('\n');
   };
   const allText = [text($c), ...subs.map((p) => text(p.$))].join(' ');
   const leftovers = [...new Set((allText.match(/lorem ipsum|dolor sit amet|example\.(?:com|fr)|exemple\.(?:com|fr)|votre texte ici|your text here|hello world|bonjour tout le monde|just another wordpress site|un site utilisant wordpress|ceci est un exemple|sample page|page d['’]exemple|\b(?:01|06) ?00 ?00 ?00 ?00\b|123 rue|xx\.xx\.xx|nom de l['’]entreprise/gi) || []).map((x) => x.toLowerCase()))];
@@ -831,7 +831,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
     '',
     pageBlock($c, 'Accueil', page.url),
     ...subs.map((p) => pageBlock(p.$, p.label, p.url)),
-  ].join('\n').slice(0, 30000);
+  ].join('\n').slice(0, 18000);
   const result: AuditResult = {
     url: page.url,
     host: host.replace(/^www\./, ''),

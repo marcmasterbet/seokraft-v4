@@ -3,7 +3,7 @@
    2. l'IA applique la grille et rend « Pour Marc » + le bloc JSON ;
    3. le JSON passe par le même contrôle que l'import manuel (notes, calcul, plafonds) avant publication.
    Rien n'est jamais envoyé au prospect : Marc relit et envoie lui-même. */
-import { measureSite, importAudit } from './auditImport';
+import { measureSite, importAudit, extractJson } from './auditImport';
 import { AuditError } from './auditEngine';
 import { AUDIT_PROMPT } from './auditPrompt';
 import type { Bulletin } from '../components/auditTypes';
@@ -17,10 +17,11 @@ const AUTO_NOTE = `
 Tu ne peux pas ouvrir le site toi-même. L’outil de Marc l’a lu pour toi : le dossier ci-dessous contient, pour l’accueil et les pages importantes, les titres, chaque lien et bouton avec sa VRAIE destination (« ne mène nulle part » = lien vide, compte comme absent sauf s’il ouvre un sous-menu), le bas de page, le début des textes, les numéros écrits et les restes de modèle repérés.
 - Ce dossier remplace ta visite du site : tu t’appuies uniquement sur lui et sur les mesures. Tu n’inventes rien.
 - Ce que le dossier ne permet pas de trancher va dans les points « à vérifier » de « Pour Marc » et ne retire aucun point.
-- ORDRE ET LONGUEUR (obligatoire, la réponse est payée au mot) :
-  1. D’ABORD le bloc \`\`\`json, complet. Textes courts : « detail » et « advice » en une phrase chacun ; 15 « checks » au maximum, en gardant les plus utiles ; 3 à 5 priorités.
-  2. ENSUITE « Pour Marc », 15 lignes au maximum : famille ; à vérifier ; le calcul en une ligne par note (problèmes retenus et leur niveau → note), puis moyenne et plafond ; offre conseillée avec sa justification ; 2 lignes commerciales.
-  Rien d’autre, pas d’introduction ni de conclusion.`;
+- FORMAT DE RÉPONSE (obligatoire, la réponse est payée au mot) : ta réponse est UNIQUEMENT le bloc \`\`\`json, sans aucun texte avant ni après. Fais ton calcul de tête, n’écris pas ton raisonnement.
+- Pas de partie « Pour Marc » : seulement ce champ en plus dans le JSON, très court :
+  "pourMarc": { "offre": "Refonte | Optimisation sans refonte | Stratégie de référencement", "aVerifier": ["3 points au plus, une ligne chacun"] }
+- Longueurs : « essentiel » 3 phrases au plus ; 3 ou 4 priorités de 2 phrases courtes ; 3 points forts ; « detail » et « advice » une phrase courte chacun ; 10 « checks » au maximum, les plus utiles.
+`;
 
 /* Prix en dollars par million de jetons (Sonnet 5.5 : 2 $ en entrée, 10 $ en sortie). Modifiables dans Vercel si les prix changent. */
 const PRICE_IN = Number(process.env.AUDIT_PRICE_IN) || 2;
@@ -44,7 +45,7 @@ async function ask(system: string, user: string) {
   const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'}/v1/messages`, {
     method: 'POST',
     headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model, max_tokens: 16000, system, messages: [{ role: 'user', content: user }] }),
+    body: JSON.stringify({ model, max_tokens: 6000, stop_sequences: ['\n```'], system, messages: [{ role: 'user', content: user }] }),
     signal: AbortSignal.timeout(150000),
   });
   if (!res.ok) {
@@ -69,10 +70,17 @@ export async function runAutoAudit(url: string): Promise<AutoAudit> {
     const why = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'délai dépassé' : e instanceof Error ? e.message : 'erreur';
     throw new AutoAuditError(`IA indisponible (${why})`, text, result.url);
   }
-  /* « Pour Marc » est rendu après le bloc JSON (avant, si l'IA a gardé l'ordre du projet). */
-  const fence = /```(?:json)?\s*\{[\s\S]*?```/i.exec(out.text);
-  const rest = fence ? (out.text.slice(fence.index + fence[0].length).trim() || out.text.slice(0, fence.index)) : '';
-  const forMarc = rest.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').trim().slice(0, 5000);
+  /* La réponse s'arrête à la fin du bloc JSON (stop_sequences) : on referme le bloc. */
+  if (out.stop === 'stop_sequence' && !/```\s*$/.test(out.text)) out.text += '\n```';
+  let forMarc = '';
+  try {
+    const pm = ((extractJson(out.text) as Record<string, unknown>).pourMarc ?? {}) as Record<string, unknown>;
+    const list = (v: unknown) => (Array.isArray(v) ? v.map((x) => `- ${String(x).slice(0, 220)}`) : []);
+    forMarc = [
+      pm.offre ? `Offre conseillée : ${String(pm.offre).slice(0, 60)}` : '',
+      ...(Array.isArray(pm.aVerifier) && pm.aVerifier.length ? ['À vérifier :', ...list(pm.aVerifier).slice(0, 3)] : []),
+    ].filter(Boolean).join('\n');
+  } catch { /* l'erreur de lecture est traitée juste en dessous */ }
   try {
     const { bulletin, warnings } = await importAudit(out.text, measures);
     return { bulletin, warnings, forMarc, usage: out.usage, speedError: !measures.speed || measures.speed.performance === null };

@@ -85,7 +85,7 @@ const str = (v: unknown, max = 1200) => (typeof v === 'string' ? v.trim().slice(
 const isHalf = (n: unknown): n is number => typeof n === 'number' && n >= 0 && n <= 20 && Math.abs(n * 2 - Math.round(n * 2)) < 1e-9;
 
 /* Extrait le bloc JSON même si Marc colle toute la réponse du projet. */
-function extractJson(raw: string): unknown {
+export function extractJson(raw: string): unknown {
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const body = fenced ? fenced[1] : raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
   try { return JSON.parse(body.replace(/[“”]/g, '"')); } catch { throw new AuditError('Le texte collé n’est pas un audit valide : copiez le bloc qui commence par { "format": "seokraft-audit-1".'); }
