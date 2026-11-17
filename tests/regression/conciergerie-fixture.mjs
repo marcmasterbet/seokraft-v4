@@ -42,15 +42,20 @@ export function startPsi(port) {
   }).listen(port, '127.0.0.1');
 }
 
-/* Fausse IA : reprend la réponse réelle sur les moyens de contact (« Devis gratuit », WhatsApp, Calendly, e-mail). */
+/* Fausse IA : répond au format du projet Claude (seokraft-audit-1). Elle propose des notes trop hautes et oublie
+   le problème de stabilité : l'outil doit imposer son barème et ajouter la priorité manquante. */
 export function startAi(port) {
-  const out = { score: 12, essentiel: 'Le site présente clairement la conciergerie digitale, et chaque offre a sa page. Il est peu optimisé pour Google : pas de descriptions et un titre d’accueil trop long. Priorité n°1 : un titre court et une description pour chaque page.', impression: '',
-    constats: [{ question: 'Le titre Google dit-il le métier et la ville ?', reponse: 'Le métier oui, la ville non, et le titre est trop long' }, { question: 'Chaque service a-t-il sa page ?', reponse: 'Oui pour les trois offres' }, { question: 'Les titres de page sont-ils clairs ?', reponse: 'Peu : « Conciergerie digitale » est répété' }, { question: 'Les pages sont-elles reliées ?', reponse: 'Oui, depuis le menu et le texte' }, { question: 'Comprend-on le métier en 5 secondes ?', reponse: 'Oui, le message d’accueil est clair' }, { question: 'Sait-on comment contacter ?', reponse: 'Oui : bouton « Devis gratuit » en haut, WhatsApp, Calendly et e-mail sur la page contact' }],
-    priorities: [{ level: 'important', title: 'Aucune description dans Google', text: 'Aucune des pages n’a de description. Rédigez une à deux phrases par page.' }], positives: ['Le métier est compris en quelques secondes.'] };
+  const out = { format: 'seokraft-audit-1', url: 'http://127.0.0.1/', global: 17,
+    notes: { referencement: 18, message: 13, vitesse: 19, securite: 19 }, ajouts: [],
+    essentiel: 'Le site présente clairement la conciergerie digitale, et chaque offre a sa page. Il est peu optimisé pour Google : pas de descriptions et un titre d’accueil trop long. Priorité n°1 : un titre court et une description pour chaque page.', impression: '',
+    constats: [{ question: 'Google peut-il lire votre site sans obstacle ?', reponse: 'Oui, rien ne le bloque', statut: 'oui' }, { question: 'Chaque service a-t-il sa page ?', reponse: 'Oui pour les trois offres', statut: 'oui' }, { question: 'Chaque page a-t-elle un titre Google unique ?', reponse: 'Non, « Conciergerie digitale » est répété', statut: 'non' }, { question: 'Vos pages sont-elles reliées entre elles ?', reponse: 'Oui, depuis le menu et le texte', statut: 'oui' }, { question: 'Comprend-on ce que vous faites en 5 secondes ?', reponse: 'Oui, le message d’accueil est clair', statut: 'oui' }, { question: 'Sait-on comment contacter ?', reponse: 'Oui : bouton « Devis gratuit » en haut, WhatsApp, Calendly et e-mail sur la page contact', statut: 'oui' }],
+    priorities: [{ level: 'critique', title: 'Aucune description dans Google', text: 'Aucune des pages n’a de description. Rédigez une à deux phrases par page.' }], positives: ['Le métier est compris en quelques secondes.'],
+    checks: [{ group: 'message', label: 'Message en haut de l’accueil', status: 'ok', detail: 'Le métier est clair.', advice: 'Rien à faire.' }] };
   return http.createServer((req, res) => {
     let body = ''; req.on('data', (c) => { body += c; }); req.on('end', () => {
+      const url = (body.match(/Audit de (http:\/\/127\.0\.0\.1:\d+\/)/) || [])[1] || out.url;
       res.setHeader('content-type', 'application/json');
-      res.end(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(out) }], stop_reason: 'end_turn' }));
+      res.end(JSON.stringify({ content: [{ type: 'text', text: '```json\n' + JSON.stringify({ ...out, url }) + '\n```' }], stop_reason: 'end_turn', usage: { input_tokens: 1000, output_tokens: 500 } }));
     });
   }).listen(port, '127.0.0.1');
 }

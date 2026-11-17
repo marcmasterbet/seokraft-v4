@@ -20,7 +20,8 @@ Tu ne peux pas ouvrir le site toi-même. L’outil de Marc l’a lu pour toi : l
 - FORMAT DE RÉPONSE (obligatoire, la réponse est payée au mot) : ta réponse est UNIQUEMENT le bloc \`\`\`json, sans aucun texte avant ni après. Fais ton calcul de tête, n’écris pas ton raisonnement.
 - Pas de partie « Pour Marc » : seulement ce champ en plus dans le JSON, très court :
   "pourMarc": { "offre": "Refonte | Optimisation sans refonte | Stratégie de référencement", "aVerifier": ["3 points au plus, une ligne chacun"] }
-- Longueurs : « essentiel » 3 phrases au plus ; 3 ou 4 priorités de 2 phrases courtes ; 3 points forts ; « detail » et « advice » une phrase courte chacun ; 10 « checks » au maximum, les plus utiles.
+- NOTES : l’outil calcule lui-même Référencement, Vitesse et Sécurité avec le barème (voir « NOTES CALCULÉES PAR L’OUTIL » dans les mesures). Dans "notes", donne seulement "message". Ce que l’outil ne peut pas voir (titres Google génériques, une seule page pour plusieurs services, formulaire qui n’envoie rien, message vague…) va dans "ajouts", 4 au maximum, uniquement si le dossier le prouve.
+- Longueurs : « essentiel » 3 phrases au plus ; 3 ou 4 priorités de 2 phrases courtes ; 3 points forts ; « checks » : seulement le groupe "message" (les autres viennent de l’outil), 5 au maximum, « detail » et « advice » une phrase courte chacun.
 `;
 
 /* Prix en dollars par million de jetons (Sonnet 5.5 : 2 $ en entrée, 10 $ en sortie). Modifiables dans Vercel si les prix changent. */

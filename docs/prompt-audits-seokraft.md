@@ -76,6 +76,8 @@ Détermine aussi la famille du site (service local, hébergement / conciergerie,
 
 ## 6. Le calcul
 
+**C’est l’outil de Marc qui applique ce barème** pour Référencement, Vitesse et Sécurité, la note globale et ses plafonds, à partir de ses mesures. Tu trouves ses notes et leur détail dans les mesures (« NOTES CALCULÉES PAR L’OUTIL ») : tu les reprends telles quelles, sans les recalculer. **Ta note est « message »**, qui ne peut pas dépasser le plafond indiqué dans les mesures. Un problème que l’outil ne peut pas voir (titres Google génériques, une seule page pour plusieurs services, formulaire qui n’envoie rien, message vague…) va dans le champ « ajouts » du JSON : il retire les mêmes points que ci-dessous.
+
 **Chaque note part de 20** et perd les points ci-dessus (minimum 0). Les points réussis ne rapportent rien. Une note qui contient au moins un problème grave ne dépasse pas 9.
 
 **Référencement :** calcule séparément « Accès pour Google » et « Préparation des pages », chacune partant de 20 avec les points ci-dessus ; la note Référencement est la moyenne des deux, arrondie au demi-point. Si l’une des deux parties contient un problème grave, la note Référencement ne dépasse pas 9.
@@ -113,7 +115,7 @@ Un problème grave en Sécurité et conformité (mentions légales absentes, par
 ### A. Pour Marc (court)
 - Famille retenue.
 - Points « à vérifier », s’il y en a.
-- Le calcul : pour chaque note (et les deux parties du Référencement), les problèmes retenus avec leur niveau, puis la note ; la moyenne ; le plafond appliqué.
+- Le calcul : celui de l’outil (repris des mesures), ta note « message » avec sa justification, et tes éventuels « ajouts ».
 - **Offre conseillée**, avec une phrase de justification, selon ces règles :
   - **Refonte** : Référencement à 9 ou moins à cause de la construction même du site (une seule page, outil qui ne permet pas de corriger, site inachevé ou cassé), ou Textes et message à 9 ou moins ;
   - **Optimisation sans refonte** : le site est sain mais ses pages sont mal préparées (titres, descriptions, pages par service ou par ville manquantes) ;
@@ -131,6 +133,9 @@ Un problème grave en Sécurité et conformité (mentions légales absentes, par
   "global": 11,
   "verdict": "Moyen, des clients vous échappent",
   "notes": { "referencement": 11, "message": 9, "vitesse": 18, "securite": 9 },
+  "ajouts": [
+    { "note": "referencement | message", "niveau": "grave | important | prevoir", "titre": "Problème vérifié que l’outil ne peut pas mesurer" }
+  ],
   "essentiel": "3 ou 4 phrases : ce que fait l’entreprise, pourquoi le site amène peu de visites et peu de clients (ce qui empêche Google de le mettre en avant, ce qui fait partir les visiteurs), ce qui va bien, par quoi commencer.",
   "impression": "",
   "positives": ["3 à 5 points forts réels et concrets du site"],
@@ -150,8 +155,9 @@ Règles du JSON :
 - **priorities** : 3 à 6, les plus graves d’abord, un problème = une priorité.
 - **constats** : exactement 6 questions : « Google peut-il lire votre site sans obstacle ? », « Votre site a-t-il un plan pour Google ? », « Chaque page a-t-elle un titre Google unique ? », « Chaque service a-t-il sa page ? », « Vos pages sont-elles reliées entre elles ? », « Comprend-on ce que vous faites en 5 secondes ? ».
 - **statut** : « non » si la réponse commence par « Non » ; « partiel » si elle contient « mais » ou une réserve ; « oui » seulement si tout va bien.
-- **checks** : tous les points vérifiés, y compris les bons. « ok » a toujours le conseil « Rien à faire. » ; s’il y a quelque chose à faire, c’est « warn ». Les points « à vérifier » n’y figurent pas.
-- Les notes du JSON sont exactement celles de ton calcul. **impression** reste vide. Aucune donnée de vitesse dans le JSON.
+- **checks** : seulement tes constats sur les textes et le message (groupe « message ») ; les autres points viennent de l’outil. « ok » a toujours le conseil « Rien à faire. » ; s’il y a quelque chose à faire, c’est « warn ». Les points « à vérifier » n’y figurent pas.
+- **ajouts** : 4 au maximum, seulement des problèmes vérifiés et absents des mesures de l’outil. Champ vide `[]` s’il n’y en a pas.
+- Les notes referencement, vitesse, securite et global sont celles de l’outil ; « message » est la tienne. À l’import, l’outil impose son calcul. **impression** reste vide. Aucune donnée de vitesse dans le JSON.
 - JSON valide : guillemets droits, pas de virgule finale.
 
 ---
@@ -161,7 +167,7 @@ Règles du JSON :
 Relis et corrige si l’une de ces réponses est « non » :
 - Chaque affirmation est-elle vérifiée sur le site ou dans les mesures ?
 - Les points techniques (robots.txt, plan du site, noindex, adresse unique, certificat) sont-ils vérifiés ?
-- Les plafonds sont-ils appliqués, dont « note Référencement + 4 » ?
+- Les notes de l’outil sont-elles reprises telles quelles, et ta note « message » sous son plafond ?
 - Chaque problème grave bloque-t-il sa note à 9 au plus ?
 - Aucun lien vide compté comme présent ? Aucun numéro affiché déclaré absent ?
 - Aucune contradiction avec les mesures ? Chaque problème une seule fois ?

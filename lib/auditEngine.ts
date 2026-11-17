@@ -3,10 +3,9 @@ import { isIP } from 'node:net';
 import tls from 'node:tls';
 import { load, type CheerioAPI } from 'cheerio';
 import { randomBytes, createHash } from 'node:crypto';
-import { validateBulletin, scrubContradictions } from '../components/bulletinCheck';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { buildBulletin, type AuditResult, type Bulletin, type Check, type Speed, type TextReview, type Level, type Status } from '../components/auditTypes';
+import type { AuditResult, Bulletin, Check, Speed } from '../components/auditTypes';
 
 /* Moteur d'audit partagé : outil privé (/outil-audit) et demandes publiques (/audit-gratuit). Code serveur uniquement. */
 const UA = 'Mozilla/5.0 (compatible; SEOKRAFT-Audit/1.0; +https://www.seokraft.fr)';
@@ -132,6 +131,10 @@ type Extra = {
   legalFound?: 'lien' | 'plan' | 'adresse' | 'texte' | null; // où on les a trouvées
   privacyFound?: boolean;
   legalDead?: boolean;           // un lien « Mentions légales » existe mais ne mène nulle part
+  /* Adresse officielle (canonical), plan du site ou robots.txt qui renvoient vers un autre site (ex. adresse technique Lovable). */
+  foreign?: { canonical: string[]; sitemap: string | null; robots: string | null };
+  leftovers?: string[];          // restes de modèle repérés (lorem ipsum, example.com…)
+  jsOnly?: boolean;              // le texte n'est pas dans le code envoyé : il est ajouté par un script
 };
 
 const listFr = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs[xs.length - 1]}`);
@@ -263,6 +266,46 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     detail: extra.sitemap ? 'Présent.' : 'Introuvable à l’adresse habituelle.',
     advice: extra.sitemap ? 'Rien à faire. Pensez à le déclarer dans Google Search Console.' : 'Créer un plan du site et le déclarer dans Google Search Console pour que toutes vos pages soient découvertes.' });
 
+  /* Adresse officielle : chaque page doit se déclarer elle-même, et le plan du site doit lister les pages de CE site. */
+  const fx = extra.foreign;
+  if (fx) {
+    const where2 = [fx.canonical.length && `l’adresse officielle de ${fx.canonical.length} page(s) pointe vers ${fx.canonical[0]}`,
+      fx.sitemap && `le plan du site liste les pages à l’adresse ${fx.sitemap}`, fx.robots && `le fichier robots.txt indique un plan du site sur ${fx.robots}`].filter(Boolean) as string[];
+    add({ id: 'canonical', cat: 'google', label: 'Adresse officielle des pages', weight: 3,
+      status: fx.canonical.length ? 'bad' : where2.length ? 'warn' : 'ok',
+      detail: where2.length ? `Le site renvoie Google vers une autre adresse : ${where2.join(' ; ')}.` : 'Les pages déclarent bien leur propre adresse.',
+      advice: where2.length ? 'Faire pointer l’adresse officielle de chaque page, le plan du site et le fichier robots.txt vers l’adresse réelle du site : sinon Google retient l’autre adresse, ou une page qui n’existe pas.' : 'Rien à faire.' });
+  }
+  if (extra.jsOnly !== undefined) add({ id: 'js-content', cat: 'google', label: 'Texte lisible par Google sans script', weight: 3,
+    status: extra.jsOnly ? 'bad' : 'ok',
+    detail: extra.jsOnly ? `Le code envoyé par le site ne contient presque aucun texte (${body ? body.split(' ').length : 0} mots) : le contenu est ajouté ensuite par un script.` : 'Le texte des pages est présent dans le code lu par Google.',
+    advice: extra.jsOnly ? 'Google lit mal ou en retard les textes ajoutés par un script : le site doit envoyer son texte directement dans la page (rendu côté serveur ou pages pré-générées).' : 'Rien à faire.' });
+  if (extra.leftovers) add({ id: 'leftovers', cat: 'contenu', label: 'Textes d’exemple restés sur le site', weight: 2,
+    status: extra.leftovers.length ? 'bad' : 'ok',
+    detail: extra.leftovers.length ? `Textes de modèle repérés : ${extra.leftovers.slice(0, 4).map((x) => `« ${x} »`).join(', ')}.` : 'Aucun texte d’exemple repéré.',
+    advice: extra.leftovers.length ? 'Remplacer ces textes d’exemple : ils donnent l’image d’un site inachevé.' : 'Rien à faire.' });
+
+  /* Liens et boutons vides (« # », vide, javascript:) : hors sous-menus, bandeau cookies, recherche et défilement. */
+  const LEGALISH = /mentions|l[ée]gal|confidentialit|cookie|rgpd|cgv|cgu/i;
+  const emptyLinks = new Set<string>();
+  for (const d of all) d('a[href]').each((_, a) => {
+    const el = d(a);
+    const h = (el.attr('href') || '').trim();
+    if (!(h === '' || h === '#' || /^javascript:/i.test(h))) return;
+    const t = (el.text() || el.attr('aria-label') || el.attr('title') || '').replace(/\s+/g, ' ').trim();
+    if (!t || t.length > 60 || LEGALISH.test(t)) return;
+    if (el.is('[role="button"],[onclick],[data-toggle],[data-bs-toggle],[aria-expanded],[aria-controls],[aria-haspopup]')) return;
+    if (el.closest('[class*="cookie"],[id*="cookie"],[class*="consent"],[id*="consent"],[class*="dropdown"],[class*="submenu"],[class*="sub-menu"]').length) return;
+    if (el.next('ul, div').length || el.parent().children('ul').length) return;
+    if (/menu|recherch|search|fermer|close|haut de page|retour en haut|d[ée]filer|scroll|suivant|pr[ée]c[ée]dent|next|prev|^[<>←→×+-]$/i.test(t)) return;
+    emptyLinks.add(t);
+  });
+  const empties = [...emptyLinks];
+  add({ id: 'empty-links', cat: 'contact', label: 'Liens et boutons qui mènent quelque part', weight: 2,
+    status: empties.length >= 3 ? 'bad' : empties.length ? 'warn' : 'ok',
+    detail: empties.length ? `${empties.length} lien(s) ou bouton(s) ne mène(nt) nulle part : ${empties.slice(0, 4).map((x) => `« ${x} »`).join(', ')}.` : 'Aucun lien vide repéré sur les pages lues.',
+    advice: empties.length ? 'Un bouton qui ne mène nulle part donne l’impression d’un site inachevé : le relier à la bonne page ou le retirer.' : 'Rien à faire.' });
+
   const lang = $('html').attr('lang') || '';
   add({ id: 'lang', cat: 'google', label: 'Langue déclarée', status: lang ? 'ok' : 'warn',
     detail: lang ? `Langue : ${lang}.` : 'Aucune langue déclarée.',
@@ -290,9 +333,9 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
   /* --- Contenu et clarté --- */
   const words = body ? body.split(' ').length : 0;
   add({ id: 'words', cat: 'contenu', label: 'Quantité de texte sur la page d’accueil', weight: 2,
-    status: words < 250 ? 'bad' : words < 500 ? 'warn' : 'ok',
+    status: words < 300 ? 'bad' : words < 500 ? 'warn' : 'ok',
     detail: `Environ ${words} mots.`,
-    advice: words < 250 ? 'Très peu de texte : Google a du mal à comprendre ce que vous faites. Présentez vos services, votre zone et ce qui vous distingue.' : words < 500 ? 'Texte un peu léger : développez vos services et répondez aux questions de vos clients.' : 'Volume de texte suffisant.' });
+    advice: words < 300 ? 'Très peu de texte : Google a du mal à comprendre ce que vous faites. Présentez vos services, votre zone et ce qui vous distingue.' : words < 500 ? 'Texte un peu léger : développez vos services et répondez aux questions de vos clients.' : 'Volume de texte suffisant.' });
 
   const imgs = $('img');
   const noAlt = imgs.filter((_, i) => !($(i).attr('alt') || '').trim()).length;
@@ -708,7 +751,11 @@ export async function runAudit(input: string): Promise<AuditResult> {
     imageWeights($c, page.url),
     page.url.startsWith('https://') ? certDays(host) : Promise.resolve(null),
   ]);
-  const subs = sub.pages;
+  /* Une même page lue deux fois (adresse avec paramètres de suivi, « / » et « /index.html »…) ne compte qu'une fois. */
+  const sig = (d: CheerioAPI) => createHash('sha1').update(`${d('head > title').first().text().trim()}|${d('h1').first().text().trim()}|${text(d)}`).digest('hex');
+  const seenSig = new Set([sig($c)]);
+  const subs = sub.pages.filter((p) => { const k = sig(p.$); if (seenSig.has(k)) return false; seenSig.add(k); return true; });
+  const dupPages = sub.pages.length - subs.length;
   /* Mentions légales : on les cherche partout avant de conclure qu'elles manquent.
      1. un lien sur les pages lues (texte ou adresse) ; 2. le plan du site (sitemap) ;
      3. les adresses habituelles (/mentions-legales…) ; 4. le texte même des pages (SIRET + hébergeur en bas de page). */
@@ -767,6 +814,19 @@ export async function runAudit(input: string): Promise<AuditResult> {
     }
   }
   const robotsTxt = robots.ok && /sitemap:/i.test(robots.text) ? true : smap2.ok;
+  const bare = host.replace(/^www\./, '').toLowerCase();
+  const otherHost = (u: string) => { try { const x = new URL(u, page.url).hostname.replace(/^www\./, '').toLowerCase(); return x !== bare ? x : null; } catch { return null; } };
+  const canonForeign = [$c, ...subs.map((p) => p.$)].map((d) => otherHost(d('link[rel="canonical"]').attr('href') || '')).filter((x): x is string => !!x);
+  const locs = smap2.ok ? [...smap2.text.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]) : [];
+  const robotsMaps = robots.ok ? [...robots.text.matchAll(/^\s*sitemap:\s*(\S+)/gim)].map((m) => m[1]) : [];
+  const foreign = {
+    canonical: canonForeign,
+    sitemap: locs.length && locs.every((u) => otherHost(u)) ? otherHost(locs[0]) : null,
+    robots: robotsMaps.length && robotsMaps.every((u) => otherHost(u)) ? otherHost(robotsMaps[0]) : null,
+  };
+  /* Texte ajouté par un script : presque aucun mot dans le code, mais une application JavaScript qui le dessine. */
+  const homeWords = text($c).split(' ').filter(Boolean).length;
+  const jsOnly = homeWords < 80 && /<script[^>]+(type=["']module["']|src=)/i.test(contentHtml) && /id=["'](root|app|__next|__nuxt|svelte)["']/i.test(contentHtml);
   const analysed: Page = { ...page, html: contentHtml };
   const detail = (d: CheerioAPI, url: string, label: string) => ({
     label, path: new URL(url).pathname + new URL(url).search,
@@ -837,7 +897,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
     host: host.replace(/^www\./, ''),
     fetchedAt: new Date().toISOString(),
     title: $('head > title').first().text().trim() || $c('head > title').first().text().trim(),
-    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound, legalDead, privacyFound }, subs),
+    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: Math.max(0, links.length - dupPages), broken: sub.broken, images, certDays: cert, legalText, legalFound, legalDead, privacyFound, foreign, leftovers, jsOnly }, subs),
     pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
     pagesDetail: [detail($c, page.url, 'Accueil'), ...subs.map((p) => detail(p.$, p.url, p.label))],
     content: {
@@ -884,128 +944,6 @@ export async function pageSpeedServer(url: string, strategy: 'mobile' | 'desktop
 }
 
 
-/* ===================== Analyse des textes et de l'apparence par l'IA (Claude) ===================== */
-const SYSTEM = `Tu es un consultant SEO exigeant qui audite des sites de TPE et PME pour SEOKRAFT, création de sites internet à Strasbourg. Tu juges si le site peut être trouvé sur Google par les clients qu'il vise, et s'il donne envie de contacter l'entreprise une fois trouvé.
-Règles :
-- Tu t'appuies UNIQUEMENT sur les éléments fournis (titres Google, descriptions, titres H1/H2/H3, liens, court extrait, captures). Tu n'inventes rien. Si une information manque, tu le dis.
-- Tu es franc et précis, jamais complaisant. Tu cites des exemples concrets tirés du site (un titre, un intertitre, un lien).
-- Tu écris en français simple, compréhensible par un artisan ou un commerçant : pas de jargon (dis « titre principal » plutôt que « H1 », « liens entre les pages » plutôt que « maillage »), vouvoiement.
-- Tu réponds UNIQUEMENT avec un objet JSON valide, sans texte autour.`;
-
-function reviewPrompt(r: AuditResult, shots: number) {
-  const c = r.content!;
-  const pages = (r.pagesDetail ?? []).map((p) => `- ${p.label} (${p.path}) : titre Google « ${p.title || 'aucun'} », description ${p.description ? 'présente' : 'absente'}, ${p.words} mots`).join('\n');
-  return `Site analysé : ${r.url}
-${shots ? `Captures jointes : ${shots === 2 ? 'la page d’accueil sur téléphone, puis sur ordinateur' : 'la page d’accueil'}.` : 'Aucune capture disponible : ne juge pas l’apparence.'}
-Titre Google de l'accueil : ${r.title || '(aucun)'}
-Description Google de l'accueil : ${c.description || '(aucune)'}
-Pages lues en détail :
-${pages || '- accueil uniquement'}
-
-Toutes les pages du site trouvées dans les liens et le plan du site (${(c.siteMap || '').split(' | ').filter(Boolean).length} pages) :
-${c.siteMap || '(aucune autre page)'}
-
-Structure de chaque page (titres H1, H2, H3 et liens dans le contenu) :
-${c.outline || '(non disponible)'}
-
-Moyens de contact détectés automatiquement sur le site : ${(c.channels || []).join(', ') || 'aucun'}. Utilise exactement cette liste quand tu parles des moyens de contact ; n'en ajoute pas, n'en retire pas.
-Boutons et liens de l'accueil : ${c.ctas.slice(0, 25).join(' | ') || '(aucun)'}
-Début du texte de l'accueil : """${c.text.slice(0, 1500)}"""
-
-Audite le référencement : le métier, les services et la ville que tapent les clients apparaissent-ils dans les titres Google et les titres de page ? Chaque service a-t-il sa page ? Les pages sont-elles reliées par des liens parlants ? Le visiteur comprend-il vite quoi, où, et comment contacter ?
-
-Barème STRICT de la note (sur 20) :
-- 17 à 20 : exceptionnel, rare. Titres optimisés métier + ville, une page par service, liens parlants, message limpide.
-- 13 à 16 : bon référencement avec des manques réels.
-- 9 à 12 : moyen. Titres vagues ou incomplets, peu de pages, peu de liens.
-- 5 à 8 : faible. Titres sans métier ni ville, structure absente.
-- 0 à 4 : le site ne peut pas être trouvé sur Google.
-Si ni le métier ni la ville ne sont dans le titre Google de l'accueil, la note ne dépasse pas 9.
-IMPORTANT : vérifie dans la liste de toutes les pages avant d'affirmer qu'une page manque. N'écris jamais « non vérifié » ni « semble » : si tu n'es pas sûr d'un problème, ne le cite pas.
-Niveau « critique » UNIQUEMENT pour un défaut qui fait perdre des clients de façon certaine (impossible de trouver le métier, la ville ou le contact). Un site déjà bien construit n'a pas de point critique.
-
-Réponds avec ce JSON exactement (réponse courte, sans retour à la ligne dans les textes) :
-{
-  "score": nombre de 0 à 20 (demi-points autorisés),
-  "essentiel": "3 phrases franches : ce que vaut le site pour être trouvé et choisi, ce que cela lui fait perdre, la priorité n°1",
-  "impression": "${shots ? '2 phrases sur la première impression visuelle d’après les captures : moderne ou daté, soigné ou amateur, lisible sur téléphone' : ''}",
-  "constats": [ exactement 6 objets { "question": "question courte", "reponse": "constat franc en moins de 14 mots, avec un exemple du site", "statut": "oui" si tout va bien, "partiel" si c'est en partie vrai, incertain ou à revoir, "non" si c'est un problème } pour : le titre Google dit-il le métier et la ville ; chaque service a-t-il sa page ; les titres de page sont-ils clairs ; les pages sont-elles reliées entre elles ; comprend-on le métier en 5 secondes ; sait-on comment contacter ],
-  "priorities": [ 3 objets { "level": "critique" | "important" | "planifier", "title": "titre court compréhensible par un non-spécialiste", "text": "2 phrases courtes, 280 caractères maximum : le problème (avec un exemple du site) et ce qu'il faut faire" } ],
-  "positives": [ 0 à 2 points forts RÉELS et significatifs. Tableau vide si rien ne mérite d'être salué. ]
-}`;
-}
-
-export async function reviewTexts(r: AuditResult, shots: string[] = []): Promise<{ review: TextReview | null; error: string }> {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return { review: null, error: 'clé ANTHROPIC_API_KEY absente dans Vercel' };
-  if (!r.content || r.content.text.length < 40) return { review: null, error: 'trop peu de texte lisible sur le site' };
-  const images = shots.map((d) => d.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/)).filter((m): m is RegExpMatchArray => !!m)
-    .map((m) => ({ type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } }));
-  const ask = async (timeoutMs: number) => {
-    const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'}/v1/messages`, {
-      method: 'POST',
-      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: process.env.AUDIT_AI_MODEL || 'claude-sonnet-5-5', max_tokens: 4000, system: SYSTEM,
-        messages: [{ role: 'user', content: [...images, { type: 'text', text: reviewPrompt(r, images.length) }] }] }),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    if (!res.ok) {
-      const body = (await res.text()).slice(0, 300);
-      console.error('IA audit', res.status, body);
-      const why = /credit balance|billing/i.test(body) ? 'crédit épuisé sur console.anthropic.com' : res.status === 401 ? 'clé API refusée' : res.status === 404 ? 'modèle introuvable' : res.status === 429 || res.status === 529 ? 'service surchargé, réessayer' : `erreur ${res.status}`;
-      return { fatal: why };
-    }
-    const d = await res.json();
-    const raw = ((d.content || []) as { type: string; text?: string }[]).filter((x) => x.type === 'text').map((x) => x.text || '').join('').trim();
-    return { raw, stop: String(d.stop_reason || '') };
-  };
-  /* Lecture tolérante : retire les balises de code et les retours à la ligne glissés dans les textes. */
-  const parse = (raw: string) => {
-    const body = raw.replace(/```(?:json)?/gi, '');
-    const chunk = body.slice(body.indexOf('{'), body.lastIndexOf('}') + 1);
-    try { return JSON.parse(chunk); } catch { return JSON.parse(chunk.replace(/[\r\n\t]+/g, ' ')); }
-  };
-  const t0 = Date.now();
-  let lastError = 'réponse illisible';
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt === 1 && Date.now() - t0 > 60000) break;
-    try {
-      const out = await ask(attempt === 0 ? 75000 : 55000);
-      if ('fatal' in out) return { review: null, error: out.fatal as string };
-      let json: Record<string, unknown>;
-      try { json = parse(out.raw); } catch {
-        console.error('IA audit illisible', out.stop, out.raw.slice(0, 400));
-        lastError = out.stop === 'max_tokens' ? 'réponse trop longue, coupée' : 'réponse illisible';
-        continue;
-      }
-      /* Coupe proprement à la fin d'une phrase, jamais au milieu d'un mot. */
-      const str = (v: unknown, n: number) => {
-        if (typeof v !== 'string') return '';
-        const t = v.replace(/\s+/g, ' ').trim();
-        if (t.length <= n) return t;
-        const cut = t.slice(0, n);
-        const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
-        return end > n * 0.4 ? cut.slice(0, end + 1) : cut.slice(0, cut.lastIndexOf(' ')) + '…';
-      };
-      const levels: Level[] = ['critique', 'important', 'planifier'];
-      const STATUT: Record<string, Status> = { oui: 'ok', partiel: 'warn', non: 'bad' };
-      const arr = (v: unknown) => (Array.isArray(v) ? v : []);
-      return { error: '', review: {
-        score: Math.max(0, Math.min(20, Number(json.score) || 0)),
-        essentiel: str(json.essentiel, 1000),
-        impression: images.length ? str(json.impression, 600) : '',
-        constats: arr(json.constats).slice(0, 6).map((x: Record<string, unknown>) => ({ question: str(x.question, 160), reponse: str(x.reponse, 160), ...(STATUT[String(x.statut).toLowerCase()] ? { statut: STATUT[String(x.statut).toLowerCase()] } : {}) })).filter((x: { question: string }) => x.question),
-        priorities: arr(json.priorities).slice(0, 4).map((x: Record<string, unknown>) => ({ level: levels.includes(x.level as Level) ? (x.level as Level) : 'important', title: str(x.title, 120), text: str(x.text, 700) })).filter((x: { title: string }) => x.title),
-        positives: arr(json.positives).slice(0, 3).map((x: unknown) => str(x, 200)).filter(Boolean),
-      } };
-    } catch (e) {
-      console.error('IA audit', e instanceof Error ? e.message : e);
-      lastError = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'délai dépassé' : `erreur de connexion (${e instanceof Error ? e.message.slice(0, 60) : 'inconnue'})`;
-    }
-  }
-  return { review: null, error: lastError };
-}
-
 /* ===================== Stockage des bulletins ===================== */
 /* En ligne : Vercel Blob (variable BLOB_READ_WRITE_TOKEN). En local : dossier .data/bulletins. */
 const LOCAL_DIR = path.join(process.cwd(), '.data', 'bulletins');
@@ -1035,32 +973,6 @@ export async function loadBulletin(id: string): Promise<Bulletin | null> {
   } catch {
     return null;
   }
-}
-
-/* Audit complet : technique, puis mesures Google (téléphone + ordinateur, avec captures), puis lecture par l'IA avec les captures. */
-export type AuditRun = { bulletin: Bulletin; aiError: string; speedError: boolean; scrubbed: string[] };
-export async function createBulletin(url: string): Promise<AuditRun> {
-  const result = await runAudit(url);
-  const [speed, desktop] = await Promise.all([pageSpeedServer(result.url, 'mobile'), pageSpeedServer(result.url, 'desktop')]);
-  const shots = [speed?.screenshot, desktop?.screenshot].filter((x): x is string => !!x);
-  const { review, error } = await reviewTexts(result, shots);
-  const b = buildBulletin(randomBytes(12).toString('hex'), result, speed, review, desktop);
-  if (desktop?.screenshot) b.desktopScreenshot = desktop.screenshot;
-  if (b.speedDesktop) b.speedDesktop = { ...b.speedDesktop, screenshot: undefined };
-  /* Contrôle de cohérence : un bulletin incohérent n'est jamais publié. */
-  let problems = validateBulletin(b);
-  let scrubbed: string[] = [];
-  /* Une phrase de l'IA contredit une vérification : on la retire au lieu de bloquer tout le bulletin. */
-  if (problems.length && problems.every((p) => p.startsWith('Le texte '))) {
-    scrubbed = scrubContradictions(b);
-    problems = validateBulletin(b);
-  }
-  if (problems.length) {
-    console.error('Bulletin bloqué', b.host, problems);
-    throw new AuditError(`Bulletin bloqué avant publication (${problems.length} incohérence${problems.length > 1 ? 's' : ''}) : ${problems.join(' | ')}`);
-  }
-  await saveBulletin(b);
-  return { bulletin: b, aiError: error, speedError: !speed || speed.performance === null, scrubbed };
 }
 
 /* ===================== Quotas des audits publics ===================== */

@@ -1,7 +1,7 @@
 /* Test de non-régression du générateur de bulletins.
    Usage : npm run build, puis npm run test:audit
    Lance une copie du site du bulletin 96e3518ddd3b60e1669dd617, un faux PageSpeed et une fausse IA,
-   démarre le site SEOKRAFT en local, génère le bulletin et vérifie les 6 corrections. */
+   démarre le site SEOKRAFT en local, génère le bulletin et vérifie les corrections. */
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { startSite, startPsi, startAi, TITLE } from './conciergerie-fixture.mjs';
@@ -43,7 +43,15 @@ try {
   ok('5. Titre cité en entier avec sa vraie longueur', () => {
     assert.equal(check('Titre de la page pour Google').detail, `« ${TITLE} » (${TITLE.length} caractères).`);
   });
-  ok('6. Statistique sourcée sur la page du bulletin', async () => {});
+  ok('6. Notes imposées par le barème de l’outil, pas celles de l’IA', () => {
+    assert.ok(b.notes.referencement < 18, `référencement ${b.notes.referencement}`);
+    assert.ok(b.notes.message <= 13);
+    assert.ok(b.warnings.some((w) => /barème de l’outil/.test(w)));
+    for (const c of b.checks) assert.ok(c.level, `${c.label} : niveau affiché manquant`);
+    const desc = check('Description dans les résultats Google');
+    assert.equal(b.priorities.find((p) => /description/i.test(p.title))?.level, desc.level === 'important' ? 'important' : desc.level === 'grave' ? 'critique' : 'planifier', 'priorité réalignée sur le niveau du barème');
+  });
+  ok('7. Statistique sourcée sur la page du bulletin', async () => {});
   const html = await (await fetch(`http://127.0.0.1:${APP}/bulletin/${b.id}`)).text();
   assert.match(html, /étude Google, 2016 : 53 % des visites sur mobile abandonnées au-delà de 3 s/);
   assert.match(html, /bv-rate-bad">Mauvais</);
