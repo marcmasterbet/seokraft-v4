@@ -41,7 +41,7 @@ Avant d’écrire, **ouvre le site toi-même** : l’accueil, puis les pages imp
 
 | Note (clé JSON) | Ce qu’elle vérifie | Poids |
 |---|---|---|
-| **Référencement** (`referencement`) | Deux parties, notées chacune comme une note (voir le calcul). **Accès pour Google :** le site s’ouvre sans erreur, avec un cadenas valide ; Google a le droit de lire les pages (pas de « noindex », robots.txt qui ne bloque pas) ; fichier robots.txt présent ; plan du site (sitemap) présent et à jour ; une seule adresse (redirections http→https et avec/sans www, adresse canonique) ; contenu lisible sans JavaScript ; langue déclarée ; pas de pages en erreur. **Préparation des pages :** titre Google unique par page, avec le service et la ville ; descriptions ; H1 / H2 / H3 ; une page par service (et par zone pour une activité locale) ; quantité de texte ; maillage interne (pages reliées entre elles par des liens parlants, pas de page isolée) ; liens cassés ou vides ; adresses de pages lisibles ; images décrites ; données structurées (fiche d’identité de l’entreprise). | **×6** |
+| **Référencement** (`referencement`) | Une seule note, qui couvre **ce qui permet à Google de lire le site :** le site s’ouvre sans erreur, avec un cadenas valide ; Google a le droit de lire les pages (pas de « noindex », robots.txt qui ne bloque pas) ; fichier robots.txt présent ; plan du site (sitemap) présent et à jour ; une seule adresse (redirections http→https et avec/sans www, adresse canonique) ; contenu lisible sans JavaScript ; langue déclarée ; pas de pages en erreur. **et la préparation des pages :** titre Google unique par page, avec le service et la ville ; descriptions ; H1 / H2 / H3 ; une page par service (et par zone pour une activité locale) ; quantité de texte ; maillage interne (pages reliées entre elles par des liens parlants, pas de page isolée) ; liens cassés ou vides ; adresses de pages lisibles ; images décrites ; données structurées (fiche d’identité de l’entreprise). | **×6** |
 | **Textes et message** (`message`) | Message clair en 5 secondes en haut de l’accueil (qui, quoi, où, pourquoi vous) ; concret plutôt que vague (« solution innovante », « l’excellence ») ; bénéfices pour le client ; preuves dans le texte (années, chiffres, réalisations, certifications) ; **appel à l’action** sur chaque page (numéro cliquable, bouton devis, réservation) ; lisibilité (paragraphes courts, intertitres) ; fautes. | **×2** |
 | **Vitesse et mobile** (`vitesse`) | Scores Google mesurés sur téléphone et ordinateur ; affichage sur téléphone. | ×1 |
 | **Sécurité et conformité** (`securite`) | Cadenas, redirection vers la version sécurisée, certificat, logiciels à jour, réglages de l’hébergement ; mentions légales (présence et contenu), confidentialité, cookies, information sous le formulaire, CGV si vente en ligne. | ×1 |
@@ -69,7 +69,7 @@ Détermine aussi la famille du site (service local, hébergement / conciergerie,
 
 **À prévoir** — −1 point :
 - deux H1, ou hiérarchie H2 / H3 imparfaite ; titre trop long ; images sans description ; données structurées absentes ;
-- quelques fautes ; peu de preuves dans le texte ;
+- quelques fautes ; peu de preuves dans le texte (aucune preuve du tout : important) ;
 - images lourdes sur un site rapide ; réglages de sécurité de l’hébergement ; information sous le formulaire.
 
 ---
@@ -80,7 +80,7 @@ Détermine aussi la famille du site (service local, hébergement / conciergerie,
 
 **Chaque note part de 20** et perd les points ci-dessus (minimum 0). Les points réussis ne rapportent rien. Une note qui contient au moins un problème grave ne dépasse pas 9.
 
-**Référencement :** calcule séparément « Accès pour Google » et « Préparation des pages », chacune partant de 20 avec les points ci-dessus ; la note Référencement est la moyenne des deux, arrondie au demi-point. Si l’une des deux parties contient un problème grave, la note Référencement ne dépasse pas 9.
+**Référencement :** une seule note, qui part de 20 et perd tous les points (lecture par Google et préparation des pages). Pas de moyenne entre deux parties. Avec un problème grave, elle ne dépasse pas 9.
 
 Vitesse et mobile : partir des mesures Google sur téléphone. 90 et plus = 20 ; 50 à 89 = de 12 à 18 ; moins de 50 = problème important ; moins de 25 = grave. Puis retirer les éventuels problèmes d’affichage sur téléphone.
 
@@ -92,7 +92,8 @@ Vitesse et mobile : partir des mesures Google sur téléphone. 90 et plus = 20 ;
 |---|---|
 | Site qui ne s’ouvre pas ou erreur de sécurité | **3** |
 | Site bloqué pour Google (noindex, robots.txt) | **6** |
-| 1 problème grave en Référencement ou Message | 12 |
+| 1 problème grave en Référencement | **9** |
+| 1 problème grave en Message | 12 |
 | 3 problèmes graves ou plus dans ces notes | 9 |
 | **Toujours** | **la note Référencement + 4** |
 

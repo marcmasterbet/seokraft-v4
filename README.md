@@ -73,3 +73,6 @@ Les images dans public/images/projet-*.webp sont des captures authentiques des s
 - La grille `docs/prompt-audits-seokraft.md` (et sa copie `lib/auditPrompt.ts`) indique que l’outil impose ses notes et décrit le champ `ajouts`.
 - Import : les phrases de l’IA contraires aux mesures sont retirées, les autres incohérences sont signalées ; une page qui bouge beaucoup figure toujours dans les priorités.
 - `npm run test:audit` repasse au vert (la fausse IA du test répond au format actuel).
+
+- V4.2 : un problème grave en Référencement plafonne la note globale à 9 (un site que Google trouve mal n’est jamais « moyen ») ; aucune preuve du tout = Important (−3) ; alerte vitesse en double supprimée.
+- V4.3 : plus de sous-note « Accès pour Google » ni de moyenne : le Référencement est une seule note, 20 moins tous les points.

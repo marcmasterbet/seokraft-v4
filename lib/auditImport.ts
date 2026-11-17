@@ -198,7 +198,7 @@ export async function importAudit(raw: string, given?: Measures): Promise<Import
       if (perf < 50 && notes.vitesse > 12) warnings.push(`Vitesse notée ${notes.vitesse}/20 alors que Google mesure seulement ${perf}/100 sur téléphone : vérifier.`);
     }
   }
-  if (m && !m.speed?.performance && m.speed?.performance !== 0) warnings.push('Vitesse Google non mesurée : la note Vitesse reprend celle du projet Claude (ou 14 par défaut). Relancez « Mesurer » avant d’envoyer.');
+  if (m && !given && !m.speed?.performance && m.speed?.performance !== 0) warnings.push('Vitesse Google non mesurée : la note Vitesse reprend celle du projet Claude (ou 14 par défaut). Relancez « Mesurer » avant d’envoyer.');
   const b: Bulletin = {
     id: randomBytes(12).toString('hex'), version: 2,
     url: m?.url ?? url, host, createdAt: new Date().toISOString(),

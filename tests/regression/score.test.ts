@@ -25,12 +25,23 @@ console.log('✓ Vitesse de départ et titres identiques');
   });
   show('Aime Propreté', r);
   assert.equal(r.notes.referencement, 9, 'site d’une seule page : référencement plafonné à 9');
-  assert.equal(r.parts.acces, 20);
   assert.equal(r.notes.securite, 9);
   assert.equal(r.notes.vitesse, 14);
   assert.equal(r.notes.message, 12, 'note de l’IA retenue (plus basse que le plafond des vérifications)');
-  assert.equal(r.global, 10);
+  assert.equal(r.global, 9, 'site d’une seule page : jamais plus de 9');
   assert.ok(!r.penalties.some((p) => p.id === 'maillage'), 'maillage d’un site d’une page : déjà compté avec « une seule page »');
+}
+
+/* 2 bis. Cas réel du 17/11 : l'IA donne 19 en message à une page de 288 mots sans aucune preuve. */
+{
+  const r = scoreSite({
+    checks: [...okAll('indexable', 'robots', 'sitemap', 'canonical', 'js-content', 'title', 'description', 'h1', 'hierarchy', 'https', 'redirect', 'cert', 'phone', 'cta', 'viewport'),
+      ck('site-size', 'bad'), ck('words', 'bad'), ck('legal', 'bad'), ck('privacy', 'bad'), ck('headers', 'warn'), ck('proof', 'warn', 'Aucune preuve de sérieux repérée (avis, réalisations, années d’expérience, labels, garanties).')],
+    speed: null, aiMessage: 19,
+  });
+  show('Aime Propreté (réel)', r);
+  assert.equal(r.notes.message, 17, 'aucune preuve : important, −3');
+  assert.equal(r.global, 9);
 }
 
 /* 3. Experts Conseil Habitat : titres « ECH » partout, version http ouverte, mentions et confidentialité absentes, liens vides. */
@@ -50,7 +61,7 @@ console.log('✓ Vitesse de départ et titres identiques');
   assert.equal(r.notes.referencement, 9);
   assert.equal(r.notes.securite, 0);
   assert.equal(r.notes.vitesse, 19);
-  assert.equal(r.global, 9.5);
+  assert.equal(r.global, 9);
 }
 
 /* 4. JeGO : adresse officielle, plan du site et robots.txt pointent vers l'adresse lovable.app. */
@@ -61,11 +72,9 @@ console.log('✓ Vitesse de départ et titres identiques');
     speed: speed(96), aiMessage: 18,
   });
   show('JeGO', r);
-  assert.equal(r.parts.acces, 9);
-  assert.equal(r.parts.preparation, 19);
   assert.equal(r.notes.referencement, 9);
   assert.equal(r.notes.message, 18);
-  assert.equal(r.global, 12);
+  assert.equal(r.global, 9, 'Google renvoyé vers une autre adresse : jamais plus de 9');
 }
 
 /* 5. PrestiFact : pas de robots.txt ni de plan du site ; l'IA ajoute ce que le code ne peut pas voir. Le bulletin d'origine donnait 12/20 et Référencement 15. */
@@ -77,11 +86,10 @@ console.log('✓ Vitesse de départ et titres identiques');
     additions: [{ note: 'referencement', level: 'grave', title: 'Titres Google génériques sur 5 pages sur 6' }, { note: 'message', level: 'grave', title: 'Le formulaire de contact n’envoie aucun message' }],
   });
   show('PrestiFact', r);
-  assert.equal(r.parts.acces, 14, 'robots.txt et plan du site absents : −3 chacun');
-  assert.equal(r.notes.referencement, 9);
+  assert.equal(r.notes.referencement, 7, '20 − 3 (robots) − 3 (plan du site) − 1 (fiche) − 6 (titres génériques)');
   assert.equal(r.notes.message, 9);
   assert.equal(r.notes.securite, 0);
-  assert.equal(r.global, 9);
+  assert.equal(r.global, 8);
 }
 
 /* 6. Un site sain reste bien noté : on ne noircit jamais pour vendre. */

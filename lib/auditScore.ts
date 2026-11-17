@@ -50,7 +50,8 @@ export const RULES: Record<string, Rule> = {
   phone: { part: 'message', bad: 'prevoir', warn: 'important', skip: (x) => noContact(x) },
   form: { part: 'message', bad: 'prevoir', warn: null, skip: (x) => noContact(x) },
   cta: { part: 'message', bad: 'important', warn: 'prevoir', skip: (x) => noContact(x) },
-  proof: { part: 'message', warn: 'prevoir' },
+  /* Aucune preuve du tout (ni avis, ni réalisations, ni expérience) : important. Des avis mais rien d'autre : à prévoir. */
+  proof: { part: 'message', warn: (x) => (/^aucune preuve/i.test(x.detail('proof')) ? 'important' : 'prevoir') },
   address: { part: 'message', warn: 'prevoir' },
   fresh: { part: 'message', bad: 'prevoir', warn: null },
   reviews: { part: 'message', bad: null, warn: null },
@@ -175,10 +176,11 @@ export function scoreSite(input: ScoreInput): ScoreResult {
   const lost = (p: Part) => penalties.filter((x) => x.part === p).reduce((s, x) => s + x.points, 0);
   const capped = (p: Part, n: number) => half(clamp20(graves(p) ? Math.min(n, 9) : n));
 
+  /* Référencement : une seule note. Elle part de 20 et perd tous les points, accès comme préparation des pages
+     (plus de moyenne de deux parties : un « 20/20 » sur l'accès ne doit jamais remonter un site que Google trouve mal). */
   const acces = capped('acces', 20 - lost('acces'));
   const preparation = capped('preparation', 20 - lost('preparation'));
-  let referencement = half((acces + preparation) / 2);
-  if (graves('acces') || graves('preparation')) referencement = Math.min(referencement, 9);
+  const referencement = half(clamp20((graves('acces') || graves('preparation')) ? Math.min(20 - lost('acces') - lost('preparation'), 9) : 20 - lost('acces') - lost('preparation')));
 
   const messageMax = capped('message', 20 - lost('message'));
   const ai = typeof input.aiMessage === 'number' && !Number.isNaN(input.aiMessage) ? half(clamp20(input.aiMessage)) : null;
@@ -191,11 +193,14 @@ export function scoreSite(input: ScoreInput): ScoreResult {
 
   let global = half((referencement * 6 + message * 2 + vitesse + securite) / 10);
   const seoGraves = graves('acces') + graves('preparation') + graves('message');
+  /* Un site que Google ne peut pas bien trouver ne peut pas être « moyen » : un bon message ne compense pas l'absence de visiteurs. */
+  const refGrave = graves('acces') + graves('preparation') > 0;
   const caps: [boolean, number, string][] = [
     [ctx.st('cert') === 'bad', 3, 'le certificat de sécurité est expiré (alerte rouge dans le navigateur)'],
     [ctx.st('indexable') === 'bad' || ctx.st('robots') === 'bad', 6, 'le site est bloqué pour Google'],
+    [refGrave, 9, 'un problème grave empêche Google de bien trouver le site'],
     [seoGraves >= 3, 9, `${seoGraves} problèmes graves empêchent Google ou les visiteurs de bien utiliser le site`],
-    [seoGraves >= 1, 12, 'un problème grave freine le référencement ou la prise de contact'],
+    [seoGraves >= 1, 12, 'un problème grave freine la prise de contact'],
     [true, referencement + 4, 'la note globale ne peut pas dépasser la note Référencement de plus de 4 points'],
   ];
   const hit = caps.filter(([on, max]) => on && global > max).sort((a, b) => a[1] - b[1])[0];
@@ -218,9 +223,9 @@ export function explainScore(s: ScoreResult): string[] {
     const list = s.penalties.filter((x) => x.part === p);
     return `${PART_LABEL[p]} : ${String(s.parts[p]).replace('.', ',')}/20${list.length ? ` (${list.map((x) => `${x.label} ${LEVEL_TEXT[x.gravity].toLowerCase()} −${x.points}${x.source === 'ia' ? ', ajouté par l’IA' : ''}`).join(' ; ')})` : ' (rien à retirer)'}`;
   };
+  const ref = s.penalties.filter((x) => x.part === 'acces' || x.part === 'preparation');
   return [
-    line('acces'), line('preparation'),
-    `Référencement : ${String(s.notes.referencement).replace('.', ',')}/20 (moyenne des deux parties${s.penalties.some((x) => (x.part === 'acces' || x.part === 'preparation') && x.gravity === 'grave') ? ', plafonnée à 9 à cause d’un problème grave' : ''})`,
+    `Référencement : ${String(s.notes.referencement).replace('.', ',')}/20${ref.length ? ` (${ref.map((x) => `${x.label} ${LEVEL_TEXT[x.gravity].toLowerCase()} −${x.points}${x.source === 'ia' ? ', ajouté par l’IA' : ''}`).join(' ; ')}${ref.some((x) => x.gravity === 'grave') ? ' ; plafonnée à 9 à cause d’un problème grave' : ''})` : ' (rien à retirer)'}`,
     line('message') + (s.notes.message < s.messageMax ? ` → note de l’IA retenue : ${String(s.notes.message).replace('.', ',')}` : ''),
     `${line('vitesse')}${s.speedBase !== null ? `, départ ${String(s.speedBase).replace('.', ',')} d’après Google` : ', mesure Google absente'}`,
     line('securite'),
