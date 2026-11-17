@@ -1232,6 +1232,9 @@ html:has(.lp){zoom:1}
 .bv-ck-warn .bv-ck-ico{background:#c08a2b}
 .bv-ck-bad{background:#fbf3f1!important;border-color:#e2b8b0!important}.bv-ck-bad .bv-ck-ico{background:var(--bad)}.bv-ck-bad .bv-ck-label{color:var(--bad)}
 .bv-ck-label{font-weight:700;margin:0;line-height:1.35}
+.bv-ck-plan .bv-ck-ico{background:#b8a27a}.bv-ck-info .bv-ck-ico{background:#8a8c84}
+.bv-ck-tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700;vertical-align:1px;background:#efeee8;color:#5f6158}
+.bv-ck-tag-bad{background:#f6dcd6;color:var(--bad)}.bv-ck-tag-warn{background:#f5e7cc;color:#8a5f12}.bv-ck-tag-plan{background:#f1ece0;color:#76643f}
 .bv-ck-detail{margin:2px 0 0;font-size:15px;color:#3f4139}
 .bv-ck-advice{margin:4px 0 0;font-size:14px;color:#5f6158}
 .bv-pages{display:flex;flex-direction:column;gap:8px}
