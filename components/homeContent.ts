@@ -202,7 +202,7 @@ export const tarifs = {
  extrasLabel: "Fonctionnalités supplémentaires",
  extrasText: "Blog, prise de rendez-vous en ligne, espace client et développements particuliers : sur devis.",
  hostingLabel: "Hébergement et maintenance",
- hostingText: "50 € TTC par mois, en complément de la création.",
+ hostingText: "60 € TTC par mois avec l'hébergement, ou 50 € TTC par mois pour la maintenance seule si votre site reste chez votre propre hébergeur.",
  disclaimer: "Votre estimation est indicative et ne constitue pas un engagement contractuel.",
  accent: "Un devis personnalisé précisera le prix définitif, les prestations incluses et les éventuelles options.",
  button: "Obtenir mon devis personnalisé"
@@ -242,10 +242,11 @@ export const hebergement = {
   "Chez SEOKRAFT, ce service accompagne chaque création afin que ces éléments soient intégrés à votre projet dès le départ."
  ],
  priceLabel: "Hébergement et maintenance :",
- price: "50 € TTC/mois",
+ price: "60 € TTC/mois",
  conditionsTitle: "Les conditions sont définies à l'avance :",
  conditions: [
   "Service associé à chaque création de site.",
+  "Maintenance seule, si votre site reste chez votre propre hébergeur : 50 € TTC/mois.",
   "Engagement initial de 12 mois.",
   "Reconduction mensuelle à l'issue de cette période.",
   "Prestations couvertes et modalités de résiliation précisées dans le contrat."
@@ -275,7 +276,7 @@ export const faq = {
    "Oui. Le copywriting professionnel, le SEO technique et le SEO éditorial sont inclus dans le prix de chaque page.",
    "Il n'y a pas d'option à ajouter : chaque page est rédigée et optimisée pour être trouvée sur Google."]],
   ["Proposez-vous l'hébergement et la maintenance du site ?", [
-   "Oui. Chaque création SEOKRAFT comprend un service associé d'hébergement et de maintenance technique, facturé 50 € TTC par mois en complément.",
+   "Oui. Chaque création SEOKRAFT comprend un service associé d'hébergement et de maintenance technique, facturé 60 € TTC par mois en complément. Si votre site reste chez votre propre hébergeur, la maintenance seule est à 50 € TTC par mois.",
    "L'engagement initial est de 12 mois, suivi d'une reconduction mensuelle.",
    "Le contrat détaille les prestations couvertes et les conditions de résiliation."]]
  ] as [string, string[]][]

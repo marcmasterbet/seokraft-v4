@@ -50,7 +50,7 @@ const article = {
   ]},
   { heading: 'Un exemple concret : les tarifs de SEOKRAFT', paragraphs: [
    'Par souci de transparence, voici nos propres tarifs. Chez SEOKRAFT, un site sur mesure démarre à 1 690 € TTC pour une page, puis 500 € TTC par page supplémentaire : 3 190 € TTC pour un site vitrine de 4 pages et 5 190 € TTC pour 8 pages. Ce prix comprend la réflexion sur la structure, le design sur mesure, la version mobile, le copywriting professionnel, le référencement technique et éditorial, le formulaire de contact et la mise en ligne.',
-   'L’hébergement et la maintenance représentent 50 € TTC par mois, avec un engagement initial de 12 mois. Les fonctionnalités spécifiques comme la réservation en ligne, un espace client ou un blog sont chiffrées sur devis.',
+   'L’hébergement et la maintenance représentent 60 € TTC par mois (50 € TTC pour la maintenance seule, si le site reste chez son propre hébergeur), avec un engagement initial de 12 mois. Les fonctionnalités spécifiques comme la réservation en ligne, un espace client ou un blog sont chiffrées sur devis.',
    'Un simulateur est disponible sur la page d’accueil pour estimer votre projet en quelques secondes selon le nombre de pages et les options souhaitées.'
   ]},
   { heading: 'Comment préparer votre budget', paragraphs: [

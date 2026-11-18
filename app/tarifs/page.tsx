@@ -4,7 +4,7 @@ import SiteFooter from '../../components/SiteFooter';
 import { PricingSection, HomeFaq, Contact } from '../../components/Home';
 import { faqTarifs } from '../../components/faqPratique';
 
-const description = 'Création de site internet à partir de 1 690 € TTC, copywriting et SEO inclus, hébergement et maintenance à 50 € TTC/mois. Estimez le prix de votre site selon le nombre de pages.';
+const description = 'Création de site internet à partir de 1 690 € TTC, copywriting et SEO inclus, hébergement et maintenance à 60 € TTC/mois (maintenance seule : 50 €). Estimez le prix de votre site selon le nombre de pages.';
 export const metadata: Metadata = {
  title: 'Tarifs création de site internet à Strasbourg | SEOKRAFT',
  description,
