@@ -1,6 +1,7 @@
 import Image from 'next/image';
-import { ArrowUpRight, Check, X, AlertTriangle, Info, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck, Scale, FileText } from 'lucide-react';
+import { ArrowUpRight, Check, X, AlertTriangle, Smartphone, Monitor, Search, PenLine, MessageCircle, Gauge, ShieldCheck, Scale, FileText } from 'lucide-react';
 import PrintButton from './PrintButton';
+import FactView from './FactView';
 import Score20 from './Score20';
 import { NOTE_LABELS, NOTE_LABELS_SEO, NOTE_LABELS_SEO4, constatStatus, LEVEL_LABEL, fmt20, rateMetric, METRIC_GOAL, type Bulletin, type BulletinCheck, type NoteId, type Speed } from './auditTypes';
 
@@ -13,17 +14,11 @@ const tone = (v: number | null | undefined) => (v === null || v === undefined ? 
 function gaugeClass(v: number | null) { return v === null ? '' : v >= 90 ? 'g-ok' : v >= 50 ? 'g-warn' : 'g-bad'; }
 const STATUS_ICON = { ok: Check, warn: AlertTriangle, bad: X };
 const STATUS_TEXT = { ok: 'Correct', warn: 'À améliorer', bad: 'Grave' };
-/* Bulletins récents : l'étiquette affichée est le niveau qui a servi au calcul de la note (Grave −6, Important −3, À prévoir −1). */
-const LEVEL_VIEW: Record<NonNullable<BulletinCheck['level']>, { cls: string; text: string; icon: typeof Check }> = {
-  grave: { cls: 'bad', text: 'Grave', icon: X }, important: { cls: 'warn', text: 'Important', icon: AlertTriangle }, prevoir: { cls: 'plan', text: 'À prévoir', icon: AlertTriangle },
-  ai: { cls: 'warn', text: 'À améliorer', icon: AlertTriangle }, info: { cls: 'info', text: 'À noter', icon: Info }, ok: { cls: 'ok', text: 'Correct', icon: Check },
-};
-const viewOf = (c: BulletinCheck) => (c.level ? LEVEL_VIEW[c.level] : { cls: c.status, text: STATUS_TEXT[c.status], icon: STATUS_ICON[c.status] });
 
 function CheckList({ items }: { items: BulletinCheck[] }) {
-  return <ul className="bv-checks">{items.map((c, i) => { const v = viewOf(c); const I = v.icon; return <li key={i} className={`bv-ck-${v.cls}`}>
-    <span className="bv-ck-ico" title={v.text}><I size={15} aria-hidden="true" /><span className="sr-only">{v.text} : </span></span>
-    <div><p className="bv-ck-label">{c.label}{c.level && c.level !== 'ok' && <span className={`bv-ck-tag bv-ck-tag-${v.cls}`}>{v.text}</span>}</p><p className="bv-ck-detail">{c.detail}</p>{c.advice && <p className="bv-ck-advice">{c.advice}</p>}</div>
+  return <ul className="bv-checks">{items.map((c, i) => { const I = STATUS_ICON[c.status]; return <li key={i} className={`bv-ck-${c.status}`}>
+    <span className="bv-ck-ico" title={STATUS_TEXT[c.status]}><I size={15} aria-hidden="true" /><span className="sr-only">{STATUS_TEXT[c.status]} : </span></span>
+    <div><p className="bv-ck-label">{c.label}</p><p className="bv-ck-detail">{c.detail}</p>{c.advice && <p className="bv-ck-advice">{c.advice}</p>}</div>
   </li>; })}</ul>;
 }
 
@@ -44,6 +39,8 @@ function SpeedCard({ m, icon: Icon, title }: { m: Speed; icon: typeof Monitor; t
 }
 
 export default function BulletinView({ b, sample = false }: { b: Bulletin; sample?: boolean }) {
+  /* Audits depuis novembre 2026 : nouvelle page courte, basée uniquement sur des faits vérifiés. */
+  if (b.facts) return <FactView b={b} sample={sample} />;
   const date = new Date(b.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const s = b.speed;
   const sd = b.speedDesktop ?? null;
@@ -139,7 +136,7 @@ export default function BulletinView({ b, sample = false }: { b: Bulletin; sampl
         <p className="bv-page-name">{p.label} <span>{p.path}</span></p>
         <p><span className={p.title && p.title.split(/\s+/).length > 2 ? '' : 'is-bad'}>Titre Google : {p.title ? `« ${p.title} »` : 'aucun'}</span></p>
         <p><span className={p.h1 ? '' : 'is-bad'}>Grand titre : {p.h1 ? `« ${p.h1} »` : 'aucun'}</span></p>
-        <p><span className={p.description ? '' : 'is-warn'}>Description Google : {p.description ? 'présente' : 'absente'}</span> · <span className={p.words < 300 ? 'is-bad' : p.words < 500 ? 'is-warn' : ''}>{p.words} mots</span></p>
+        <p><span className={p.description ? '' : 'is-warn'}>Description Google : {p.description ? 'présente' : 'absente'}</span> · <span className={p.words < 250 ? 'is-bad' : p.words < 500 ? 'is-warn' : ''}>{p.words} mots</span></p>
       </div>)}</div>
     </section>}
 

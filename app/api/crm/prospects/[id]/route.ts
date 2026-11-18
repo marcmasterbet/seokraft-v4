@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authorised, getProspect, saveProspect, deleteProspect, event, removeDoc } from '../../../../../lib/crmStore';
+import { loadBulletin } from '../../../../../lib/auditEngine';
 import { STAGE_LABEL, nextAction, emptyClient, nextDomain, type Prospect, type Stage, type ClientInfo } from '../../../../../components/crmTypes';
 
 export const runtime = 'nodejs';
@@ -24,9 +25,21 @@ export async function PATCH(request: Request, { params }: Ctx) {
   switch (d.action) {
     case 'update': {
       const f = (d.fields || {}) as Record<string, unknown>;
-      const keys: [keyof Prospect, number][] = [['company', 200], ['contactName', 200], ['email', 254], ['phone', 40], ['website', 300], ['city', 80], ['address', 200], ['siret', 20], ['google', 60], ['distance', 30], ['trade', 80], ['priority', 20], ['bulletinId', 24]];
+      const keys: [keyof Prospect, number][] = [['company', 200], ['contactName', 200], ['email', 254], ['phone', 40], ['website', 300], ['city', 80], ['address', 200], ['siret', 20], ['google', 60], ['distance', 30], ['trade', 80], ['priority', 20]];
       for (const [k, n] of keys) if (k in f) (p as Record<string, unknown>)[k] = s(f[k], n);
       if ('score' in f) p.score = f.score === null || f.score === '' ? null : Math.max(0, Math.min(20, Number(String(f.score).replace(',', '.')) || 0));
+      /* Audit : on accepte l'adresse complète (https://www.seokraft.fr/bulletin/…) ou seulement son identifiant. */
+      if ('bulletinId' in f) {
+        const raw = s(f.bulletinId, 300);
+        const id = (raw.match(/[a-f0-9]{24}/i) || [''])[0].toLowerCase();
+        if (raw && !id) return NextResponse.json({ error: 'Audit non reconnu : collez l’adresse de l’audit (https://www.seokraft.fr/bulletin/…).' }, { status: 400 });
+        if (id && id !== p.bulletinId) {
+          const b = await loadBulletin(id).catch(() => null);
+          if (!b) return NextResponse.json({ error: 'Cet audit est introuvable : vérifiez l’adresse collée.' }, { status: 400 });
+          if (!('score' in f) || f.score === '' || f.score === null || p.score === null) p.score = b.global;
+        }
+        p.bulletinId = id;
+      }
       break;
     }
     case 'stage': {

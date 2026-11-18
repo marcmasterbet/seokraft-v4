@@ -278,7 +278,7 @@ function Fiche({ p, busy, error, act, onBack, onDeleted, onUpdated }: { p: Prosp
         </dl>
       </div>}
     </> : <form className="crm-fields" onSubmit={async (e) => { e.preventDefault(); await act(p.id, { action: 'update', fields: f }); setEdit(false); }}>
-      {([['company', 'Entreprise'], ['contactName', 'Contact'], ['email', 'E-mail'], ['phone', 'Téléphone'], ['website', 'Site internet'], ['address', 'Adresse'], ['city', 'Ville'], ['trade', 'Métier'], ['siret', 'SIRET'], ['priority', 'Priorité'], ['google', 'Avis Google'], ['distance', 'Distance'], ['bulletinId', 'Identifiant de l’audit'], ['score', 'Note /20']] as [keyof typeof f, string][]).map(([k, l]) =>
+      {([['company', 'Entreprise'], ['contactName', 'Contact'], ['email', 'E-mail'], ['phone', 'Téléphone'], ['website', 'Site internet'], ['address', 'Adresse'], ['city', 'Ville'], ['trade', 'Métier'], ['siret', 'SIRET'], ['priority', 'Priorité'], ['google', 'Avis Google'], ['distance', 'Distance'], ['bulletinId', 'Audit (collez son adresse)'], ['score', 'Note /20']] as [keyof typeof f, string][]).map(([k, l]) =>
         <label key={k}>{l}<input value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></label>)}
       <div className="crm-act"><button className="crm-btn" type="submit" disabled={busy}>Enregistrer</button><button className="crm-btn crm-btn-line" type="button" onClick={() => setEdit(false)}>Annuler</button></div>
     </form>}

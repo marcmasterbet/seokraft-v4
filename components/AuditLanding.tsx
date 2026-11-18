@@ -72,7 +72,7 @@ function AuditForm({ id }: { id: string }) {
 
 const FAQ: [string, string][] = [
   ['C’est vraiment gratuit ?', 'Oui. Aucun paiement, aucun engagement. L’audit vous appartient : vous pouvez corriger les points vous-même, les confier à quelqu’un d’autre ou me demander de l’aide.'],
-  ['Qui fait l’audit ?', 'Des outils analysent votre page d’accueil, dont la mesure officielle de Google, et l’intelligence artificielle aide à lire vos textes. Puis je relis chaque audit moi-même avant de vous l’envoyer.'],
+  ['Qui fait l’audit ?', 'Votre site est vérifié point par point : ce que voit Google, la vitesse mesurée par Google lui-même, ce qui permet de vous joindre et les obligations légales. Chaque constat est vérifiable, rien n’est deviné. Puis je relis chaque audit moi-même avant de vous l’envoyer.'],
   ['Mon site va-t-il être modifié ?', 'Non. L’analyse lit votre site comme le ferait un visiteur. Rien n’est modifié, aucun formulaire n’est envoyé.'],
   ['Que devient mon adresse e-mail ?', 'Elle sert à vous envoyer votre audit, puis éventuellement à vous demander s’il vous a été utile. Elle n’est jamais vendue ni cédée, et vous pouvez demander sa suppression à tout moment.'],
   ['Et refaire mon site, ça coûte combien ?', 'Un site vitrine sur mesure commence à 1 990 € TTC, avec une estimation en ligne selon le nombre de pages. Mais rien ne vous oblige à refaire votre site : souvent, quelques corrections suffisent.'],
@@ -102,7 +102,7 @@ export default function AuditLanding() {
           <article><h3>Vous tapez l’adresse de votre site</h3><p>Puis votre prénom et votre e-mail. C’est tout : pas de téléphone, pas de compte à créer.</p></article>
           <article><h3>Votre site est analysé comme un client le voit</h3><p>Votre page d’accueil est lue sur téléphone, mesurée par Google et passée au crible. Rien n’est modifié.</p>
             <ul className="lp-ticks lp-ticks-icons"><li><Smartphone size={18} aria-hidden="true" />Sur téléphone</li><li><Search size={18} aria-hidden="true" />Sur Google</li><li><Phone size={18} aria-hidden="true" />Pour vous joindre</li><li><ShieldCheck size={18} aria-hidden="true" />Ce qui rassure</li></ul></article>
-          <article><h3>Votre audit arrive par e-mail</h3><p>Une note sur 20, ce qui va bien, et les points à corriger en premier. Sous 24 heures, après relecture.</p></article>
+          <article><h3>Votre audit arrive par e-mail</h3><p>Une note sur 20, les points qui vous coûtent des clients et ce qui va déjà bien. Sous 24 heures, après relecture.</p></article>
         </div>
       </section>
 
@@ -117,11 +117,11 @@ export default function AuditLanding() {
           <span className="lp-stamp">Exemple fictif</span>
           <span className="lp-kicker">AUDIT DU SITE</span>
           <p className="lp-sample-host">menuiserie-exemple.fr</p>
-          <div className="lp-sample-score"><Score20 value="11" size="small" /><p>Peut mieux faire, surtout sur téléphone</p></div>
+          <div className="lp-sample-score"><Score20 value="12" size="small" /><p>Une partie des clients lui échappe</p></div>
           <ol>
+            <li><strong>Sa ville n’apparaît pas là où Google regarde.</strong><em>Il passe derrière ses concurrents.</em></li>
             <li><strong>Le site met plus de 7 secondes à s’afficher sur téléphone.</strong><em>Beaucoup de visiteurs partent avant.</em></li>
-            <li><strong>Le numéro n’est pas cliquable.</strong><em>Il faut le recopier pour appeler.</em></li>
-            <li><strong>Google n’a pas de résumé du site.</strong><em>Il en invente un à votre place.</em></li>
+            <li><strong>Google n’a pas de résumé du site.</strong><em>Il prend un morceau de texte au hasard.</em></li>
           </ol>
         </div>
       </section>

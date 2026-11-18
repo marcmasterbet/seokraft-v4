@@ -1,12 +1,11 @@
 import { spamReason } from '../../../lib/spamFilter';
 import { upsertProspect, event, advance } from '../../../lib/crmStore';
 import { NextResponse, after } from 'next/server';
-import { checkAndRecordQuota, isTransient } from '../../../lib/auditEngine';
-import { runAutoAudit, AutoAuditError, fmtCost } from '../../../lib/auditAuto';
-import { noteLabelsFor, buildBulletinMail, fmt20 } from '../../../components/auditTypes';
+import { checkAndRecordQuota, isTransient, createFactAudit } from '../../../lib/auditEngine';
+import { buildBulletinMail, fmt20 } from '../../../components/auditTypes';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300;
+export const maxDuration = 180;
 
 const emailPattern = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
 
@@ -79,8 +78,8 @@ export async function POST(request: Request) {
     if (!emailPattern.test(email) || !name || !url) {
       return NextResponse.json({ error: 'Données invalides' }, { status: 400 });
     }
-    /* Spam : même réponse qu'une demande normale, mais aucun audit lancé (aucun crédit dépensé) et aucun e-mail. */
-    /* Inutile d'auditer seokraft.fr depuis la page publique : demande ignorée sans rien dépenser. */
+    /* Spam : même réponse qu'une demande normale, mais aucun audit lancé et aucun e-mail. */
+    /* Inutile d'auditer seokraft.fr depuis la page publique : demande ignorée. */
     if (/(^|\.)seokraft\.fr$/i.test(new URL(url).hostname)) { console.warn('Demande ignorée (audit de seokraft.fr)', email); return NextResponse.json({ ok: true }); }
     const spam = spamReason({ email, name, url });
     if (spam) { console.warn('Spam bloqué (audit)', spam); return NextResponse.json({ ok: true }); }
@@ -99,33 +98,22 @@ export async function POST(request: Request) {
       let report = '';
       let subject = `SEOKRAFT — Audit gratuit : ${new URL(url).hostname}`;
       const tool = `https://www.seokraft.fr/outil-audit?${new URLSearchParams({ url, prenom: firstName })}`;
-      /* Audit automatique (par défaut). Mode manuel possible : variable Vercel AUDIT_AUTO=0
-         (la demande est seulement rangée dans le CRM et envoyée à Marc, qui lance l'audit depuis son outil). */
-      const auto = process.env.AUDIT_AUTO !== '0';
-      const quota = auto ? await checkAndRecordQuota(url, email) : { ok: false as const, reason: 'manuel' };
-      if (!auto) {
-        subject += ' — à auditer';
-        report = `À AUDITER : si la demande est sérieuse, lance l’audit en un clic (adresse et prénom déjà remplis) :\n${tool}\n\nL’audit se rangera tout seul dans sa fiche du CRM. Tu as 24 h pour le lui envoyer.\nSi c’est un plaisantin, ignore simplement ce mail : rien n’a été dépensé.`;
-      } else if (!quota.ok) {
+      /* L'audit part automatiquement dès la demande (sans IA, sans coût). Les quotas protègent seulement contre les abus. */
+      const quota = await checkAndRecordQuota(url, email);
+      if (!quota.ok) {
         subject += ' — non lancé automatiquement';
-        report = `Audit NON lancé automatiquement : ${quota.reason} (protection de ton crédit IA).\nSi la demande est sérieuse, lance-le à la main depuis l’outil : ${tool}`;
+        report = `Audit NON lancé automatiquement : ${quota.reason} (protection contre les abus).\nSi la demande est sérieuse, lance-le en un clic depuis l’outil (adresse et prénom déjà remplis) : ${tool}`;
       } else try {
         /* Une panne passagère (serveur occupé) relance l'audit une fois, 5 secondes plus tard. */
-        const run = await runAutoAudit(url).catch(async (e) => { if (!isTransient(e)) throw e; await new Promise((ok) => setTimeout(ok, 5000)); return runAutoAudit(url); });
-        const { bulletin: b, warnings, forMarc, usage, speedError } = run;
+        const run = await createFactAudit(url).catch(async (e) => { if (!isTransient(e)) throw e; await new Promise((ok) => setTimeout(ok, 5000)); return createFactAudit(url); });
+        const b = run.bulletin;
+        const top = (b.facts?.problems ?? []).map((id) => b.facts!.points.find((p) => p.id === id)!).filter(Boolean);
         subject = `SEOKRAFT — Audit gratuit : ${b.host} — ${fmt20(b.global)}/20`;
         report = [
           `NOTE DU SITE : ${fmt20(b.global)}/20 — ${b.verdict}`,
-          ...noteLabelsFor(b).map((n) => `• ${n.label} : ${fmt20(b.notes[n.id] ?? null)}/20`),
-          `• Pages analysées : ${(b.pages ?? []).map((p) => p.label).join(', ') || 'accueil'}`,
-          `• Coût de l’audit : ${fmtCost(usage)}`,
-          ...warnings.map((w) => `⚠ ${w}`),
-          speedError ? (process.env.PSI_API_KEY ? '⚠ Google n’a pas répondu à temps pour la mesure de vitesse : relance l’audit depuis l’outil dans quelques minutes avant d’envoyer.' : '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.') : '',
-          '',
-          'POUR TOI (ne pas transmettre) :',
-          '────────────────────────',
-          forMarc || '(l’IA n’a pas rendu cette partie)',
-          '────────────────────────',
+          top.length ? 'Les points mis en avant dans l’audit :' : 'Aucun problème important trouvé.',
+          ...top.map((p, i) => `${i + 1}. ${p.title}`),
+          run.speedError ? (process.env.PSI_API_KEY ? '⚠ Google n’a pas répondu à temps pour la mesure de vitesse : relance l’audit depuis l’outil dans quelques minutes avant d’envoyer.' : '⚠ Mesure de vitesse Google indisponible : ajoute la variable PSI_API_KEY dans Vercel, puis relance.') : '',
           '',
           '1) RELIRE L’AUDIT (en ligne, téléchargeable en PDF) :',
           `https://www.seokraft.fr/bulletin/${b.id}`,
@@ -137,9 +125,7 @@ export async function POST(request: Request) {
           '────────────────────────',
         ].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
       } catch (e) {
-        report = e instanceof AutoAuditError
-          ? `L’audit automatique n’a pas abouti (${e.message}).${e.usage ? `\nCoût déjà dépensé : ${fmtCost(e.usage)}.` : ''}\nLes mesures sont prêtes : colle le texte ci-dessous dans le projet Claude « Audits SEOKRAFT », puis publie sa réponse depuis l’outil (onglet « Avec le projet Claude », étape 2) : ${tool}\n\n────────────────────────\nAudit de ${e.url}\n\n${e.measuresText}\n────────────────────────`
-          : `L’analyse automatique n’a pas abouti (${e instanceof Error ? e.message : 'erreur'}).\nLancez-la à la main depuis l’outil : ${tool}`;
+        report = `L’analyse automatique n’a pas abouti (${e instanceof Error ? e.message : 'erreur'}).\nRelance-la en un clic depuis l’outil : ${tool}`;
         subject += ' — analyse à relancer';
       }
       /* Rangement dans le CRM (sans jamais bloquer le mail à Marc). */
@@ -149,7 +135,7 @@ export async function POST(request: Request) {
         const p = await upsertProspect({ email, website: url }, { source: 'audit', contactName: name, email, website: url, company: new URL(url).hostname.replace(/^www\./, '') }, (x) => {
           if (bid) { x.bulletinId = bid; x.score = done ? Number(done[1].replace(',', '.')) : x.score; }
           advance(x, 'audit_demande');
-          x.history.push(event(bid ? `Demande d’audit gratuit reçue · note ${done?.[1] ?? '?'}/20` : `Demande d’audit gratuit reçue${auto ? ` · ${subject.split(' — ').pop()}` : ' · audit à lancer depuis l’outil'}`));
+          x.history.push(event(bid ? `Demande d’audit gratuit reçue · note ${done?.[1] ?? '?'}/20` : `Demande d’audit gratuit reçue · ${subject.split(' — ').pop()}`));
         });
         report = `FICHE DANS LE CRM : https://www.seokraft.fr/crm?p=${p.id}\n\n${report}`;
       } catch (e) { console.error('CRM (audit)', e instanceof Error ? e.message : e); }

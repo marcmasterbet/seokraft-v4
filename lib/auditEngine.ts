@@ -6,6 +6,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { AuditResult, Bulletin, Check, Speed } from '../components/auditTypes';
+import { buildFactReport } from '../components/factAudit';
 
 /* Moteur d'audit partagé : outil privé (/outil-audit) et demandes publiques (/audit-gratuit). Code serveur uniquement. */
 const UA = 'Mozilla/5.0 (compatible; SEOKRAFT-Audit/1.0; +https://www.seokraft.fr)';
@@ -111,6 +112,16 @@ async function exists(url: string) {
   }
 }
 
+/* Code de réponse d'une adresse (0 si injoignable) : sert à savoir si un lien mène vraiment à une page d'erreur. */
+async function probe(url: string): Promise<number> {
+  try {
+    const u = new URL(url);
+    await assertPublic(u);
+    const r = await fetch(u, { headers: { 'User-Agent': UA, 'Accept-Language': LANG }, redirect: 'follow', signal: AbortSignal.timeout(8000) });
+    return r.status;
+  } catch { return 0; }
+}
+
 /* ---------- Les vérifications ---------- */
 /* Texte visible, avec un espace entre chaque bloc (sinon « Ustaritz » et « Accueil » se collent). */
 const text = ($: CheerioAPI) => {
@@ -131,10 +142,6 @@ type Extra = {
   legalFound?: 'lien' | 'plan' | 'adresse' | 'texte' | null; // où on les a trouvées
   privacyFound?: boolean;
   legalDead?: boolean;           // un lien « Mentions légales » existe mais ne mène nulle part
-  /* Adresse officielle (canonical), plan du site ou robots.txt qui renvoient vers un autre site (ex. adresse technique Lovable). */
-  foreign?: { canonical: string[]; sitemap: string | null; robots: string | null };
-  leftovers?: string[];          // restes de modèle repérés (lorem ipsum, example.com…)
-  jsOnly?: boolean;              // le texte n'est pas dans le code envoyé : il est ajouté par un script
 };
 
 const listFr = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs[xs.length - 1]}`);
@@ -266,46 +273,6 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     detail: extra.sitemap ? 'Présent.' : 'Introuvable à l’adresse habituelle.',
     advice: extra.sitemap ? 'Rien à faire. Pensez à le déclarer dans Google Search Console.' : 'Créer un plan du site et le déclarer dans Google Search Console pour que toutes vos pages soient découvertes.' });
 
-  /* Adresse officielle : chaque page doit se déclarer elle-même, et le plan du site doit lister les pages de CE site. */
-  const fx = extra.foreign;
-  if (fx) {
-    const where2 = [fx.canonical.length && `l’adresse officielle de ${fx.canonical.length} page(s) pointe vers ${fx.canonical[0]}`,
-      fx.sitemap && `le plan du site liste les pages à l’adresse ${fx.sitemap}`, fx.robots && `le fichier robots.txt indique un plan du site sur ${fx.robots}`].filter(Boolean) as string[];
-    add({ id: 'canonical', cat: 'google', label: 'Adresse officielle des pages', weight: 3,
-      status: fx.canonical.length ? 'bad' : where2.length ? 'warn' : 'ok',
-      detail: where2.length ? `Le site renvoie Google vers une autre adresse : ${where2.join(' ; ')}.` : 'Les pages déclarent bien leur propre adresse.',
-      advice: where2.length ? 'Faire pointer l’adresse officielle de chaque page, le plan du site et le fichier robots.txt vers l’adresse réelle du site : sinon Google retient l’autre adresse, ou une page qui n’existe pas.' : 'Rien à faire.' });
-  }
-  if (extra.jsOnly !== undefined) add({ id: 'js-content', cat: 'google', label: 'Texte lisible par Google sans script', weight: 3,
-    status: extra.jsOnly ? 'bad' : 'ok',
-    detail: extra.jsOnly ? `Le code envoyé par le site ne contient presque aucun texte (${body ? body.split(' ').length : 0} mots) : le contenu est ajouté ensuite par un script.` : 'Le texte des pages est présent dans le code lu par Google.',
-    advice: extra.jsOnly ? 'Google lit mal ou en retard les textes ajoutés par un script : le site doit envoyer son texte directement dans la page (rendu côté serveur ou pages pré-générées).' : 'Rien à faire.' });
-  if (extra.leftovers) add({ id: 'leftovers', cat: 'contenu', label: 'Textes d’exemple restés sur le site', weight: 2,
-    status: extra.leftovers.length ? 'bad' : 'ok',
-    detail: extra.leftovers.length ? `Textes de modèle repérés : ${extra.leftovers.slice(0, 4).map((x) => `« ${x} »`).join(', ')}.` : 'Aucun texte d’exemple repéré.',
-    advice: extra.leftovers.length ? 'Remplacer ces textes d’exemple : ils donnent l’image d’un site inachevé.' : 'Rien à faire.' });
-
-  /* Liens et boutons vides (« # », vide, javascript:) : hors sous-menus, bandeau cookies, recherche et défilement. */
-  const LEGALISH = /mentions|l[ée]gal|confidentialit|cookie|rgpd|cgv|cgu/i;
-  const emptyLinks = new Set<string>();
-  for (const d of all) d('a[href]').each((_, a) => {
-    const el = d(a);
-    const h = (el.attr('href') || '').trim();
-    if (!(h === '' || h === '#' || /^javascript:/i.test(h))) return;
-    const t = (el.text() || el.attr('aria-label') || el.attr('title') || '').replace(/\s+/g, ' ').trim();
-    if (!t || t.length > 60 || LEGALISH.test(t)) return;
-    if (el.is('[role="button"],[onclick],[data-toggle],[data-bs-toggle],[aria-expanded],[aria-controls],[aria-haspopup]')) return;
-    if (el.closest('[class*="cookie"],[id*="cookie"],[class*="consent"],[id*="consent"],[class*="dropdown"],[class*="submenu"],[class*="sub-menu"]').length) return;
-    if (el.next('ul, div').length || el.parent().children('ul').length) return;
-    if (/menu|recherch|search|fermer|close|haut de page|retour en haut|d[ée]filer|scroll|suivant|pr[ée]c[ée]dent|next|prev|^[<>←→×+-]$/i.test(t)) return;
-    emptyLinks.add(t);
-  });
-  const empties = [...emptyLinks];
-  add({ id: 'empty-links', cat: 'contact', label: 'Liens et boutons qui mènent quelque part', weight: 2,
-    status: empties.length >= 3 ? 'bad' : empties.length ? 'warn' : 'ok',
-    detail: empties.length ? `${empties.length} lien(s) ou bouton(s) ne mène(nt) nulle part : ${empties.slice(0, 4).map((x) => `« ${x} »`).join(', ')}.` : 'Aucun lien vide repéré sur les pages lues.',
-    advice: empties.length ? 'Un bouton qui ne mène nulle part donne l’impression d’un site inachevé : le relier à la bonne page ou le retirer.' : 'Rien à faire.' });
-
   const lang = $('html').attr('lang') || '';
   add({ id: 'lang', cat: 'google', label: 'Langue déclarée', status: lang ? 'ok' : 'warn',
     detail: lang ? `Langue : ${lang}.` : 'Aucune langue déclarée.',
@@ -333,9 +300,9 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
   /* --- Contenu et clarté --- */
   const words = body ? body.split(' ').length : 0;
   add({ id: 'words', cat: 'contenu', label: 'Quantité de texte sur la page d’accueil', weight: 2,
-    status: words < 300 ? 'bad' : words < 500 ? 'warn' : 'ok',
+    status: words < 250 ? 'bad' : words < 500 ? 'warn' : 'ok',
     detail: `Environ ${words} mots.`,
-    advice: words < 300 ? 'Très peu de texte : Google a du mal à comprendre ce que vous faites. Présentez vos services, votre zone et ce qui vous distingue.' : words < 500 ? 'Texte un peu léger : développez vos services et répondez aux questions de vos clients.' : 'Volume de texte suffisant.' });
+    advice: words < 250 ? 'Très peu de texte : Google a du mal à comprendre ce que vous faites. Présentez vos services, votre zone et ce qui vous distingue.' : words < 500 ? 'Texte un peu léger : développez vos services et répondez aux questions de vos clients.' : 'Volume de texte suffisant.' });
 
   const imgs = $('img');
   const noAlt = imgs.filter((_, i) => !($(i).attr('alt') || '').trim()).length;
@@ -751,11 +718,7 @@ export async function runAudit(input: string): Promise<AuditResult> {
     imageWeights($c, page.url),
     page.url.startsWith('https://') ? certDays(host) : Promise.resolve(null),
   ]);
-  /* Une même page lue deux fois (adresse avec paramètres de suivi, « / » et « /index.html »…) ne compte qu'une fois. */
-  const sig = (d: CheerioAPI) => createHash('sha1').update(`${d('head > title').first().text().trim()}|${d('h1').first().text().trim()}|${text(d)}`).digest('hex');
-  const seenSig = new Set([sig($c)]);
-  const subs = sub.pages.filter((p) => { const k = sig(p.$); if (seenSig.has(k)) return false; seenSig.add(k); return true; });
-  const dupPages = sub.pages.length - subs.length;
+  const subs = sub.pages;
   /* Mentions légales : on les cherche partout avant de conclure qu'elles manquent.
      1. un lien sur les pages lues (texte ou adresse) ; 2. le plan du site (sitemap) ;
      3. les adresses habituelles (/mentions-legales…) ; 4. le texte même des pages (SIRET + hébergeur en bas de page). */
@@ -781,8 +744,15 @@ export async function runAudit(input: string): Promise<AuditResult> {
     if (!href || /^(#|javascript:|mailto:|tel:)/i.test(href.trim())) return false;
     try { const u = new URL(href, page.url); return u.host !== new URL(page.url).host || u.pathname.replace(/\/$/, '') !== homePath || /\.pdf$/i.test(u.pathname); } catch { return false; }
   };
-  const linked = pageLinks.find((l) => (LEGAL_TXT.test(l.t) || LEGAL_URL.test(l.href)) && realLink(l.href));
-  const legalDead = !linked && pageLinks.some((l) => LEGAL_TXT.test(l.t));
+  let linked = pageLinks.find((l) => (LEGAL_TXT.test(l.t) || LEGAL_URL.test(l.href)) && realLink(l.href));
+  /* Un lien vers une page d'erreur (404) ne compte pas : les mentions sont en réalité absentes. */
+  let legalDeadUrl = '';
+  if (linked && !/\.pdf$/i.test(linked.href)) {
+    const target = new URL(linked.href, page.url).toString();
+    const st = subs.some((p) => p.url.split('#')[0] === target.split('#')[0]) ? 200 : await probe(target);
+    if (st >= 400 && st < 500) { legalDeadUrl = target; linked = undefined; }
+  }
+  const legalDead = !linked && (!!legalDeadUrl || pageLinks.some((l) => LEGAL_TXT.test(l.t)));
   if (linked) { legalFound = 'lien'; if (!/\.pdf$/i.test(linked.href)) legalText = await readLegal(linked.href); }
   if (!legalFound) {
     const inMap = links.find((l) => LEGAL_URL.test(new URL(l.url).pathname));
@@ -814,19 +784,6 @@ export async function runAudit(input: string): Promise<AuditResult> {
     }
   }
   const robotsTxt = robots.ok && /sitemap:/i.test(robots.text) ? true : smap2.ok;
-  const bare = host.replace(/^www\./, '').toLowerCase();
-  const otherHost = (u: string) => { try { const x = new URL(u, page.url).hostname.replace(/^www\./, '').toLowerCase(); return x !== bare ? x : null; } catch { return null; } };
-  const canonForeign = [$c, ...subs.map((p) => p.$)].map((d) => otherHost(d('link[rel="canonical"]').attr('href') || '')).filter((x): x is string => !!x);
-  const locs = smap2.ok ? [...smap2.text.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]) : [];
-  const robotsMaps = robots.ok ? [...robots.text.matchAll(/^\s*sitemap:\s*(\S+)/gim)].map((m) => m[1]) : [];
-  const foreign = {
-    canonical: canonForeign,
-    sitemap: locs.length && locs.every((u) => otherHost(u)) ? otherHost(locs[0]) : null,
-    robots: robotsMaps.length && robotsMaps.every((u) => otherHost(u)) ? otherHost(robotsMaps[0]) : null,
-  };
-  /* Texte ajouté par un script : presque aucun mot dans le code, mais une application JavaScript qui le dessine. */
-  const homeWords = text($c).split(' ').filter(Boolean).length;
-  const jsOnly = homeWords < 80 && /<script[^>]+(type=["']module["']|src=)/i.test(contentHtml) && /id=["'](root|app|__next|__nuxt|svelte)["']/i.test(contentHtml);
   const analysed: Page = { ...page, html: contentHtml };
   const detail = (d: CheerioAPI, url: string, label: string) => ({
     label, path: new URL(url).pathname + new URL(url).search,
@@ -835,69 +792,24 @@ export async function runAudit(input: string): Promise<AuditResult> {
     h1: d('h1').first().text().replace(/\s+/g, ' ').trim().slice(0, 90),
     words: (text(d) || '').split(' ').filter(Boolean).length,
   });
-  /* Dossier détaillé pour l'audit automatique : ce que Marc vérifierait en ouvrant le site lui-même. */
-  const readUrls = new Set([page.url, ...subs.map((p) => p.url)].map((u) => u.split('#')[0].replace(/\/$/, '')));
-  const dest = (href: string) => {
-    const h = href.trim();
-    if (!h || h === '#' || /^#$|^javascript:/i.test(h)) return 'ne mène nulle part';
-    if (h.startsWith('#')) return `ancre ${h.slice(0, 30)} sur la même page`;
-    if (/^tel:/i.test(h)) return `appel ${h.slice(4, 24)}`;
-    if (/^mailto:/i.test(h)) return 'e-mail';
-    try {
-      const u = new URL(h, page.url);
-      if (u.hostname.replace(/^www\./, '') !== host.replace(/^www\./, '')) return `autre site (${u.hostname})`;
-      const k = u.toString().split('#')[0].replace(/\/$/, '');
-      if (u.pathname.replace(/\/$/, '') === homePath && !u.search) return 'retour à l’accueil';
-      return `${u.pathname}${readUrls.has(k) ? ' (page lue)' : sub.broken.some((b) => k.endsWith(b)) ? ' (ERREUR)' : ''}`;
-    } catch { return 'adresse invalide'; }
-  };
-  const pageBlock = (d: CheerioAPI, label: string, url: string) => {
-    const hs = d('h1,h2,h3').map((_, h) => `${h.tagName.toUpperCase()} ${d(h).text().replace(/\s+/g, ' ').trim().slice(0, 90)}`).get().filter((x) => x.length > 3).slice(0, 30);
-    const seen = new Set<string>();
-    const ls = d('a, button').map((_, a) => {
-      const t = (d(a).text() || d(a).attr('aria-label') || d(a).attr('title') || '').replace(/\s+/g, ' ').trim().slice(0, 50);
-      if (!t) return '';
-      const hasMenu = d(a).next('ul, div').length > 0 || d(a).parent().find('ul ul, .sub-menu, .dropdown-menu').length > 0;
-      const tag = a.tagName === 'button' ? (d(a).closest('form').length ? 'envoi du formulaire' : 'bouton sans lien') : dest(d(a).attr('href') || '');
-      const line = `« ${t} » → ${tag}${tag === 'ne mène nulle part' && hasMenu ? ' (ouvre un sous-menu)' : ''}`;
-      if (seen.has(line)) return ''; seen.add(line); return line;
-    }).get().filter(Boolean).slice(0, 45);
-    const canonical = d('link[rel="canonical"]').attr('href') || '';
-    const robotsMeta = d('meta[name="robots"]').attr('content') || '';
-    const footer = d('footer').text().replace(/\s+/g, ' ').trim().slice(0, 500);
-    return [`=== ${label} (${new URL(url).pathname}) ===`,
-      `Titre Google : « ${d('head > title').first().text().replace(/\s+/g, ' ').trim() || 'aucun'} »`,
-      `Description Google : « ${(d('meta[name="description"]').attr('content') || '').trim().slice(0, 200) || 'aucune'} »`,
-      `Adresse officielle (canonical) : ${canonical || 'non indiquée'}${robotsMeta ? ` · consigne robots : ${robotsMeta}` : ''}`,
-      'Titres de la page :', ...(hs.length ? hs.map((x) => `  ${x}`) : ['  (aucun titre)']),
-      'Liens et boutons (texte → destination réelle) :', ...(ls.length ? ls.map((x) => `  ${x}`) : ['  (aucun)']),
-      `Bas de page : ${footer || '(pas de bas de page repéré)'}`,
-      `Texte de la page (début) : « ${text(d).slice(0, label === 'Accueil' ? 1800 : 600)} »`].join('\n');
-  };
+  /* Faits utilisés par l'audit : restes de modèle, boutons qui ne mènent nulle part, numéros affichés. */
   const allText = [text($c), ...subs.map((p) => text(p.$))].join(' ');
-  const leftovers = [...new Set((allText.match(/lorem ipsum|dolor sit amet|example\.(?:com|fr)|exemple\.(?:com|fr)|votre texte ici|your text here|hello world|bonjour tout le monde|just another wordpress site|un site utilisant wordpress|ceci est un exemple|sample page|page d['’]exemple|\b(?:01|06) ?00 ?00 ?00 ?00\b|123 rue|xx\.xx\.xx|nom de l['’]entreprise/gi) || []).map((x) => x.toLowerCase()))];
-  const phonesTxt = [...new Set(allText.match(/(?:\+33\s?|0)[1-9](?:[\s.-]?\d{2}){4}/g) || [])].slice(0, 3);
-  const telLinks = [$c, ...subs.map((p) => p.$)].some((d) => d('a[href^="tel:"]').length > 0);
-  const dossier = [
-    `Robots.txt : ${robots.ok ? `présent${/disallow:\s*\/\s*$/im.test(robots.text) ? ' — BLOQUE TOUT LE SITE' : ''}${/sitemap:/i.test(robots.text) ? ', indique le plan du site' : ''}` : 'absent'}`,
-    `Plan du site (sitemap) : ${smap2.ok ? `présent, ${fromMap.length} page(s) listée(s)` : 'introuvable'}`,
-    `Pages trouvées au total (liens + plan du site) : ${links.length + 1}`,
-    `Liens cassés repérés : ${sub.broken.length ? sub.broken.join(', ') : 'aucun parmi les pages lues'}`,
-    `Restes de modèle repérés dans les textes : ${leftovers.length ? leftovers.join(', ') : 'aucun'}`,
-    `Numéros de téléphone écrits dans le texte : ${phonesTxt.join(', ') || 'aucun'} · lien d’appel cliquable : ${telLinks ? 'oui' : 'non'}`,
-    `Mentions légales : ${legalFound ? `trouvées (${legalFound})` : legalDead ? 'un lien existe mais ne mène nulle part' : 'non trouvées'} · confidentialité : ${privacyFound ? 'trouvée' : 'non trouvée'}`,
-    '',
-    'Liste de toutes les pages trouvées :', (links.slice(0, 60).map((l) => `- ${l.label} (${new URL(l.url).pathname})`).join('\n') || '- (aucune autre page)'),
-    '',
-    pageBlock($c, 'Accueil', page.url),
-    ...subs.map((p) => pageBlock(p.$, p.label, p.url)),
-  ].join('\n').slice(0, 18000);
+  const leftovers = [...new Set((allText.match(/lorem ipsum|dolor sit amet|[\w.-]+@example\.(?:com|fr)|[\w.-]+@exemple\.(?:com|fr)|votre texte ici|your text here|hello world|bonjour tout le monde|just another wordpress site|un site utilisant wordpress|ceci est un exemple de page|sample page|page d['’]exemple|\b0[1-9] ?00 ?00 ?00 ?00\b|123 rue de|xx\.xx\.xx\.xx/gi) || []).map((x) => x.toLowerCase()))].slice(0, 4);
+  const CTA_WORDS = /devis|contact|rendez-vous|r[ée]serv|appel|demande|estimation|disponibilit/i;
+  const deadCtas = [...new Set($c('a').filter((_, a) => {
+    const href = ($c(a).attr('href') ?? '').trim();
+    const t = $c(a).text().replace(/\s+/g, ' ').trim();
+    if (!t || t.length > 50 || !CTA_WORDS.test(t)) return false;
+    if (href && href !== '#' && !/^javascript:/i.test(href)) return false;
+    if ($c(a).attr('onclick') || $c(a).attr('data-toggle') || $c(a).attr('data-bs-toggle') || $c(a).attr('aria-controls') || $c(a).attr('aria-haspopup')) return false;
+    return $c(a).next('ul, div').length === 0 && $c(a).parent().find('ul').length === 0;
+  }).map((_, a) => $c(a).text().replace(/\s+/g, ' ').trim()).get())].slice(0, 3);
   const result: AuditResult = {
     url: page.url,
     host: host.replace(/^www\./, ''),
     fetchedAt: new Date().toISOString(),
     title: $('head > title').first().text().trim() || $c('head > title').first().text().trim(),
-    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: Math.max(0, links.length - dupPages), broken: sub.broken, images, certDays: cert, legalText, legalFound, legalDead, privacyFound, foreign, leftovers, jsOnly }, subs),
+    checks: analyse(analysed, $c, { robots, sitemap: robotsTxt, httpRedirects: httpRes, internalPages: links.length, broken: sub.broken, images, certDays: cert, legalText, legalFound, legalDead, privacyFound }, subs),
     pages: [{ url: page.url, label: 'Accueil' }, ...subs.map((p) => ({ url: p.url, label: p.label }))],
     pagesDetail: [detail($c, page.url, 'Accueil'), ...subs.map((p) => detail(p.$, p.url, p.label))],
     content: {
@@ -913,8 +825,8 @@ export async function runAudit(input: string): Promise<AuditResult> {
         const links = d('main a[href], article a[href], section a[href], p a[href]').map((_, a) => d(a).text().replace(/\s+/g, ' ').trim().slice(0, 40)).get().filter(Boolean).slice(0, 12);
         return `--- ${label} ---\n${hs.join('\n') || '(aucun titre)'}\nLiens dans le contenu : ${links.join(' | ') || '(aucun)'}`;
       }).join('\n').slice(0, 6000),
-      dossier,
     },
+    facts: { leftovers, deadCtas, legalDeadUrl, broken: sub.broken.slice(0, 5) },
   };
   return result;
 }
@@ -975,8 +887,27 @@ export async function loadBulletin(id: string): Promise<Bulletin | null> {
   }
 }
 
+/* ===================== Audit par les faits (sans IA) ===================== */
+/* Lecture du site et mesure Google en parallèle, puis note calculée sur les points vérifiés. Environ une minute. */
+export type FactRun = { bulletin: Bulletin; speedError: boolean };
+export async function createFactAudit(url: string): Promise<FactRun> {
+  const raw = url.trim().slice(0, 300);
+  const start = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  const [result, speed] = await Promise.all([runAudit(raw), pageSpeedServer(start, 'mobile')]);
+  const { report, global } = buildFactReport(result, speed);
+  const b: Bulletin = {
+    id: randomBytes(12).toString('hex'), version: 2, url: result.url, host: result.host, createdAt: new Date().toISOString(),
+    global, notes: {}, verdict: report.verdictTitle, essentiel: report.verdictSub,
+    priorities: report.problems.map((id) => report.points.find((p) => p.id === id)!).map((p) => ({ level: p.status === 'bad' ? 'critique' : 'important', title: p.title, text: p.text })),
+    positives: report.strengths, constats: [], speed: speed ? { ...speed, screenshot: undefined } : null, ai: false,
+    pages: result.pages, facts: report,
+  };
+  await saveBulletin(b);
+  return { bulletin: b, speedError: !speed || speed.performance === null };
+}
+
 /* ===================== Quotas des audits publics ===================== */
-/* Protège le crédit IA : une même adresse de site au plus 2 fois, une même adresse e-mail au plus 3 fois,
+/* Protège contre les abus : une même adresse de site au plus 2 fois, une même adresse e-mail au plus 3 fois,
    et un plafond d'audits publics par jour (AUDIT_DAILY_MAX, 20 par défaut). Chaque audit laisse une petite trace
    dans le stockage (empreinte, jamais l'adresse en clair), que l'on compte ensuite. */
 const QUOTA_DIR = path.join(process.cwd(), '.data', 'quota');
