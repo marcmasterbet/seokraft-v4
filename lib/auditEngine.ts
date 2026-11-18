@@ -122,6 +122,25 @@ async function probe(url: string): Promise<number> {
   } catch { return 0; }
 }
 
+/* Le robots.txt interdit-il tout le site à Google ? Les commentaires (« # Disallow: / ») sont ignorés,
+   et seule compte une règle « Disallow: / » pour tous les robots (*) ou pour Googlebot, sans « Allow: / » qui l'annule. */
+export function robotsBlocksAll(txt: string): boolean {
+  const lines = txt.split(/\r?\n/).map((l) => l.replace(/#.*/, '').trim()).filter(Boolean);
+  let agents: string[] = []; let inRules = false; let blocked = false;
+  const groups: { agents: string[]; disallowAll: boolean; allowAll: boolean }[] = [];
+  for (const l of lines) {
+    const m = /^([a-z-]+)\s*:\s*(.*)$/i.exec(l); if (!m) continue;
+    const k = m[1].toLowerCase(); const v = m[2].trim();
+    if (k === 'user-agent') { if (inRules) { agents = []; inRules = false; } agents.push(v.toLowerCase()); groups.push({ agents, disallowAll: false, allowAll: false }); continue; }
+    const g = groups[groups.length - 1]; if (!g) continue;
+    inRules = true;
+    if (k === 'disallow' && v === '/') g.disallowAll = true;
+    if (k === 'allow' && v === '/') g.allowAll = true;
+  }
+  for (const g of groups) if (g.disallowAll && !g.allowAll && g.agents.some((a) => a === '*' || a === 'googlebot')) blocked = true;
+  return blocked;
+}
+
 /* ---------- Les vérifications ---------- */
 /* Texte visible, avec un espace entre chaque bloc (sinon « Ustaritz » et « Accueil » se collent). */
 const text = ($: CheerioAPI) => {
@@ -262,7 +281,7 @@ function analyse(page: Page, $: CheerioAPI, extra: Extra, subs: SubPage[] = []):
     detail: noindex ? 'La page demande à Google de ne pas l’afficher (noindex).' : 'La page peut apparaître dans Google.',
     advice: noindex ? 'Urgent : retirer l’instruction « noindex », sinon la page n’apparaît jamais dans Google.' : 'Rien à faire.' });
 
-  const robotsBlocks = extra.robots.ok && /user-agent:\s*\*[\s\S]*?disallow:\s*\/\s*$/im.test(extra.robots.text);
+  const robotsBlocks = extra.robots.ok && robotsBlocksAll(extra.robots.text);
   add({ id: 'robots', cat: 'google', label: 'Fichier robots.txt',
     status: robotsBlocks ? 'bad' : extra.robots.ok ? 'ok' : 'warn',
     detail: robotsBlocks ? 'Le fichier robots.txt bloque tout le site.' : extra.robots.ok ? 'Présent.' : 'Absent.',
