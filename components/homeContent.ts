@@ -194,17 +194,15 @@ export const tarifs = {
   "Le développement des pages prévues.",
   "Une version adaptée aux mobiles.",
   "Le copywriting professionnel.",
-  "Les fondations du référencement naturel."
+  "Le référencement naturel, technique et éditorial."
  ],
  simTitle: "Configurez votre site",
  simLead: "Sélectionnez le nombre de pages pour obtenir une estimation adaptée à votre projet.",
- seoLabel: "Optimisation SEO éditoriale approfondie",
- seoPrice: "150 € TTC par page, en option.",
- seoText: "Cette prestation complémentaire permet de travailler plus spécifiquement les mots-clés, les intentions de recherche et l'optimisation des contenus.",
+ includedNote: "1 690 € TTC pour la première page, puis 500 € TTC par page supplémentaire. Copywriting, SEO technique et SEO éditorial inclus.",
  extrasLabel: "Fonctionnalités supplémentaires",
  extrasText: "Blog, prise de rendez-vous en ligne, espace client et développements particuliers : sur devis.",
  hostingLabel: "Hébergement et maintenance",
- hostingText: "49 € TTC par mois, en complément de la création.",
+ hostingText: "50 € TTC par mois, en complément de la création.",
  disclaimer: "Votre estimation est indicative et ne constitue pas un engagement contractuel.",
  accent: "Un devis personnalisé précisera le prix définitif, les prestations incluses et les éventuelles options.",
  button: "Obtenir mon devis personnalisé"
@@ -226,11 +224,11 @@ export const inclus = {
   ["Version mobile :", "adaptation aux smartphones et tablettes."],
   ["Formulaire de contact :", "un moyen simple pour vos prospects de vous joindre."],
   ["Copywriting professionnel :", "des textes pensés pour présenter clairement vos prestations et leurs bénéfices."],
-  ["Bases SEO :", "les fondations essentielles au référencement naturel."],
+  ["Référencement naturel :", "le SEO technique et le SEO éditorial, travaillés page par page."],
   ["Mise en ligne :", "publication du site une fois les étapes de validation terminées."],
   ["Accompagnement :", "échanges et suivi avant et après le lancement, selon les modalités convenues."]
  ],
- after: "L'optimisation SEO éditoriale approfondie peut être ajoutée selon vos objectifs de référencement.",
+ after: "Le copywriting, le SEO technique et le SEO éditorial sont compris dans le prix de chaque page.",
  accent: "Design, technique et contenus sont pensés ensemble pour éviter un site esthétique, mais difficile à comprendre ou à utiliser."
 };
 
@@ -244,7 +242,7 @@ export const hebergement = {
   "Chez SEOKRAFT, ce service accompagne chaque création afin que ces éléments soient intégrés à votre projet dès le départ."
  ],
  priceLabel: "Hébergement et maintenance :",
- price: "49 € TTC/mois",
+ price: "50 € TTC/mois",
  conditionsTitle: "Les conditions sont définies à l'avance :",
  conditions: [
   "Service associé à chaque création de site.",
@@ -262,7 +260,7 @@ export const faq = {
  title: ["Prix, autonomie, référencement : ", "les réponses avant de vous lancer."] as Title,
  items: [
   ["Combien coûte la création d'un site internet à Strasbourg ?", [
-   "Chez SEOKRAFT, la création d'un site internet professionnel débute à 1 990 € TTC.",
+   "Chez SEOKRAFT, la création d'un site internet professionnel débute à 1 690 € TTC pour une page, puis 500 € TTC par page supplémentaire.",
    "Le montant dépend du nombre de pages, des fonctionnalités et des besoins propres à votre entreprise. Un simulateur permet d'obtenir une première estimation avant l'établissement d'un devis personnalisé."]],
   ["Pourrai-je modifier les textes et les images de mon site moi-même ?", [
    "Votre niveau d'autonomie dépend de la solution technique retenue.",
@@ -274,11 +272,10 @@ export const faq = {
    "Oui, des évolutions peuvent être envisagées selon l'architecture et les contraintes techniques du site.",
    "Nouvelle prestation, blog, réservation en ligne ou espace client : chaque besoin complémentaire peut faire l'objet d'une étude et d'un devis."]],
   ["Le copywriting et le SEO sont-ils inclus dans la création ?", [
-   "Le copywriting professionnel et les bases du référencement naturel font partie de l'offre de création, selon le périmètre prévu au devis.",
-   "L'optimisation SEO éditoriale approfondie est une prestation distincte, proposée en option à 150 € TTC par page.",
-   "Cette distinction permet de connaître précisément le niveau de travail éditorial compris dans votre projet."]],
+   "Oui. Le copywriting professionnel, le SEO technique et le SEO éditorial sont inclus dans le prix de chaque page.",
+   "Il n'y a pas d'option à ajouter : chaque page est rédigée et optimisée pour être trouvée sur Google."]],
   ["Proposez-vous l'hébergement et la maintenance du site ?", [
-   "Oui. Chaque création SEOKRAFT comprend un service associé d'hébergement et de maintenance technique, facturé 49 € TTC par mois en complément.",
+   "Oui. Chaque création SEOKRAFT comprend un service associé d'hébergement et de maintenance technique, facturé 50 € TTC par mois en complément.",
    "L'engagement initial est de 12 mois, suivi d'une reconduction mensuelle.",
    "Le contrat détaille les prestations couvertes et les conditions de résiliation."]]
  ] as [string, string[]][]

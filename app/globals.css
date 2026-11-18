@@ -1434,3 +1434,4 @@ html:has(.crm) .sk-cookie-overlay{display:none!important}
 .fv-sig p{font-size:13.5px;color:var(--muted);margin:0 0 12px}.fv-sig .fv-note-small{font-size:12px;margin-top:14px}
 @media(max-width:560px){.fv{padding:20px 16px 32px}.fv-score{flex-direction:column;align-items:flex-start;gap:8px}.fv-pb{grid-template-columns:1fr;gap:8px;padding:16px}.fv-btn{width:100%;justify-content:center;font-size:15px}}
 @media print{.fv{max-width:none;padding:0;font-size:11pt}.fv-detail ul{display:block}.fv-detail summary b{display:none}.fv-pb,.fv-cta,.fv-score{break-inside:avoid}.fv-btn{border:1px solid #fff}}
+.sk-sim-included{font-size:13px;line-height:1.6;color:#4a5438;background:#eef0e6;padding:10px 12px;margin:14px 0 4px}

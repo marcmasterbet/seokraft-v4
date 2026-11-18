@@ -49,8 +49,8 @@ const article = {
    'Enfin, un site qui ne génère aucun contact n’est jamais une bonne affaire, même à petit prix. La clarté du message, la qualité des textes et la facilité de contact comptent davantage que quelques centaines d’euros d’écart sur le devis.'
   ]},
   { heading: 'Un exemple concret : les tarifs de SEOKRAFT', paragraphs: [
-   'Par souci de transparence, voici nos propres tarifs. Chez SEOKRAFT, un site sur mesure démarre à 1 990 € TTC pour une page, 2 990 € TTC pour un site vitrine de 4 pages et 4 190 € TTC pour 8 pages. Ce prix comprend la réflexion sur la structure, le design sur mesure, la version mobile, le copywriting professionnel, les bases du référencement, le formulaire de contact et la mise en ligne.',
-   'L’hébergement et la maintenance représentent 49 € TTC par mois, avec un engagement initial de 12 mois. Les fonctionnalités spécifiques comme la réservation en ligne, un espace client ou un blog sont chiffrées sur devis.',
+   'Par souci de transparence, voici nos propres tarifs. Chez SEOKRAFT, un site sur mesure démarre à 1 690 € TTC pour une page, puis 500 € TTC par page supplémentaire : 3 190 € TTC pour un site vitrine de 4 pages et 5 190 € TTC pour 8 pages. Ce prix comprend la réflexion sur la structure, le design sur mesure, la version mobile, le copywriting professionnel, le référencement technique et éditorial, le formulaire de contact et la mise en ligne.',
+   'L’hébergement et la maintenance représentent 50 € TTC par mois, avec un engagement initial de 12 mois. Les fonctionnalités spécifiques comme la réservation en ligne, un espace client ou un blog sont chiffrées sur devis.',
    'Un simulateur est disponible sur la page d’accueil pour estimer votre projet en quelques secondes selon le nombre de pages et les options souhaitées.'
   ]},
   { heading: 'Comment préparer votre budget', paragraphs: [

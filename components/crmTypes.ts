@@ -117,10 +117,10 @@ export function questionnaireMail(p: Prospect) {
 /* ===================== Espace Clients (sites réalisés) ===================== */
 export type ClientInfo = {
   project: string;            // Création, Refonte, Autre
-  price: string;              // prix du site (texte libre, ex. « 1 990 € TTC »)
+  price: string;              // prix du site (texte libre, ex. « 1 690 € TTC »)
   launchDate: string;         // date de mise en ligne (AAAA-MM-JJ)
   maintenance: boolean;
-  maintenanceAmount: string;  // ex. « 49 € TTC/mois »
+  maintenanceAmount: string;  // ex. « 50 € TTC/mois »
   maintenanceStart: string;   // AAAA-MM-JJ
   invoiceDay: number;         // jour du mois où refaire la facture (1 à 28)
   lastInvoiced: string;       // mois de la dernière facture faite (AAAA-MM)
@@ -130,7 +130,7 @@ export type ClientInfo = {
   reviewAsked: boolean;
   commitmentSeen: boolean;
 };
-export const emptyClient = (): ClientInfo => ({ project: '', price: '', launchDate: '', maintenance: false, maintenanceAmount: '49 € TTC/mois', maintenanceStart: '', invoiceDay: 0, lastInvoiced: '', hostedBy: '', host: '', domainRenewal: '', reviewAsked: false, commitmentSeen: false });
+export const emptyClient = (): ClientInfo => ({ project: '', price: '', launchDate: '', maintenance: false, maintenanceAmount: '50 € TTC/mois', maintenanceStart: '', invoiceDay: 0, lastInvoiced: '', hostedBy: '', host: '', domainRenewal: '', reviewAsked: false, commitmentSeen: false });
 export const isClient = (p: { stage: Stage }) => p.stage === 'client';
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);

@@ -9,7 +9,7 @@ import { WorkTeaser, PricingTeaser, ProblemSection, FaqSection, Contact } from '
 
 export const metadata: Metadata = {
  title: 'Création de site internet à Strasbourg | SEOKRAFT',
- description: 'Création de site internet sur mesure à Strasbourg et en Alsace : site vitrine, refonte, mobile et SEO. Dès 1 990 € TTC, livré en 2 semaines.',
+ description: 'Création de site internet sur mesure à Strasbourg et en Alsace : site vitrine, refonte, mobile et SEO. Dès 1 690 € TTC, livré en 2 semaines.',
  alternates: { canonical: '/creation-site-internet/strasbourg' },
  openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, création de sites internet à Strasbourg' }], 
   type: 'website', locale: 'fr_FR', siteName: 'SEOKRAFT',

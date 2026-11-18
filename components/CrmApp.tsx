@@ -392,7 +392,7 @@ function ClientPart({ p, busy, act }: { p: Prospect; busy: boolean; act: (id: st
     </div> : <form className="crm-box crm-fields" onSubmit={async (e) => { e.preventDefault(); await act(p.id, { action: 'client', fields: f }); setEdit(false); }}>
       <h3 style={{ gridColumn: '1/-1' }}>SITE ET CONTRAT</h3>
       <label>Projet<select value={f.project} onChange={(e) => setF({ ...f, project: e.target.value })}><option value="">—</option><option>Création</option><option>Refonte</option><option>Autre</option></select></label>
-      <label>Prix du site<input placeholder="1 990 € TTC" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></label>
+      <label>Prix du site<input placeholder="1 690 € TTC" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></label>
       <label>Mise en ligne<input type="date" value={f.launchDate} onChange={(e) => setF({ ...f, launchDate: e.target.value })} /></label>
       <label>Maintenance<select value={f.maintenance ? 'oui' : 'non'} onChange={(e) => setF({ ...f, maintenance: e.target.value === 'oui' })}><option value="non">Non</option><option value="oui">Oui</option></select></label>
       {f.maintenance && <>

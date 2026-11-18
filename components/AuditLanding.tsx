@@ -75,7 +75,7 @@ const FAQ: [string, string][] = [
   ['Qui fait l’audit ?', 'Votre site est vérifié point par point : ce que voit Google, la vitesse mesurée par Google lui-même, ce qui permet de vous joindre et les obligations légales. Chaque constat est vérifiable, rien n’est deviné. Puis je relis chaque audit moi-même avant de vous l’envoyer.'],
   ['Mon site va-t-il être modifié ?', 'Non. L’analyse lit votre site comme le ferait un visiteur. Rien n’est modifié, aucun formulaire n’est envoyé.'],
   ['Que devient mon adresse e-mail ?', 'Elle sert à vous envoyer votre audit, puis éventuellement à vous demander s’il vous a été utile. Elle n’est jamais vendue ni cédée, et vous pouvez demander sa suppression à tout moment.'],
-  ['Et refaire mon site, ça coûte combien ?', 'Un site vitrine sur mesure commence à 1 990 € TTC, avec une estimation en ligne selon le nombre de pages. Mais rien ne vous oblige à refaire votre site : souvent, quelques corrections suffisent.'],
+  ['Et refaire mon site, ça coûte combien ?', 'Un site vitrine sur mesure commence à 1 690 € TTC (puis 500 € par page supplémentaire, copywriting et SEO inclus), avec une estimation en ligne selon le nombre de pages. Mais rien ne vous oblige à refaire votre site : souvent, quelques corrections suffisent.'],
 ];
 
 export default function AuditLanding() {
