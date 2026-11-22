@@ -6,6 +6,8 @@
 export type ArticleSummary = { slug: string; tag: string; title: string; text: string; cat: 'site' | 'seo' };
 
 export const articles: ArticleSummary[] = [
+ { slug: 'site-invisible-google', tag: 'Google · Référencement', title: 'Pourquoi mon site n’apparaît pas sur Google ?', text: 'Les 9 causes les plus fréquentes, comment les vérifier vous-même en quelques minutes, et quoi corriger en premier.', cat: 'seo' },
+ { slug: 'referencement-local-strasbourg', tag: 'SEO local · Strasbourg', title: 'Référencement local : comment être trouvé par les clients de votre ville ?', text: 'Fiche Google, pages par service, coordonnées identiques, avis : les actions concrètes pour apparaître à Strasbourg et en Alsace.', cat: 'seo' },
  { slug: 'choisir-createur-site-internet-strasbourg', tag: 'Strasbourg · Choisir son prestataire', title: 'Comment choisir son créateur de site internet à Strasbourg ?', text: 'Freelance ou agence, réalisations, avis, devis, propriété du site : les critères et les questions à poser avant de vous engager.', cat: 'site' },
  { slug: 'site-vitrine-ou-e-commerce', tag: 'Création de site · Choisir', title: 'Site vitrine ou site e-commerce : que choisir ?', text: 'Différences, coûts, obligations et cas concrets pour choisir le bon type de site selon votre activité.', cat: 'site' },
  { slug: 'refonte-site-internet', tag: 'Refonte · Site internet', title: 'Comment savoir si votre site internet doit être refait ?', text: 'Les signes qui montrent qu’une refonte s’impose, et les précautions pour ne pas perdre votre référencement.', cat: 'site' },
