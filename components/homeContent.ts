@@ -101,7 +101,13 @@ export const realisations = {
     need: "Convaincre des chefs d'entreprise de confier leur prospection téléphonique à un indépendant, et les amener à réserver un échange.",
     solution: "Un site d'une page à l'identité visuelle forte, qui pose le problème du prospect, prouve l'expérience par des résultats chiffrés et guide vers la prise de rendez-vous.",
     features: ["Identité visuelle forte et mémorable.", "Résultats chiffrés mis en avant.", "Appels à l'action et formulaire de contact."],
-    button: "Découvrir JEFF BOND" }
+    button: "Découvrir JEFF BOND" },
+  { kind: "massages", name: "L'AME AGIT Ô CORPS", url: "https://massages-pays-basque.fr/", image: "/images/projet-massages-pays-basque.webp",
+    tag: "Site vitrine · Massage à domicile au Pays basque",
+    need: "Faire connaître une praticienne du bien-être qui se déplace à domicile, et transformer les visiteurs en réservations dans les villes qu'elle couvre.",
+    solution: "Un site vitrine apaisant, centré sur le besoin du client, qui présente les soins, rassure sur la praticienne et met la réservation à portée de clic.",
+    features: ["Ambiance visuelle douce et soignée.", "Villes desservies mises en avant.", "Réservation accessible depuis le menu."],
+    button: "Découvrir L'AME AGIT Ô CORPS" }
  ],
  accent: "Un projet web réussi ne se résume pas à son apparence. Il doit répondre à un besoin concret."
 };
