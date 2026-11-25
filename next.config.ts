@@ -36,6 +36,19 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  async redirects() {
+    // Anciennes adresses encore connues de Google : redirection permanente vers la page actuelle
+    const to = (destination: string, ...sources: string[]) => sources.map((source) => ({ source, destination, permanent: true }));
+    return [
+      ...to('/creation-site-internet/strasbourg', '/creation-site-internet-strasbourg', '/creation-site-internet', '/creation-site/strasbourg', '/creation-site/alsace', '/creation-site', '/creation-web'),
+      ...to('/seo/strasbourg', '/seo', '/consultant-seo-strasbourg', '/seo-local', '/referencement-local', '/referencement-seo'),
+      ...to('/', '/site-internet-menuisier', '/site-internet-artisan', '/site-internet-electricien'),
+      ...to('/audit-gratuit', '/audit-seo'),
+      ...to('/blog/geo', '/geo', '/blog-geo.html'),
+      ...to('/blog/referencement-local-strasbourg', '/blog-seo-local.html', '/blog/seo-local'),
+      ...to('/blog', '/blog-seo.html', '/blog/seo-2026'),
+    ];
+  },
   async rewrites() {
     // Adresse courte du questionnaire de projet
     return [{ source: '/questionnaire', destination: '/questionnaire.html' }];
