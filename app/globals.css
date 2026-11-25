@@ -1437,3 +1437,12 @@ html:has(.crm) .sk-cookie-overlay{display:none!important}
 .sk-sim-included{font-size:13px;line-height:1.6;color:#4a5438;background:#eef0e6;padding:10px 12px;margin:14px 0 4px}
 /* Accueil : projet seul sur sa ligne centré (22/11/2026) */
 @media(min-width:801px){.teaser-projects>.teaser-project:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc((100% - clamp(24px,3vw,48px))/2)}}
+
+/* Fêtes de fin d'année (jusqu'au 6 janvier 2027) */
+.noel-band{height:38px;display:flex;align-items:center;justify-content:center;gap:12px;background:#596247;color:#f4f0e8;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;white-space:nowrap;overflow:hidden;padding:0 16px}
+.noel-band span{color:#cfd4bd;font-size:10px}
+body:has(.noel-band) .header{top:38px}
+.brand-name{display:inline-flex;align-items:flex-start}
+.noel-gui{margin:-9px 0 0 2px;flex-shrink:0}
+.noel-off .noel-band,.noel-off .noel-gui{display:none}
+html.noel-off body .header{top:0}
