@@ -34,12 +34,15 @@ export default function CreationSiteStrasbourg() {
 
   <ProblemSection/>
 
-  <Testimonials/>
   <PricingTeaser/>
 
-  <section className="seo-scene" id="zone"><div className="seo-scene-inner"><span className="eyebrow light">ZONE D’INTERVENTION</span><h2>Strasbourg, l’Eurométropole<br/><em>et toute l’Alsace.</em></h2><p>J’accompagne les entreprises et associations de Strasbourg, Schiltigheim, Illkirch-Graffenstaden, Lingolsheim, Bischheim, Hœnheim, Ostwald, Eckbolsheim et Vendenheim, mais aussi de Haguenau, Molsheim, Obernai, Sélestat et Saverne. Grâce au travail à distance, je réalise aussi des sites pour des clients partout en France et en Belgique.</p><a href="/rendez-vous" className="seo-link">Réserver un appel gratuit de 20 minutes <ArrowUpRight size={18}/></a></div></section>
+
+
+  <Testimonials/>
 
   <section className="expertise-section" id="guides"><div className="expertise-heading"><span className="eyebrow">GUIDES UTILES</span><h2>Préparer votre projet.<br/><em>En toute clarté.</em></h2><p>Prix, préparation, type de site, choix du prestataire : des réponses concrètes aux questions que vous vous posez avant de créer votre site.</p><a className="expertise-heading-link" href="/blog">Voir tous les articles <ArrowUpRight size={17}/></a></div><div className="expertise-lines">{guides.map(([href, t, d]) => <a href={href} className="expertise-item" key={href}><span>{t}</span><p>{d}</p><ArrowUpRight aria-hidden="true"/></a>)}</div></section>
+
+  <section className="seo-scene" id="zone"><div className="seo-scene-inner"><span className="eyebrow light">ZONE D’INTERVENTION</span><h2>Strasbourg, l’Eurométropole<br/><em>et toute l’Alsace.</em></h2><p>J’accompagne les entreprises et associations de Strasbourg, Schiltigheim, Illkirch-Graffenstaden, Lingolsheim, Bischheim, Hœnheim, Ostwald, Eckbolsheim et Vendenheim, mais aussi de Haguenau, Molsheim, Obernai, Sélestat et Saverne. Grâce au travail à distance, je réalise aussi des sites pour des clients partout en France et en Belgique.</p><a href="/rendez-vous" className="seo-link">Réserver un appel gratuit de 20 minutes <ArrowUpRight size={18}/></a></div></section>
 
   <FaqSection items={faqs}/>
   <Contact/>

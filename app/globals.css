@@ -1508,3 +1508,10 @@ html.noel-off body .header{top:0}
 .services-lead{font-weight:700}.services-price{color:var(--olive);font-weight:700}
 @media(min-width:1024px){.services-jump{font-size:calc(13px / var(--z))}}
 .hero-photo,.hero-photo img{filter:grayscale(1)!important}
+/* Titres et prix : même échelle partout sur ordinateur */
+@media(min-width:1024px){
+ :is(.sk-pricing-head h1,.sk-pricing-head h2,.section-head h1,.article-head h1,.legal-page h1){font-size:calc(40px / var(--z))!important;line-height:1.15!important}
+ :is(.sk-price strong,.teaser-prices strong){font-size:calc(40px / var(--z))!important}
+}
+@media(min-width:1024px){.intro-scene{padding-top:calc(80px / var(--z))!important;padding-bottom:calc(80px / var(--z))!important}}
+@media(min-width:1024px){:is(.about-intro h1,.about-person-copy h2,.studio-head h2,.about-method h2){font-size:calc(40px / var(--z))!important;line-height:1.15!important}}
