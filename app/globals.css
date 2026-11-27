@@ -1476,3 +1476,23 @@ html.noel-off body .header{top:0}
 .home-cta-light{background:var(--ivory);color:var(--ink)}.home-cta-light:hover{background:#fff}
 .home-cta-link{display:inline-flex;align-items:center;gap:10px;font-size:13px;font-weight:700;border-bottom:1px solid #8d9677;padding-bottom:6px}
 @media(max-width:800px){.home-services{padding:80px 24px}.home-services-grid{grid-template-columns:1fr}.home-cta{padding:85px 24px}.home-cta-actions{flex-direction:column}.home-cta-actions .button{width:100%}}
+
+/* ===== Proportions grand écran (27/11/2026) =====
+   Le contenu ne dépasse plus 1240 px réellement affichés : sur un écran large,
+   les marges grandissent au lieu d'étirer les photos, les cartes et les formulaires. */
+@media(min-width:1024px){
+ :is(.header,.hero,.work-section,.prices-section,.expertise-section,.faq-section,.contact-section,.contact-teaser,.home-services,.home-cta,.footer,.legal-page,.project-final,.project-process,.article-takeaway,.seo-scene,.intro-scene){padding-left:max(clamp(24px,5.4vw,96px),calc((100% - 1240px / var(--z)) / 2))!important;padding-right:max(clamp(24px,5.4vw,96px),calc((100% - 1240px / var(--z)) / 2))!important}
+ .testimonials-section :is(.tm-head,.tm-foot){padding-left:max(clamp(24px,5.4vw,96px),calc((100% - 1240px / var(--z)) / 2))!important;padding-right:max(clamp(24px,5.4vw,96px),calc((100% - 1240px / var(--z)) / 2))!important}
+ .home-service strong{font-size:calc(24px / var(--z))}
+ .home-service p{font-size:calc(15px / var(--z))}
+ .home-service span,.home-cta-link{font-size:calc(13px / var(--z))}
+ .home-services-head h2{margin-bottom:calc(36px / var(--z))}
+}
+@media(min-width:1024px){
+ .hero-copy h1{font-size:calc(50px / var(--z))!important}
+ :is(.section-head h2,.expertise-heading h2,.faq-section h2,.home-services-head h2,.human-quote h2,.contact-intro h2,.tm-head h2,.seo-scene h2,.intro-scene h2){font-size:calc(40px / var(--z))!important}
+ .home-cta h2{font-size:calc(38px / var(--z))!important}
+ .hero-visual{height:calc(500px / var(--z))!important}
+}
+.home-cta{background:var(--olive)}.home-cta .eyebrow.light{color:#dfe3d2}.home-cta h2 em{color:#e4e7d9}
+.home-cta .button-olive{background:var(--ink)}.home-cta .button-olive:hover{background:#2a2d24}.home-cta-link{border-bottom-color:#dfe3d2}
