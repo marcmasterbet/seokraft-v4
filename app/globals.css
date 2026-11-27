@@ -1515,3 +1515,4 @@ html.noel-off body .header{top:0}
 }
 @media(min-width:1024px){.intro-scene{padding-top:calc(80px / var(--z))!important;padding-bottom:calc(80px / var(--z))!important}}
 @media(min-width:1024px){:is(.about-intro h1,.about-person-copy h2,.studio-head h2,.about-method h2){font-size:calc(40px / var(--z))!important;line-height:1.15!important}}
+@media(max-width:800px){:is(.about-person-copy h2,.booking-intro h1){font-size:clamp(29px,7.8vw,36px)!important;line-height:1.16!important}.hero.hero-text{padding-bottom:20px}}
