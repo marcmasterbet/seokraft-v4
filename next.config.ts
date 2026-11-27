@@ -44,6 +44,7 @@ const nextConfig: NextConfig = {
       ...to('/seo/strasbourg', '/seo', '/consultant-seo-strasbourg', '/seo-local', '/referencement-local', '/referencement-seo'),
       ...to('/', '/site-internet-menuisier', '/site-internet-artisan', '/site-internet-electricien'),
       ...to('/audit-gratuit', '/audit-seo'),
+      ...to('/services', '/refonte-site-internet/strasbourg', '/refonte-site-internet'),
       ...to('/blog/geo', '/geo', '/blog-geo.html'),
       ...to('/blog/referencement-local-strasbourg', '/blog-seo-local.html', '/blog/seo-local'),
       ...to('/blog', '/blog-seo.html', '/blog/seo-2026'),

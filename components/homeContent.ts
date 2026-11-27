@@ -59,15 +59,15 @@ export const prestations = {
  ],
  button: "Discutons de votre projet web",
  items: [
-  { title: "Création de sites internet", href: "/creation-site-internet/strasbourg",
+  { title: "Création de sites internet", href: "/services#creation",
     question: "Vous lancez votre entreprise ou souhaitez enfin disposer d'une présence en ligne professionnelle ?",
     text: "Je crée des sites vitrines qui présentent clairement votre activité, valorisent vos prestations et permettent à vos visiteurs de vous contacter facilement.",
     benefit: "un site qui inspire confiance dès la première visite." },
-  { title: "Refonte de sites internet", href: "/refonte-site-internet/strasbourg",
+  { title: "Refonte de sites internet", href: "/services#refonte",
     question: "Votre entreprise a évolué, mais votre site ne reflète plus son niveau d'exigence ?",
     text: "Je retravaille sa structure, son design, sa navigation et ses contenus pour offrir une expérience plus claire, notamment sur mobile.",
     benefit: "une image digitale plus cohérente avec la qualité de votre entreprise." },
-  { title: "Référencement local", href: "/seo/strasbourg",
+  { title: "Référencement local", href: "/services#referencement",
     question: "Vous souhaitez être trouvé sur Google quand on cherche votre métier près de chez vous ?",
     text: "Je vous accompagne sur la structure technique, les contenus et les informations qui permettent aux moteurs de recherche de mieux comprendre votre activité.",
     benefit: "une présence en ligne travaillée pour répondre aux recherches pertinentes de vos futurs clients." }

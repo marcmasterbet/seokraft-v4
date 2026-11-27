@@ -1498,3 +1498,13 @@ html.noel-off body .header{top:0}
 .home-cta .button-olive{background:var(--ink)}.home-cta .button-olive:hover{background:#2a2d24}.home-cta-link{border-bottom-color:#dfe3d2}
 @media(min-width:801px){.work-section.page-first{padding-top:150px}.work-section.page-first .section-head{margin-top:0;padding-top:0}}
 .work-section.page-first .section-head-copy{display:none}.work-section.page-first .section-head{margin-bottom:48px}
+/* Pages services : sans photo, texte seul */
+.hero.hero-text{min-height:0;padding-bottom:70px}
+.hero.hero-text .hero-layout{grid-template-columns:1fr;min-height:0}
+.hero.hero-text .hero-copy{max-width:760px}
+.hero.hero-text .hero-copy h1{white-space:normal}
+.services-jump{font-size:13px;font-weight:700;border-bottom:1px solid var(--olive);padding-bottom:6px;margin-right:22px}
+.services-block{background:var(--ivory)}.services-block.services-alt{background:#e8e5dc}
+.services-lead{font-weight:700}.services-price{color:var(--olive);font-weight:700}
+@media(min-width:1024px){.services-jump{font-size:calc(13px / var(--z))}}
+.hero-photo,.hero-photo img{filter:grayscale(1)!important}
