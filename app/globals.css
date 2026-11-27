@@ -1446,3 +1446,33 @@ body:has(.noel-band) .header{top:38px}
 .noel-gui{margin:-9px 0 0 2px;flex-shrink:0}
 .noel-off .noel-band,.noel-off .noel-gui{display:none}
 html.noel-off body .header{top:0}
+
+/* Menu Services */
+.nav-services{position:relative;display:flex;align-items:center}
+.nav-services-btn{display:inline-flex;align-items:center;gap:5px;background:none;border:0;padding:0;font-size:12px;font-weight:700;color:inherit;white-space:nowrap}
+.nav-services-btn:hover{color:var(--olive)}
+.nav-services-btn svg{transition:transform .2s}.nav-services-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.nav-services-panel{position:absolute;top:100%;left:-22px;padding-top:16px;z-index:40;width:330px}
+.nav-services-panel::before{content:"";position:absolute;inset:16px 0 0;background:var(--ivory);border:1px solid #d2d0c6;box-shadow:0 18px 40px rgba(21,23,19,.12);z-index:-1}
+.desktop-nav .nav-services-panel a{display:block;padding:15px 22px;border-bottom:1px solid #e3dfd5;white-space:normal}
+.desktop-nav .nav-services-panel a:last-child{border-bottom:0}
+.nav-services-panel strong{display:block;font-size:13px;margin-bottom:4px}
+.nav-services-panel span{display:block;font-size:12px;font-weight:400;line-height:1.5;color:#696b62}
+.desktop-nav .nav-services-panel a:hover strong{color:var(--olive)}
+.desktop-nav .nav-services-btn{font-size:calc(13px * var(--t, 1) / var(--z))!important}
+/* Accueil allégé (27/11/2026) : services en cartes, bandeau final */
+.home-services{background:#e8e5dc;padding:100px clamp(24px,7vw,130px)}
+.home-services-head h2{font-size:clamp(40px,4.6vw,64px);line-height:1.15;letter-spacing:-.055em;margin:18px 0 48px}
+.home-services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.home-service{display:flex;flex-direction:column;gap:16px;background:var(--ivory);border:1px solid #cfccc1;padding:34px 30px 28px;transition:transform .25s,border-color .25s}
+.home-service:hover{transform:translateY(-4px);border-color:var(--olive)}
+.home-service strong{font:400 clamp(24px,2.1vw,30px)/1.2 'Playfair Display',Georgia,serif;letter-spacing:-.03em}
+.home-service p{font-size:14px;line-height:1.75;color:#5f6157;margin:0;flex:1}
+.home-service span{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:var(--olive)}
+.home-cta{background:var(--ink);color:var(--ivory);padding:110px clamp(24px,7vw,130px);text-align:center}
+.home-cta h2{font-size:clamp(36px,4.4vw,62px);line-height:1.18;letter-spacing:-.05em;margin:24px auto 44px;max-width:1000px}
+.home-cta h2 em{color:#c0c8a9}
+.home-cta-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:18px 26px}
+.home-cta-light{background:var(--ivory);color:var(--ink)}.home-cta-light:hover{background:#fff}
+.home-cta-link{display:inline-flex;align-items:center;gap:10px;font-size:13px;font-weight:700;border-bottom:1px solid #8d9677;padding-bottom:6px}
+@media(max-width:800px){.home-services{padding:80px 24px}.home-services-grid{grid-template-columns:1fr}.home-cta{padding:85px 24px}.home-cta-actions{flex-direction:column}.home-cta-actions .button{width:100%}}

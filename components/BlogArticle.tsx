@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from './SiteHeader';
 import SiteFooter from './SiteFooter';
-import { Contact } from './Home';
 import { relatedArticles, nbsp } from './articles';
 
 type Article = { title: string; eyebrow: string; intro: string; sections: {heading:string; paragraphs:string[]}[]; conclusion:string; slug:string; date?:string; published?:string };
@@ -29,7 +28,7 @@ export default function BlogArticle({article}:{article:Article}) {
    <section className="article-takeaway">
     <span className="eyebrow">À RETENIR</span>
     <h2>{nbsp(article.conclusion)}</h2>
-    <a href="#contact" className="text-link">Parlons de votre projet <ArrowUpRight size={17}/></a>
+    <a href="/contact" className="text-link">Parlons de votre projet <ArrowUpRight size={17}/></a>
    </section>
   </article>
 
@@ -38,6 +37,5 @@ export default function BlogArticle({article}:{article:Article}) {
    <div className="expertise-lines">{relatedArticles(article.slug).map(a=><a href={`/blog/${a.slug}`} className="expertise-item" key={a.slug}><span>{nbsp(a.title)}</span><p>{nbsp(a.text)}</p><ArrowUpRight aria-hidden="true"/></a>)}</div>
   </section>
 
-  <Contact/>
  </main><SiteFooter/></>;
 }

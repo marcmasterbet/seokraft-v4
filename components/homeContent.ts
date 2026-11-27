@@ -63,16 +63,12 @@ export const prestations = {
     question: "Vous lancez votre entreprise ou souhaitez enfin disposer d'une présence en ligne professionnelle ?",
     text: "Je crée des sites vitrines qui présentent clairement votre activité, valorisent vos prestations et permettent à vos visiteurs de vous contacter facilement.",
     benefit: "un site qui inspire confiance dès la première visite." },
-  { title: "Refonte de sites internet", href: "#contact",
+  { title: "Refonte de sites internet", href: "/refonte-site-internet/strasbourg",
     question: "Votre entreprise a évolué, mais votre site ne reflète plus son niveau d'exigence ?",
     text: "Je retravaille sa structure, son design, sa navigation et ses contenus pour offrir une expérience plus claire, notamment sur mobile.",
     benefit: "une image digitale plus cohérente avec la qualité de votre entreprise." },
-  { title: "Développement web sur mesure", href: "#contact",
-    question: "Vous avez besoin de fonctionnalités qui dépassent celles d'un site vitrine classique ?",
-    text: "Prise de rendez-vous, paiement en ligne, espace client ou plateforme web : je développe des solutions adaptées aux usages de votre activité.",
-    benefit: "des fonctionnalités conçues autour de vos besoins réels." },
-  { title: "Référencement SEO & GEO", href: "/seo/strasbourg",
-    question: "Vous souhaitez améliorer la visibilité de votre entreprise sur Google et dans les nouveaux environnements de recherche ?",
+  { title: "Référencement local", href: "/seo/strasbourg",
+    question: "Vous souhaitez être trouvé sur Google quand on cherche votre métier près de chez vous ?",
     text: "Je vous accompagne sur la structure technique, les contenus et les informations qui permettent aux moteurs de recherche de mieux comprendre votre activité.",
     benefit: "une présence en ligne travaillée pour répondre aux recherches pertinentes de vos futurs clients." }
  ],
@@ -85,11 +81,29 @@ export const realisations = {
  title: ["Vous voulez savoir ce que je peux créer ? ", "Regardez ce que j'ai déjà réalisé."] as Title,
  paragraphs: [
   "Chaque projet présenté ici répond à un besoin différent.",
-  "L'un devait rendre accessible une expertise technologique exigeante. L'autre devait transformer une visite en rendez-vous commercial.",
-  "Deux problématiques. Deux réponses adaptées."
+  "Une plateforme de location sans commission, une praticienne et une community manager à faire connaître dans leur région, une expertise technologique à rendre accessible, une visite à transformer en rendez-vous commercial.",
+  "Des besoins différents. Des réponses adaptées."
  ],
  labels: { need: "LE BESOIN", solution: "LA RÉALISATION", features: "POINTS CLÉS" },
  projects: [
+  { kind: "loca", name: "LOCADIRECT", url: "https://www.loca-direct.fr/", image: "/images/projet-loca-direct.webp",
+    tag: "Plateforme web · Location de vacances entre particuliers",
+    need: "Permettre aux voyageurs de louer directement auprès des propriétaires, sans commission ni frais de service.",
+    solution: "Une plateforme complète : recherche sur carte de France, filtre « chien accepté », annonces publiées gratuitement par les propriétaires et contact direct par WhatsApp.",
+    features: ["Carte interactive des logements.", "Espace propriétaire pour publier son annonce.", "Annuaire des prestataires de la location saisonnière."],
+    button: "Découvrir LOCADIRECT" },
+  { kind: "massages", name: "L'AME AGIT Ô CORPS", url: "https://massages-pays-basque.fr/", image: "/images/projet-massages-pays-basque.webp",
+    tag: "Site vitrine · Massage à domicile au Pays basque",
+    need: "Faire connaître une praticienne du bien-être qui se déplace à domicile, et transformer les visiteurs en réservations dans les villes qu'elle couvre.",
+    solution: "Un site vitrine apaisant, centré sur le besoin du client, qui présente les soins, rassure sur la praticienne et met la réservation à portée de clic.",
+    features: ["Ambiance visuelle douce et soignée.", "Villes desservies mises en avant.", "Réservation accessible depuis le menu."],
+    button: "Découvrir L'AME AGIT Ô CORPS" },
+  { kind: "cindy", name: "CINDY MAWART", url: "https://communitymanager-paysbasque.fr/", image: "/images/projet-community-manager-pays-basque.webp",
+    tag: "Site vitrine · Community manager au Pays basque",
+    need: "Présenter une community manager freelance et convaincre les entreprises locales de lui confier leurs réseaux sociaux.",
+    solution: "Un site chaleureux et personnel, qui parle directement aux problèmes du client et le guide vers une demande d'audit offert.",
+    features: ["Ton direct et proche, en tutoiement.", "Textes qui partent des besoins du client.", "Audit offert mis en avant à chaque étape."],
+    button: "Découvrir CINDY MAWART" },
   { kind: "remus", name: "REMUS SYSTEMS", url: "https://remussystems.fr", image: "/images/projet-remus-systems.webp",
     tag: "Site internet sur mesure · Technologies et innovation",
     need: "Présenter une activité technologique complexe sans perdre le visiteur dans des explications difficiles à comprendre.",
@@ -101,13 +115,7 @@ export const realisations = {
     need: "Convaincre des chefs d'entreprise de confier leur prospection téléphonique à un indépendant, et les amener à réserver un échange.",
     solution: "Un site d'une page à l'identité visuelle forte, qui pose le problème du prospect, prouve l'expérience par des résultats chiffrés et guide vers la prise de rendez-vous.",
     features: ["Identité visuelle forte et mémorable.", "Résultats chiffrés mis en avant.", "Appels à l'action et formulaire de contact."],
-    button: "Découvrir JEFF BOND" },
-  { kind: "massages", name: "L'AME AGIT Ô CORPS", url: "https://massages-pays-basque.fr/", image: "/images/projet-massages-pays-basque.webp",
-    tag: "Site vitrine · Massage à domicile au Pays basque",
-    need: "Faire connaître une praticienne du bien-être qui se déplace à domicile, et transformer les visiteurs en réservations dans les villes qu'elle couvre.",
-    solution: "Un site vitrine apaisant, centré sur le besoin du client, qui présente les soins, rassure sur la praticienne et met la réservation à portée de clic.",
-    features: ["Ambiance visuelle douce et soignée.", "Villes desservies mises en avant.", "Réservation accessible depuis le menu."],
-    button: "Découvrir L'AME AGIT Ô CORPS" }
+    button: "Découvrir JEFF BOND" }
  ],
  accent: "Un projet web réussi ne se résume pas à son apparence. Il doit répondre à un besoin concret."
 };
@@ -127,14 +135,13 @@ export const seoGeo = {
  dimensions: [
   ["SEO technique", "Une structure cohérente, des pages correctement organisées et une attention portée aux performances du site."],
   ["SEO éditorial", "Des contenus construits autour des intentions de recherche, avec des titres pertinents, un vocabulaire métier naturel et des informations utiles."],
-  ["Référencement local", "Une présence digitale cohérente avec votre zone d'activité, notamment Strasbourg, l'Eurométropole, le Bas-Rhin et l'Alsace."],
-  ["GEO et recherches assistées par IA", "Des informations claires, structurées et fiables pour faciliter la compréhension de votre entreprise dans les nouveaux environnements de recherche."]
+  ["Référencement local", "Une présence digitale cohérente avec votre zone d'activité, notamment Strasbourg, l'Eurométropole, le Bas-Rhin et l'Alsace."]
  ],
  outro: [
-  "Aucun professionnel sérieux ne peut garantir une première position sur Google ou une recommandation par une intelligence artificielle.",
+  "Aucun professionnel sérieux ne peut garantir une première position sur Google .",
   "En revanche, il est possible de travailler méthodiquement les éléments qui favorisent la compréhension et la découverte de votre site."
  ],
- button: "Découvrir mon accompagnement SEO & GEO"
+ button: "Découvrir mon accompagnement SEO"
 };
 
 /* BLOC 6 — À PROPOS */
@@ -305,7 +312,7 @@ export const contact = {
  ],
  signature: {
   name: "SEOKRAFT — Marc Bretzner",
-  lines: ["Développeur web indépendant basé à Strasbourg.", "Création de sites internet, refonte, développement sur mesure et référencement SEO & GEO en Alsace et partout en France."],
+  lines: ["Développeur web indépendant basé à Strasbourg.", "Création de sites internet, refonte et référencement local en Alsace et partout en France."],
   accent: "Votre entreprise a son expertise. Donnons à vos futurs clients les moyens de la découvrir et de la comprendre."
  }
 };

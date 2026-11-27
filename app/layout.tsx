@@ -31,7 +31,7 @@ const schema = {
     { '@type': 'AdministrativeArea', name: 'Alsace' },
     { '@type': 'Country', name: 'France' }
    ],
-   knowsAbout: ['Création de site internet', 'Refonte de site internet', 'Développement web', 'Référencement SEO', 'GEO'],
+   knowsAbout: ['Création de site internet', 'Refonte de site internet', 'Développement web', 'Référencement SEO', 'Référencement local'],
    sameAs: ['https://www.linkedin.com/in/marc-bretzner-d%C3%A9veloppeur-web']
   },
   {

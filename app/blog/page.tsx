@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { ArrowUpRight } from 'lucide-react';
 import SiteHeader from '../../components/SiteHeader';
 import SiteFooter from '../../components/SiteFooter';
-import { StudioSection, Contact } from '../../components/Home';
 import { articles, nbsp } from '../../components/articles';
 
 export const metadata: Metadata = {
@@ -30,13 +29,10 @@ export default function BlogIndex() {
    <ArticleLines list={siteArticles}/>
   </section>
 
-  <StudioSection/>
-
   <section className="expertise-section" id="seo-ia">
    <div className="expertise-heading"><span className="eyebrow">SEO, GEO &amp; IA</span><h2>Être trouvé.<br/><em>Sur Google et ailleurs.</em></h2><p>Référencement naturel, réponses de l’IA de Google, ChatGPT : comprendre comment vos futurs clients vous cherchent aujourd’hui.</p><a className="expertise-heading-link" href="/seo/strasbourg">Référencement SEO à Strasbourg <ArrowUpRight size={17}/></a></div>
    <ArticleLines list={seoArticles}/>
   </section>
 
-  <Contact/>
  </main><SiteFooter/></>;
 }
