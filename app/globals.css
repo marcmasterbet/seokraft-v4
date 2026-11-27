@@ -1496,3 +1496,5 @@ html.noel-off body .header{top:0}
 }
 .home-cta{background:var(--olive)}.home-cta .eyebrow.light{color:#dfe3d2}.home-cta h2 em{color:#e4e7d9}
 .home-cta .button-olive{background:var(--ink)}.home-cta .button-olive:hover{background:#2a2d24}.home-cta-link{border-bottom-color:#dfe3d2}
+@media(min-width:801px){.work-section.page-first{padding-top:150px}.work-section.page-first .section-head{margin-top:0;padding-top:0}}
+.work-section.page-first .section-head-copy{display:none}.work-section.page-first .section-head{margin-bottom:48px}

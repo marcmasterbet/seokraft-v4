@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import SiteHeader from '../../components/SiteHeader';
 import SiteFooter from '../../components/SiteFooter';
-import Testimonials from '../../components/Testimonials';
-import { WorkSection, Contact } from '../../components/Home';
+import { WorkSection } from '../../components/Home';
 
 const description = 'Les sites réalisés par SEOKRAFT, développeur web à Strasbourg : LOCADIRECT, L’AME AGIT Ô CORPS, CINDY MAWART, REMUS SYSTEMS et JEFF BOND. Le besoin, la réalisation et les points clés de chaque projet.';
 export const metadata: Metadata = {
@@ -12,4 +11,4 @@ export const metadata: Metadata = {
  openGraph: { images: [{ url: '/opengraph-image.jpg', width: 1200, height: 630, alt: 'SEOKRAFT, création de sites internet à Strasbourg' }], title: 'Réalisations | SEOKRAFT', description, url: 'https://www.seokraft.fr/realisations' }
 };
 
-export default function RealisationsPage(){return <><SiteHeader/><main><WorkSection page/><Testimonials/><Contact/></main><SiteFooter/></>}
+export default function RealisationsPage(){return <><SiteHeader/><main><WorkSection page/></main><SiteFooter/></>}
